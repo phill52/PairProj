@@ -30,6 +30,7 @@ export function CreateAccount() {
         console.log("created account");
         setEmail("");
         setPassword("");
+        setError(false);
         // navigate to complete account setup
       } else {
         console.log("invalid credentials");
