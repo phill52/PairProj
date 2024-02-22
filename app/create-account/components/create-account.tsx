@@ -34,13 +34,44 @@ export function CreateAccount() {
 				console.error("invalid credentials", error);
 				setError(true);
 			} else {
-				console.log("signed up");
 				setEmail("");
 				setPassword("");
 				router.push("/"); // navigate to homepage
 			}
 		} catch (error) {
 			console.error(error);
+		}
+	};
+
+	const handleGithub = async () => {
+		try {
+			const { error } = await supabase.auth.signInWithOAuth({
+				provider: "github",
+			});
+			if (error) {
+				console.error("Error signing in with GitHub", error);
+			} else {
+				console.log("signed in with GitHub");
+				router.push("/"); // navigate to homepage
+			}
+		} catch (e) {
+			console.error(e);
+		}
+	};
+
+	const handleGoogle = async () => {
+		try {
+			const { error } = await supabase.auth.signInWithOAuth({
+				provider: "google",
+			});
+			if (error) {
+				console.error("Error signing in with Google", error);
+			} else {
+				console.log("signed in with Google");
+				router.push("/"); // navigate to homepage
+			}
+		} catch (e) {
+			console.error(e);
 		}
 	};
 
@@ -98,11 +129,11 @@ export function CreateAccount() {
 						</div>
 					</div>
 					<div className="grid grid-cols-2 gap-6">
-						<Button variant="outline">
+						<Button variant="outline" onClick={handleGithub}>
 							<Icons.gitHub className="mr-2 h-4 w-4" />
 							Github
 						</Button>
-						<Button variant="outline">
+						<Button variant="outline" onClick={handleGoogle}>
 							<Icons.google className="mr-2 h-4 w-4" />
 							Google
 						</Button>
