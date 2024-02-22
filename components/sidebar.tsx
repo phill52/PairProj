@@ -1,0 +1,258 @@
+import React from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { useRouter } from "next/router";
+import { Input } from "./ui/input";
+import { Url } from "next/dist/shared/lib/router/router";
+import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
+import { formatDistanceToNow } from "date-fns";
+
+type NavBarProps = {
+    user: {
+        name: string;
+        profilepicture: string;
+    };
+    directmessages: {
+        user: {
+            name: string;
+            profilepicture: string;
+            pinned: boolean;
+        };
+        lastmessage: {
+            content: string;
+            time: Date;
+            read: boolean;
+        };
+    }[];
+    projects: string[];
+};
+
+const SampleInput: NavBarProps = {
+    user: {
+        name: "Taeseo Um",
+        profilepicture: "/images/profile.jpg",
+    },
+    directmessages: [
+        {
+            user: {
+                name: "Rocco Vaccone",
+                profilepicture: "/images/profile.jpg",
+                pinned: true,
+            },
+            lastmessage: {
+                content: "Hey, how are you?",
+                time: new Date("2024-02-20T12:00:00Z"),
+                read: false,
+            },
+        },
+        {
+            user: {
+                name: "Matt Ferguson",
+                profilepicture: "/images/profile.jpg",
+                pinned: false,
+            },
+            lastmessage: {
+                content: "Let me know when you can start on feature xy",
+                time: new Date("2024-02-07T12:00:00Z"),
+                read: true,
+            },
+        },
+        {
+            user: {
+                name: "Steven Lee",
+                profilepicture: "/images/profile.jpg",
+                pinned: false,
+            },
+            lastmessage: {
+                content: "Hey :)",
+                time: new Date("2024-01-15T12:00:00Z"),
+                read: true,
+            },
+        },
+    ],
+    projects: ["Workwind", "ProgPair"],
+};
+
+const InitialsFromName = (name: string) => {
+    return name
+        .split(" ")
+        .map((n) => n[0])
+        .join("");
+};
+
+const MenuItem = ({
+    link,
+    name,
+    icon,
+}: {
+    link: Url;
+    name: string;
+    icon: string;
+}) => {
+    return (
+        <div
+            className="flex items-center
+ space-x-4 py-2 px-4 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer transition-all ease-linear w-[17.5rem]">
+            <Image src={icon} alt={name} width={30} height={30} />
+            <Link href={link}>
+                <p className="text-md text-black">{name}</p>
+            </Link>
+        </div>
+    );
+};
+
+const Divider = () => {
+    return <hr className="w-[80%]" />;
+};
+
+const Sidebar = () => {
+    return (
+        <header className="min-h-screen z-50">
+            {/* Hidden checkbox to control the menu */}
+            <input type="checkbox" id="menu-toggle" className="hidden" />
+
+            {/* Sidebar */}
+            <label htmlFor="menu-toggle" className="cursor-pointer lg:hidden">
+                {/* Menu Icon */}
+                <span className="block p-4 text-4xl">☰</span>
+            </label>
+            <div className="sidebar flex flex-col items-center bg-white dark:bg-gray-800 text-white w-full space-y-1 absolute inset-y-0 left-0 transform -translate-x-full lg:relative lg:translate-x-0 transition duration-200 ease-in-out min-h-screen">
+                <div className="flex flex-col justify-center py-3">
+                    <h1 className="text-2xl font-bold uppercase text-black self-center">
+                        ProgPair
+                    </h1>
+                </div>
+                <Divider />
+                <div className="flex flex-col px-4 items-start">
+                    <MenuItem
+                        link="/projects/search"
+                        name="Search Projects"
+                        icon="/icons/search-light.svg"
+                    />
+                    <MenuItem
+                        link="/users/search"
+                        name="Search Users"
+                        icon="/icons/search-light.svg"
+                    />
+                    <div className="flex items-center space-x-4 py-2 px-4 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer transition-all ease-linear w-[17.5rem]">
+                        <Avatar>
+                            <AvatarImage
+                                src={SampleInput.user.profilepicture}
+                            />
+                            <AvatarFallback>
+                                {InitialsFromName(SampleInput.user.name)}
+                            </AvatarFallback>
+                        </Avatar>
+                        <p className="text-md text-black">
+                            {SampleInput.user.name}
+                        </p>
+                    </div>
+                </div>
+                <Divider />
+                <div className="flex flex-col items-center px-4 ">
+                    <div className="flex">
+                        <h1 className="text-lg font-bold text-black">
+                            Direct Messages
+                        </h1>
+                    </div>
+                    <div>
+                        {SampleInput.directmessages.map((dm) => {
+                            const messageTime = formatDistanceToNow(
+                                new Date(dm.lastmessage.time),
+                                {
+                                    addSuffix: true,
+                                }
+                            );
+                            return (
+                                <div
+                                    key={dm.user.name}
+                                    className="flex items-start space-x-4 py-2 px-4 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer transition-all ease-linear">
+                                    <Avatar>
+                                        <AvatarImage
+                                            src={dm.user.profilepicture}
+                                        />
+                                        <AvatarFallback>
+                                            {InitialsFromName(dm.user.name)}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex flex-1 w-[12rem]">
+                                        <div className="flex flex-col flex-1 min-w-0">
+                                            <p className="text-xs text-black font-medium truncate">
+                                                {dm.user.name}
+                                            </p>
+                                            <p
+                                                className={`text-2xs text-black truncate ${
+                                                    !dm.lastmessage.read
+                                                        ? "font-bold"
+                                                        : "font-normal"
+                                                }`}>
+                                                {messageTime} "
+                                                {dm.lastmessage.content}"
+                                            </p>
+                                        </div>
+                                        <div className="flex flex-col justify-between ml-4 right-5 rounded-md hover:bg-gray-400 dark:hover:bg-gray-900 transition-all ease-linear">
+                                            <Image
+                                                src={
+                                                    dm.user.pinned
+                                                        ? "/icons/pin-fill-1.svg"
+                                                        : "/icons/pin-1.svg"
+                                                }
+                                                alt={
+                                                    dm.user.name
+                                                        ? "Pinned"
+                                                        : "Unpinned"
+                                                }
+                                                width={20}
+                                                height={20}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+                <Divider />
+                <div className="flex flex-col items-start w-[17.5rem]">
+                    <h1 className="text-lg font-bold text-black self-center">
+                        Projects
+                    </h1>
+                    {/* create a new project */}
+                    <div className="flex items-center justify-center space-x-4 py-2 px-4 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer transition-all ease-linear w-full">
+                        <Image
+                            src="/icons/plus-svgrepo-com.svg"
+                            alt="Create New Project"
+                            width={30}
+                            height={30}
+                        />
+                        <p className="text-md text-black">Create New Project</p>
+                    </div>
+                    <div className="w-full">
+                        {SampleInput.projects.map((project) => (
+                            <div
+                                key={project}
+                                className="flex items-center justify-center space-x-4 py-2 px-4 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer transition-all ease-linear w-full">
+                                <p className="text-md text-black">{project}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                <Divider />
+                <div className="flex justify-center w-[17.5rem] rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer transition-all ease-linear">
+                    <Image
+                        className="jusityf-self-start"
+                        src="/icons/bookmark.svg"
+                        alt="Saved Projects"
+                        width={30}
+                        height={30}
+                    />
+                    <h1 className="text-lg font-bold py-2 text-black">
+                        Saved Projects
+                    </h1>
+                </div>
+            </div>
+        </header>
+    );
+};
+
+export default Sidebar;
