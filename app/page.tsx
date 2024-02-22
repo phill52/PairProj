@@ -13,7 +13,7 @@ export default function Home() {
 					</h1>
 					<Image
 						src="/images/welcome.svg"
-						alt="Welcome to ProgpPair"
+						alt="Welcome to ProgPair"
 						width={500}
 						height={500}
 					/>
