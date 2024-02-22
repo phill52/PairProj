@@ -9,7 +9,7 @@ export default function Home() {
 			<main className="flex-grow p-24">
 				<div className="flex flex-col items-center">
 					<h1 className="mb-10 text-center text-4xl font-bold">
-						Welcome to ProgpPair
+						Welcome to ProgPair
 					</h1>
 					<Image
 						src="/images/welcome.svg"
