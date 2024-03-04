@@ -21,7 +21,7 @@ const skillIcons: SkillIconMap = {
 	Docker: "/skills/icons8-docker.svg",
 	CSS: "/skills/icons8-css3.svg",
 	"C++": "/skills/icons8-c++.svg",
-	Csharp: "/skills/icons8-c-sharp-logo.svg",
+	"C#": "/skills/icons8-c-sharp-logo.svg",
 	C: "/skills/icons8-c-programming.svg",
 };
 

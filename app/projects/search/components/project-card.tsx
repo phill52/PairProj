@@ -10,8 +10,10 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, Dispatch, SetStateAction, useEffect, useMemo } from "react";
 import skillIcons from "@/components/skillIcons";
+import { FilterObject, useFilters } from "../FiltersContext";
+import Link from "next/link";
 
 interface Project {
 	id: number;
@@ -153,13 +155,51 @@ const cardStyle = {
 	margin: "0.5rem",
 };
 
+const filterProjects = (projects: Project[], filters: FilterObject[]) => {
+	// filter projects based on the skills filters for now
+	// should be able to filter all types of filters in backend
+	if (filters.length === 0) return projects;
+
+	for (const filterObj of filters) {
+		switch (filterObj.label) {
+			case "skills":
+				projects = projects.filter((project) => {
+					const technologies = [
+						...project.requiredTechnologies,
+						...project.technologies,
+					];
+					return technologies.includes(filterObj.value);
+				});
+				break;
+			// case "query":
+			// 	projects = projects.filter((project) => {
+			// 		return project.name
+			// 			.toLowerCase()
+			// 			.includes(filterObj.value.toLowerCase());
+			// 	});
+			default:
+				break;
+		}
+	}
+
+	return projects;
+};
+
 export default function ProjectCard() {
-	const [mockLikes, setMockLikes] = useState<number[]>([]);
+	const [likes, setLikes] = useState<number[]>([]);
+	const { filtersSelected } = useFilters();
+
+	const projects = useMemo(() => {
+		return filterProjects(mockProjects, filtersSelected);
+	}, [mockProjects, filtersSelected]);
+
 	const handleLike = (id: number) => {
-		if (mockLikes.includes(id)) {
-			setMockLikes(mockLikes.filter((like) => like !== id));
+		if (likes.includes(id)) {
+			setLikes(likes.filter((like) => like !== id));
+			// addLike(id);
 		} else {
-			setMockLikes([...mockLikes, id]);
+			setLikes([...likes, id]);
+			// removeLike(id);
 		}
 	};
 
@@ -170,8 +210,8 @@ export default function ProjectCard() {
 				gridTemplateColumns: "repeat(auto-fill, minmax(24rem, 1fr))",
 			}}
 		>
-			{mockProjects.map((project, index) => (
-				<Card key={index} style={cardStyle}>
+			{projects.map((project, index) => (
+				<Card key={index} style={cardStyle as React.CSSProperties}>
 					<CardHeader className="flex flex-row items-center justify-between gap-3 p-4">
 						<div className="flex flex-row items-center gap-3">
 							<Image
@@ -193,7 +233,7 @@ export default function ProjectCard() {
 								alt="heart"
 								height={30}
 								src={
-									mockLikes.includes(project.id)
+									likes.includes(project.id)
 										? "/icons/filled-heart.svg"
 										: "/icons/heart.svg"
 								}
@@ -256,6 +296,7 @@ export default function ProjectCard() {
 									{tag}
 								</span>
 							))}
+							{filtersSelected.length}
 						</div>
 						<div className="relative mt-3 flex flex-wrap gap-2">
 							{project.requiredTechnologies
@@ -272,31 +313,51 @@ export default function ProjectCard() {
 											className="relative flex items-center"
 										>
 											<span
-												className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold leading-5 ${isRequired ? "bg-orange-100 text-orange-800" : "bg-gray-100 text-gray-800"}`}
+												className={`group inline-flex items-center rounded-full p-0.5 ${
+													filtersSelected?.some(
+														(l) =>
+															l.label ===
+															"skills",
+													)
+														? filtersSelected.some(
+																(s) =>
+																	s.label ===
+																		"skills" &&
+																	tech ===
+																		s.value,
+															)
+															? "bg-gradient-to-br from-indigo-500 to-teal-400"
+															: "grayscale filter"
+														: ""
+												}`}
 											>
-												{iconSrc && (
-													<Image
-														alt={`${tech} icon`}
-														src={iconSrc}
-														width={28}
-														height={28}
-														className="mr-2"
-													/>
-												)}
-												{tech}
-												{isRequired && (
-													<span className="absolute -right-0 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-white text-xs text-red-600">
+												<span
+													className={`text-gray-800" inline-flex items-center rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold leading-5`}
+												>
+													{iconSrc && (
 														<Image
-															alt="Required"
-															src="/icons/double-exclamation-mark.svg"
-															width={12}
-															height={12}
-															style={{
-																filter: "invert(31%) sepia(56%) saturate(5736%) hue-rotate(349deg) brightness(94%) contrast(96%)",
-															}}
+															alt={`${tech} icon`}
+															src={iconSrc}
+															width={28}
+															height={28}
+															className="mr-2"
 														/>
-													</span>
-												)}
+													)}
+													{tech}
+													{isRequired && (
+														<span className="absolute -right-1 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-white shadow-md">
+															<Image
+																alt="Required"
+																src="/icons/double-exclamation-mark.svg"
+																width={12}
+																height={12}
+																style={{
+																	filter: "invert(31%) sepia(56%) saturate(5736%) hue-rotate(349deg) brightness(94%) contrast(96%)",
+																}}
+															/>
+														</span>
+													)}
+												</span>
 											</span>
 										</div>
 									);
@@ -304,14 +365,16 @@ export default function ProjectCard() {
 						</div>
 					</CardContent>
 					<CardFooter className="mt-auto justify-end">
-						<Button size="icon" variant="ghost">
-							<Image
-								alt="View Project"
-								src="/icons/chevron-circle-right.svg"
-								width={48}
-								height={48}
-							/>
-						</Button>
+						<Link href={`/projects/details/${project.id}`}>
+							<Button size="icon" variant="ghost">
+								<Image
+									alt="View Project"
+									src="/icons/chevron-circle-right.svg"
+									width={48}
+									height={48}
+								/>
+							</Button>
+						</Link>
 					</CardFooter>
 				</Card>
 			))}
