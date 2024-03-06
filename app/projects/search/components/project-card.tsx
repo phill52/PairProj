@@ -296,7 +296,6 @@ export default function ProjectCard() {
 									{tag}
 								</span>
 							))}
-							{filtersSelected.length}
 						</div>
 						<div className="relative mt-3 flex flex-wrap gap-2">
 							{project.requiredTechnologies
