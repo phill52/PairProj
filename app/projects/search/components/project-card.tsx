@@ -171,12 +171,6 @@ const filterProjects = (projects: Project[], filters: FilterObject[]) => {
 					return technologies.includes(filterObj.value);
 				});
 				break;
-			// case "query":
-			// 	projects = projects.filter((project) => {
-			// 		return project.name
-			// 			.toLowerCase()
-			// 			.includes(filterObj.value.toLowerCase());
-			// 	});
 			default:
 				break;
 		}
@@ -187,11 +181,17 @@ const filterProjects = (projects: Project[], filters: FilterObject[]) => {
 
 export default function ProjectCard() {
 	const [likes, setLikes] = useState<number[]>([]);
-	const { filtersSelected } = useFilters();
+	const { filtersSelected, query } = useFilters();
 
 	const projects = useMemo(() => {
-		return filterProjects(mockProjects, filtersSelected);
-	}, [mockProjects, filtersSelected]);
+		let filteredProjects = filterProjects(mockProjects, filtersSelected);
+		if (query) {
+			filteredProjects = filteredProjects.filter((project) =>
+				project.name.toLowerCase().includes(query.toLowerCase()),
+			);
+		}
+		return filteredProjects;
+	}, [mockProjects, filtersSelected, query]);
 
 	const handleLike = (id: number) => {
 		if (likes.includes(id)) {

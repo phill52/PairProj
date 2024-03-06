@@ -15,6 +15,8 @@ export interface FilterObject {
 type FiltersContextType = {
 	filtersSelected: FilterObject[];
 	setFiltersSelected: Dispatch<SetStateAction<FilterObject[]>>;
+	query: string;
+	setQuery: Dispatch<SetStateAction<string>>;
 };
 
 const FiltersContext = createContext<FiltersContextType | null>(null);
@@ -31,10 +33,13 @@ export const FiltersProvider: React.FC<{ children: React.ReactNode }> = ({
 	children,
 }) => {
 	const [filtersSelected, setFiltersSelected] = useState<FilterObject[]>([]);
+	const [query, setQuery] = useState<string>("");
 
 	const value = {
 		filtersSelected,
 		setFiltersSelected,
+		query,
+		setQuery,
 	};
 
 	return (

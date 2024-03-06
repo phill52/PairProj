@@ -101,7 +101,8 @@ const skillLevels = [
 ];
 
 const FilterBar = () => {
-	const { filtersSelected, setFiltersSelected } = useFilters();
+	const { filtersSelected, setFiltersSelected, query, setQuery } =
+		useFilters();
 	const handleUnselect = (filterItem: string, filterType: string) => {
 		setFiltersSelected(
 			filtersSelected.filter((i) => i.value !== filterItem),
@@ -115,15 +116,7 @@ const FilterBar = () => {
 						type="text"
 						placeholder="Browse projects with keywords..."
 						className="mr-8"
-						// onChange={(e) =>
-						// 	setFiltersSelected([
-						// 		...filtersSelected,
-						// 		{
-						// 			label: "query",
-						// 			value: e.target.value,
-						// 		},
-						// 	])
-						// }
+						onChange={(e) => setQuery(e.target.value)}
 					/>
 				</div>
 				<div>
