@@ -2,7 +2,6 @@
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
-import { Dispatch, SetStateAction, useState } from "react";
 import { MultiSelect } from "./multi-select";
 import skillIcons from "@/components/skillIcons";
 import { useFilters } from "../FiltersContext";
@@ -101,9 +100,8 @@ const skillLevels = [
 ];
 
 const FilterBar = () => {
-	const { filtersSelected, setFiltersSelected, query, setQuery } =
-		useFilters();
-	const handleUnselect = (filterItem: string, filterType: string) => {
+	const { filtersSelected, setFiltersSelected, setQuery } = useFilters();
+	const handleUnselect = (filterItem: string) => {
 		setFiltersSelected(
 			filtersSelected.filter((i) => i.value !== filterItem),
 		);
@@ -168,9 +166,7 @@ const FilterBar = () => {
 							variant="secondary"
 							key={item.value}
 							className="mb-1 mr-1"
-							onClick={() =>
-								handleUnselect(item.value, item.label)
-							}
+							onClick={() => handleUnselect(item.value)}
 						>
 							{iconSrc && (
 								<Image
@@ -184,9 +180,7 @@ const FilterBar = () => {
 							{item.value}
 							<Button
 								className="ml-2 bg-transparent p-0 shadow-none outline-none hover:bg-transparent"
-								onClick={() =>
-									handleUnselect(item.value, item.label)
-								}
+								onClick={() => handleUnselect(item.value)}
 							>
 								<Image
 									alt="x"

@@ -15,7 +15,6 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import { Badge } from "@/components/ui/badge";
 import { FilterObject } from "../FiltersContext";
 
 export type OptionType = {

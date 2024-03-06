@@ -10,7 +10,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import Image from "next/image";
-import { useState, Dispatch, SetStateAction, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import skillIcons from "@/components/skillIcons";
 import { FilterObject, useFilters } from "../FiltersContext";
 import Link from "next/link";
