@@ -4,21 +4,13 @@ import Image from "next/image";
 import Sidebar from "../../components/sidebar";
 
 export default function Page() {
-  return (
-    <div
-      className="flex "
-      style={{ backgroundColor: "#F0F4F7" }}
-    >
-      <Sidebar />
+	return (
+		<div className="flex " style={{ backgroundColor: "#F0F4F7" }}>
+			<Sidebar />
 
-        
-
-
-      <div >
-        <div className="w-full p-8 rounded-lg md:translate-x-1/4 md:-mt-4 md:ml-20 sm: -mt-40">
-          <ViewProfile />
-        </div>
-      </div>
-    </div>
-  );
+			<div className="w-full rounded-lg p-8">
+				<ViewProfile />
+			</div>
+		</div>
+	);
 }
