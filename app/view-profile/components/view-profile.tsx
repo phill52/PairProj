@@ -37,6 +37,7 @@ type UserProfile = {
 	education: string[][];
 	pastProjects: string[][];
 	experience: string[][];
+	languages: string[];
 };
 
 const SampleUserProfile: UserProfile = {
@@ -53,18 +54,19 @@ const SampleUserProfile: UserProfile = {
 	education: [
 		[
 			"Steven's Institute of Technology",
-			" - Bachelor's of Science : Computer Science",
-			" : 2020-2024",
+			"Bachelor's of Science : Computer Science",
+			"2020-2024",
 		],
 	],
-	pastProjects: [["ProjPair", " - a very cool and wholesome project"]],
+	pastProjects: [["ProjPair", "a very cool and wholesome project"]],
 	experience: [
 		[
 			"Meta",
-			"- Machine Learning Engineer - ",
+			"Machine Learning Engineer",
 			"Lorem ipsum dolor sit amet, consectetur adipiscing elit, ",
 		],
 	],
+	languages: ["English","Spanish"]
 };
 
 export function ViewProfile() {
@@ -83,42 +85,72 @@ export function ViewProfile() {
 				</CardHeader>
 				<CardContent className="gap- grid w-full">
 					<div className="flex grid w-full gap-2">
-						<div className="flex w-full items-center justify-between text-lg font-bold">
-							<p>
+						<div className="flex w-full items-center justify-between">
+							<p style={{ fontSize: "1.7rem" }} className="text-lg font-bold">
 								{SampleUserProfile.first_name}{" "}
 								{SampleUserProfile.last_name}{" "}
 							</p>
-							<button className="rounded-full bg-green-400 p-2 text-white">
+              <p className="">
+                <div style={{ fontSize: "2rem" }} className=" font-bold">
+                  Education
+                </div>
+          
+
+              
+              </p>
+							<button className="rounded-lg bg-black p-3 text-white">
 								Message
 							</button>
 						</div>
-						<div className="flex items-center gap-2">
+            <div className="flex w-full items-center justify-between">
+            <div style={{ fontSize: "1.3rem" }}className=" text-lg flex items-center gap-2" >
 							{SampleUserProfile.role}{" "}
 							<div className="rounded-full bg-green-400 p-2 text-white">
 								{SampleUserProfile.skill_level}
 							</div>
 						</div>
-						<br />
-						<br />
-						<div className="text-2x1 font-bold">Top Skills:</div>
-						<br />
+            <div className="">
+              <div style={{ fontSize: "1.3rem" }} className=" font-bold">
+                <br></br>
+              {SampleUserProfile.education[0][0]}<br/><br/>
+              </div>
+            <div style={{ fontSize: "1.1rem" }} className="italic">
+			{SampleUserProfile.education[0][1]}<br/>
+            {SampleUserProfile.education[0][2]}<br/>
+			</div>
+            
+            </div>
+            <div className="">
+              
+            </div>
+       
+            <br/>
+            
+            
+
+            </div>
+						
+					
+					
+						<div style={{ fontSize: "1.4rem" }} className="text-lg font-bold">Top Skills:</div>
+					
 						<div className="flex flex-wrap gap-2">
 							{SampleUserProfile.topSkills.map((item, index) => (
 								<div
 									key={index}
-									className="rounded-full bg-green-400 p-2 text-white"
+									className="rounded-full  p-2   border border-black font-bold"
 								>
 									{item}
 								</div>
 							))}
 						</div>
 						<br />
-						Skills: <br />
+						<div style={{ fontSize: "1.4rem" }} className="text-lg font-bold">Skills:</div>
 						<div className="flex max-w-md flex-wrap gap-2">
 							{SampleUserProfile.skills.map((item, index) => (
 								<div
 									key={index}
-									className="rounded-full bg-green-400 p-2 text-white"
+									className="rounded-full  p-2  border border-black font-bold"
 								>
 									{item}
 								</div>
@@ -128,17 +160,44 @@ export function ViewProfile() {
 				</CardContent>
 			</Card>
 
-			<Card className="mb-8 flex items-center space-x-8 space-y-1 p-4 ">
+			<Card className="mb-4 flex items-center space-x-8 space-y-1 p-4 ">
 				<CardHeader className=" "></CardHeader>
 				<CardContent className="gap- grid">
-					<div className="flex grid gap-2">
-						<div className="text-lg font-bold">
+					<div className="flex grid">
+          <div className="flex w-full items-center justify-between">
+            <div>
+             <div style={{ fontSize: "2rem" }} className="mb-4 mt-4 text-lg font-bold ">
 							About
 							<br />
-						</div>
-						<div className="flex w-1/2 max-w-md items-center gap-2">
+						  </div>
+						<div className="flex w-1/2 items-center ">
 							{SampleUserProfile.bio}
+							<br/><br/>
+							
+							Languages: {SampleUserProfile.languages[0]}, {SampleUserProfile.languages[1]}
 						</div>
+            </div>
+
+            <div className="border w-full border-black p-6 rounded-lg mr-8">
+            <div style={{ fontSize: "1.6rem" }}  className="text-lg font-bold w-full  ">
+								Past Projects
+								<br />
+							</div>
+							<div className="italic">
+							{SampleUserProfile.pastProjects[0][0]} 
+							</div>
+							
+							
+							
+							
+							{SampleUserProfile.pastProjects[0][1]}
+							
+            </div>
+						
+                
+
+
+            </div>
 
 						<br />
 						<br />
@@ -148,43 +207,23 @@ export function ViewProfile() {
 								<br />
 							</div>
 							<div className="">
-								<div className="flex flex-col gap-2">
-									{SampleUserProfile.experience.map(
-										(item, index) => (
-											<div key={index}>{item}</div>
-										),
-									)}
+
+								<div className="font-bold">
+									{SampleUserProfile.experience[0][0]}<br/>	
 								</div>
+								<div className="italic">
+									{SampleUserProfile.experience[0][1]}<br/>	
+								</div>
+								
+							
+								{SampleUserProfile.experience[0][2]}
+								
 							</div>
 							<br />
-							<div className="text-lg font-bold">
-								Past Projects
-								<br />
-							</div>
-							<div className="">
-								<div className="flex flex-col gap-2">
-									{SampleUserProfile.pastProjects.map(
-										(item, index) => (
-											<div key={index}>{item}</div>
-										),
-									)}
-								</div>
-							</div>
+							
 
 							<br />
-							<div className="text-lg font-bold">
-								Education
-								<br />
-							</div>
-							<div className="">
-								<div className="flex flex-col gap-2">
-									{SampleUserProfile.education.map(
-										(item, index) => (
-											<div key={index}>{item}</div>
-										),
-									)}
-								</div>
-							</div>
+							
 						</div>
 					</div>
 				</CardContent>
