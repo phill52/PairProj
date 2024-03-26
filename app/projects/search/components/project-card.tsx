@@ -325,6 +325,7 @@ export default function ProjectCard() {
 												<span
 													className={`text-gray-800" inline-flex items-center rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold leading-5`}
 												>
+													{tech}
 													{iconSrc && (
 														<Image
 															alt={`${tech} icon`}
@@ -334,7 +335,6 @@ export default function ProjectCard() {
 															className="mr-2"
 														/>
 													)}
-													{tech}
 													{isRequired && (
 														<span className="absolute -right-1 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-white shadow-md">
 															<Image
