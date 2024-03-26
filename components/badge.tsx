@@ -8,9 +8,20 @@ interface BadgeProps {
 
 const Badge: React.FC<BadgeProps> = ({ innerColor, outerColor, text }) => {
 	console.log(innerColor, outerColor, text);
-	const styleString = `inline-flex items-center rounded-full px-3 py-0.5 text-sm font-medium bg-[${outerColor}] text-[${innerColor}] border border-[${innerColor}] rounded-md]`;
+	const styleString = `inline-flex items-center rounded-full px-3 py-0.5 text-sm font-medium border rounded-md]`;
 	console.log(styleString);
-	return <span className={styleString}>{text}</span>;
+	return (
+		<span
+			className={styleString}
+			style={{
+				backgroundColor: outerColor,
+				color: innerColor,
+				borderColor: innerColor,
+			}}
+		>
+			{text}
+		</span>
+	);
 };
 
 export default Badge;
