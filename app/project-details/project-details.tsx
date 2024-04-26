@@ -12,9 +12,9 @@ import {
 import Image from "next/image";
 import skillIcons from "@/components/skillIcons";
 import Link from "next/link";
-import { useRouter } from "next/router"
-import { Inter } from 'next/font/google'
-import '../globals.css'
+import { useRouter } from "next/navigation";
+import { Inter } from "next/font/google";
+import "../globals.css";
 import { relative } from "path";
 import React from "react";
 
@@ -153,19 +153,19 @@ const cardStyle = {
 	display: "flex",
 	flexDirection: "column",
 	justifyContent: "space-between",
-	margin: "0.5rem"
+	margin: "0.5rem",
 };
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ["latin"] });
 
 export default function ProjectDetails() {
-    const router = useRouter()
-	const id = Number(router.query.id)
-    let project = mockProjects.find(x => x.id == id)
+	const router = useRouter();
+	const id = 1;
+	let project = mockProjects.find((x) => x.id == id);
 	return (
 		<div className={inter.className}>
 			{project && (
-				<div className="flex min-h-screen bg-[#CBD5E1]">
+				<div className="flex min-h-screen w-screen bg-[#CBD5E1]">
 					<Sidebar />
 					<div>
 						<Card style={cardStyle as React.CSSProperties}>
@@ -199,43 +199,48 @@ export default function ProjectDetails() {
 										<p> {project.description} </p>
 									</div>
 									<div className="mt-3 flex flex-wrap gap-2">
-									{project.tags.map((tag, i) => (
-										<span
-											key={i}
-											className="inline-flex rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold leading-5 text-blue-800"
-										>
-											{tag}
-										</span>
-									))}
+										{project.tags.map((tag, i) => (
+											<span
+												key={i}
+												className="inline-flex rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold leading-5 text-blue-800"
+											>
+												{tag}
+											</span>
+										))}
 									</div>
 								</div>
 							</CardContent>
 						</Card>
 
 						<br />
-						
+
 						<Card style={cardStyle as React.CSSProperties}>
 							<CardHeader className="flex flex-row items-center justify-between gap-3 p-4">
 								<div className="flex flex-col">
-									<CardTitle>Currently Needed Roles</CardTitle>
+									<CardTitle>
+										Currently Needed Roles
+									</CardTitle>
 								</div>
 							</CardHeader>
 							<CardContent>
 								<div className="">
 									<div className="mt-3 flex flex-wrap gap-2">
-									{project.currentNeeds && (project.currentNeeds.map(({title, amount}, i) => (
-										<span
-											key={i}
-											className="inline-flex rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold leading-5 text-blue-800"
-										>
-											{title} ({amount})
-										</span>
-									)))}
-									{project.currentNeeds.length == 0 && (
-										<span className="inline-flex rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold leading-5 text-blue-800"
-										>N/A
-										</span>
-									)}
+										{project.currentNeeds &&
+											project.currentNeeds.map(
+												({ title, amount }, i) => (
+													<span
+														key={i}
+														className="inline-flex rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold leading-5 text-blue-800"
+													>
+														{title} ({amount})
+													</span>
+												),
+											)}
+										{project.currentNeeds.length == 0 && (
+											<span className="inline-flex rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold leading-5 text-blue-800">
+												N/A
+											</span>
+										)}
 									</div>
 								</div>
 							</CardContent>
@@ -252,14 +257,25 @@ export default function ProjectDetails() {
 							<CardContent>
 								<div className="">
 									<div className="mt-3 flex flex-wrap gap-2">
-									<span>										
-										<b>Required: </b> {project.requiredTechnologies.length != 0 ? project.requiredTechnologies.join(", ") : "N/A"}
-									</span>
+										<span>
+											<b>Required: </b>{" "}
+											{project.requiredTechnologies
+												.length != 0
+												? project.requiredTechnologies.join(
+														", ",
+													)
+												: "N/A"}
+										</span>
 									</div>
 
 									<div className="mt-3 flex flex-wrap gap-2">
-										<span>										
-											<b>Preferred: </b> {project.technologies.length != 0 ? project.technologies.join(", ") : "N/A"}
+										<span>
+											<b>Preferred: </b>{" "}
+											{project.technologies.length != 0
+												? project.technologies.join(
+														", ",
+													)
+												: "N/A"}
 										</span>
 									</div>
 								</div>
@@ -267,20 +283,17 @@ export default function ProjectDetails() {
 						</Card>
 
 						<br />
-						
+
 						<div className="flex flex-col items-center justify-center">
 							<Button>
 								View Collaborators ({project.collaborators})
 							</Button>
 							<br />
-							<Button>
-								Apply Now
-							</Button>
+							<Button>Apply Now</Button>
 						</div>
-
 					</div>
-				</div>	
+				</div>
 			)}
-		</div>	
-	)
+		</div>
+	);
 }
