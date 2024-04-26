@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+#menu-toggle:checked ~ .sidebar {
+    transform: translateX(0%);
+}
+
+#menu-toggle:checked ~ .overlay {
+    display: block;
+}
+
+/* Responsive design */
+@media (min-width: 1024px) {
+    .sidebar {
+        transform: translateX(0%) !important;
+    }
+}
+
+.text-2xs {
+    font-size: 0.625rem;
+    line-height: 1rem;
+}
