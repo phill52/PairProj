@@ -8,7 +8,7 @@ export default function MessagesPage() {
 			<SideBar />
 			<div className="h-screen w-full bg-stone-300">
 				<MessagesHeader />
-				<h1>Direct Messages</h1>
+
 				<ComposeBar />
 			</div>
 		</div>
