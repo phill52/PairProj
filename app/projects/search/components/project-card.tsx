@@ -183,7 +183,7 @@ export default function ProjectCard() {
 			);
 		}
 		return filteredProjects;
-	}, [mockProjects, filtersSelected, query]);
+	}, [filtersSelected, query]);
 
 	const handleLike = (id: number) => {
 		if (likes.includes(id)) {

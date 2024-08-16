@@ -189,8 +189,8 @@ const Sidebar = () => {
 														: "font-normal"
 												}`}
 											>
-												{messageTime} "
-												{dm.lastmessage.content}"
+												{messageTime} &quot;
+												{dm.lastmessage.content}&quot;
 											</p>
 										</div>
 										<div className="right-5 ml-4 flex flex-col justify-between rounded-md transition-all ease-linear hover:bg-gray-400 dark:hover:bg-gray-900">
