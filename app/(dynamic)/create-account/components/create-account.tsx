@@ -22,6 +22,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { signIn } from "next-auth/react";
 
 const formSchema = z.object({
 	email: z.string().email().min(1).max(100),
@@ -57,19 +58,21 @@ export function CreateAccount() {
 	};
 
 	const handleGithub = async () => {
-		try {
-			const { error } = await supabase.auth.signInWithOAuth({
-				provider: "github",
-			});
-			if (error) {
-				console.error("Error signing in with GitHub", error);
-			} else {
-				console.log("signed in with GitHub");
-				router.push("/"); // navigate to homepage
-			}
-		} catch (e) {
-			console.error(e);
-		}
+		// legacy supabase
+		// try {
+		// 	const { error } = await supabase.auth.signInWithOAuth({
+		// 		provider: "github",
+		// 	});
+		// 	if (error) {
+		// 		console.error("Error signing in with GitHub", error);
+		// 	} else {
+		// 		console.log("signed in with GitHub");
+		// 		router.push("/"); // navigate to homepage
+		// 	}
+		// } catch (e) {
+		// 	console.error(e);
+		// }
+		signIn("github");
 	};
 
 	const handleGoogle = async () => {
@@ -117,7 +120,8 @@ export function CreateAccount() {
 					</CardHeader>
 					<CardContent className="grid gap-4">
 						<div className="grid gap-2">
-							<FormField
+							{/* get rid of email/password for now, we'll just ust OAuth
+							 <FormField
 								control={form.control}
 								name="email"
 								render={({ field }) => (
@@ -150,7 +154,7 @@ export function CreateAccount() {
 										</FormControl>
 									</FormItem>
 								)}
-							/>
+							/> */}
 						</div>
 						<div className="relative my-4">
 							<div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 transform">
