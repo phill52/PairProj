@@ -159,7 +159,7 @@ export const chat_message = pgTable("chat_message", {
 });
 
 export const project = pgTable("project", {
-	id: uuid("id").notNull(),
+	id: uuid("id").notNull().default(crypto.randomUUID()),
 	created_at: timestamp("created_at", { mode: "date" }).defaultNow(),
 	name: text("name"),
 	description: text("description"),
