@@ -7,17 +7,61 @@ import View2 from "./components/view2";
 import { View3 } from "./components/view3";
 import { View4 } from "./components/view4";
 import { Card } from "@/components/ui/card";
-import type { SubmitProfileDataState } from "./utils";
+import type {
+	SubmitProfileDataState,
+	EducationItem,
+	ExperienceItem,
+} from "./utils";
 
-type CreateProfileProps = {
+interface CreateProfileProps {
 	username: string;
+	profile: SubmitProfileDataState;
 	account_types: string[];
 	skills: Skill[];
 	areas: Areas[];
-};
+}
+
+export type SubmitProfileDataAction =
+	| { type: "SET_ACCOUNT_TYPE"; payload: string[] }
+	| { type: "SET_BEST_SKILLS"; payload: string[] }
+	| { type: "SET_ALL_SKILLS"; payload: string[] }
+	| { type: "SET_AREAS"; payload: string[] }
+	| { type: "SET_EDUCATION"; payload: EducationItem[] }
+	| { type: "SET_EXPERIENCE"; payload: ExperienceItem[] }
+	| { type: "SET_NAME"; payload: string }
+	| { type: "SET_PRONOUNS"; payload: string }
+	| { type: "SET_BIO"; payload: string }
+	| { type: "RESET" };
 
 const pageData: CreateProfileProps = {
 	username: "Phill",
+	profile: {
+		// Will be null by default if user has not created a profile
+		accountType: ["Developer"],
+		bestSkills: ["React"],
+		allSkills: ["React", "TypeScript"],
+		areas: ["Frontend"],
+		education: [
+			{
+				school: "Stevens Institute of Technology",
+				degree: "Bachelors of Science",
+				field: "Computer Science",
+				startDate: "2020-09",
+				endDate: "2024-8",
+			},
+		],
+		experience: [
+			{
+				company: "Charity Quest",
+				position: "Software Engineer",
+				startDate: "2024-02-01",
+				endDate: "",
+			},
+		],
+		name: "Phill",
+		pronouns: "He/Him",
+		bio: "I am a software engineer",
+	},
 	account_types: ["Developer", "Designer", "Product Manager"],
 	skills: [
 		{ name: "React", innerColor: "#398100", outerColor: "#D9EAA8" },
@@ -36,118 +80,54 @@ const pageData: CreateProfileProps = {
 };
 
 export default function Page() {
-	const [stage, setStage] = useState(2);
-	const totalStages = 4; // Assuming there are 3 stages, update this accordingly
-	const initialState: SubmitProfileDataState = {
-		accountType: [],
-		bestSkills: [],
-		allSkills: [],
-		areas: [],
-		education: [],
-		experience: [],
-		name: "",
-		pronouns: "",
-		bio: "",
-	};
+	const [stage, setStage] = useState(1);
+	const totalStages = 4; // Assuming there are 3 stages, update this accordingly.
+	const initialState = pageData.profile;
 
-	// Action types
-	enum ActionTypes {
-		ADD = "ADD",
-		REMOVE = "REMOVE",
-		SET = "SET",
-		UPDATE = "UPDATE",
-	}
-
-	type Action =
-		| {
-				type: ActionTypes.ADD | ActionTypes.REMOVE;
-				field: keyof SubmitProfileDataState;
-				payload?: any;
-				index?: number;
-		  }
-		| {
-				type: ActionTypes.SET;
-				field: keyof SubmitProfileDataState;
-				payload: any;
-		  }
-		| {
-				type: ActionTypes.UPDATE;
-				field: keyof SubmitProfileDataState;
-				index: number;
-				payload: any;
-		  };
-
-	function reducer(
+	const submitProfileDataReducer = (
 		state: SubmitProfileDataState,
-		action: Action,
-	): SubmitProfileDataState {
+		action: SubmitProfileDataAction,
+	): SubmitProfileDataState => {
 		switch (action.type) {
-			case "ADD":
-			case "REMOVE":
-				// Assert that the field is one of the keys pointing to an array in SubmitData
-				const key = action.field as keyof SubmitProfileDataState;
-				if (Array.isArray(state[key])) {
-					// Now TypeScript knows state[key] is an array, but you still need to assert the specific array type
-					// This assertion is safe because you're within the Array.isArray check
-					const updatedArray = updateArray(state[key] as any[], {
-						operation: action.type,
-						payload: action.payload,
-						index: action.index,
-					});
-					return {
-						...state,
-						[key]: updatedArray,
-					};
-				} else {
-					throw new Error(
-						`Attempted to ${action.type} on non-array field: ${action.field}`,
-					);
-				}
-			case "SET":
+			case "SET_ACCOUNT_TYPE":
+				return { ...state, accountType: action.payload };
+			case "SET_BEST_SKILLS":
+				return { ...state, bestSkills: action.payload };
+			case "SET_ALL_SKILLS":
+				return { ...state, allSkills: action.payload };
+			case "SET_AREAS":
+				return { ...state, areas: action.payload };
+			case "SET_EDUCATION":
+				return { ...state, education: action.payload };
+			case "SET_EXPERIENCE":
+				return { ...state, experience: action.payload };
+			case "SET_NAME":
+				return { ...state, name: action.payload };
+			case "SET_PRONOUNS":
+				return { ...state, pronouns: action.payload };
+			case "SET_BIO":
+				return { ...state, bio: action.payload };
+			case "RESET":
 				return {
-					...state,
-					[action.field]: action.payload,
+					accountType: [],
+					bestSkills: [],
+					allSkills: [],
+					areas: [],
+					education: [],
+					experience: [],
+					name: "",
+					pronouns: "",
+					bio: "",
 				};
-			case "UPDATE":
-				const updateKey = action.field as keyof SubmitProfileDataState;
-				if (Array.isArray(state[updateKey])) {
-					const updatedArray = state[updateKey].map((item, index) =>
-						index === action.index
-							? { ...item, ...action.payload }
-							: item,
-					) as any; // Ensure the type matches the specific array item type
-					return {
-						...state,
-						[updateKey]: updatedArray,
-					};
-				} else {
-					throw new Error(
-						`Attempted to UPDATE on non-array field: ${action.field}`,
-					);
-				}
 			default:
-				throw new Error(`Unhandled action type: ${action.type}`);
-		}
-	}
-
-	// Helper function for updating arrays, now using TypeScript for payload and index typing
-	const updateArray = (
-		array: any[],
-		action: {
-			operation: "ADD" | "REMOVE";
-			payload?: any;
-			index?: number;
-		},
-	): any[] => {
-		switch (action.operation) {
-			case "ADD":
-				return [...array, action.payload];
-			case "REMOVE":
-				return array.filter((_, index) => index !== action.index);
-			default:
-				return array;
+				return state;
 		}
 	};
+
+	const [state, dispatch] = useReducer(
+		submitProfileDataReducer,
+		initialState,
+	);
 
 	const handleLetsGo = () => {
 		setStage(2);
@@ -172,7 +152,11 @@ export default function Page() {
 					</div>
 					<div className="bg-primary flex flex-col justify-center">
 						{stage === 2 && (
-							<View3 AccountTypes={pageData.account_types} />
+							<View3
+								AccountTypes={pageData.account_types}
+								ExistingTypes={state.accountType}
+								OnUpdate={dispatch}
+							/>
 						)}
 						{stage === 3 && (
 							<View4

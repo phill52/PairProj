@@ -24,7 +24,7 @@ export type ExperienceItem = {
 	endDate: string;
 };
 
-export type SubmitProfileDataState = {
+export interface SubmitProfileDataState {
 	accountType: string[];
 	bestSkills: string[];
 	allSkills: string[];
@@ -34,4 +34,4 @@ export type SubmitProfileDataState = {
 	name: string;
 	pronouns: string;
 	bio: string;
-};
+}
