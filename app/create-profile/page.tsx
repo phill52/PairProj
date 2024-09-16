@@ -161,7 +161,9 @@ export default function Page() {
 						{stage === 3 && (
 							<View4
 								skills={pageData.skills}
+								ExistingData={state}
 								areas={pageData.areas}
+								OnUpdate={dispatch}
 							/>
 						)}
 					</div>
