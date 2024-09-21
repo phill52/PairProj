@@ -12,6 +12,8 @@ import type {
 	EducationItem,
 	ExperienceItem,
 } from "./utils";
+import View5 from "./components/view5";
+import View6 from "./components/view6";
 
 interface CreateProfileProps {
 	username: string;
@@ -46,16 +48,16 @@ const pageData: CreateProfileProps = {
 				school: "Stevens Institute of Technology",
 				degree: "Bachelors of Science",
 				field: "Computer Science",
-				startDate: "2020-09",
-				endDate: "2024-8",
+				startDate: new Date("2020-08"),
+				endDate: new Date("2024-05"),
 			},
 		],
 		experience: [
 			{
 				company: "Charity Quest",
 				position: "Software Engineer",
-				startDate: "2024-02-01",
-				endDate: "",
+				startDate: new Date("2021-06"),
+				endDate: new Date("2021-08"),
 			},
 		],
 		name: "Phill",
@@ -140,11 +142,11 @@ export default function Page() {
 	);
 
 	return (
-		<div className="bg-light-grey flex h-screen flex-col items-center justify-center">
+		<div className="flex h-screen flex-col items-center justify-center overflow-scroll bg-light-grey">
 			{stage === 0 && <View1 username={pageData.username} />}
 			{stage === 1 && <View2 handleLetsGo={handleLetsGo} />}
 			{stage >= 2 && (
-				<Card className=" h-[85%] w-[80%]">
+				<Card className=" h-[85%] w-[80%] overflow-scroll">
 					<div className="mt-4 flex justify-center">
 						{Array.from({ length: totalStages }, (_, i) => (
 							<Dot key={i} index={i} />
@@ -163,6 +165,21 @@ export default function Page() {
 								skills={pageData.skills}
 								ExistingData={state}
 								areas={pageData.areas}
+								OnUpdate={dispatch}
+							/>
+						)}
+						{stage === 4 && (
+							<View5
+								ExistingEducation={state.education}
+								ExistingExperience={state.experience}
+								OnUpdate={dispatch}
+							/>
+						)}
+						{stage === 5 && (
+							<View6
+								ExistingName={state.name}
+								ExistingPronouns={state.pronouns}
+								ExistingBio={state.bio}
 								OnUpdate={dispatch}
 							/>
 						)}

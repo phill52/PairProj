@@ -13,15 +13,15 @@ export type EducationItem = {
 	school: string;
 	degree: string;
 	field: string;
-	startDate: string;
-	endDate: string;
+	startDate: Date;
+	endDate: Date | null;
 };
 
 export type ExperienceItem = {
 	company: string;
 	position: string;
-	startDate: string;
-	endDate: string;
+	startDate: Date;
+	endDate: Date | null;
 };
 
 export interface SubmitProfileDataState {
