@@ -23,8 +23,12 @@ if (process.env.APP_ENV === "prod") {
 const pool = postgres(connectionString + sslmode, { max: 1 });
 export const db = drizzle(pool, { logger: true });
 
+//TODO: change ids off of UUID for efficiency
+
 export const users = pgTable("user", {
-	id: uuid("id").primaryKey().defaultRandom(),
+	id: text("id")
+		.primaryKey()
+		.$defaultFn(() => crypto.randomUUID()),
 	name: text("name"),
 	user_name: text("user_name"),
 	first_name: text("first_name"),
@@ -41,17 +45,9 @@ export const users = pgTable("user", {
 		.defaultNow(),
 });
 
-// export const userRelations = relations(users, ({ many }) => ({
-// 	project: many(project, { relationName: "owner" }),
-// 	role: many(role, { relationName: "profile" }),
-// }));
-
 export const usersRelations = relations(users, ({ many, one }) => ({
 	accounts: many(accounts, { relationName: "userAccounts" }),
 	sessions: many(sessions, { relationName: "userSessions" }),
-	authenticators: many(authenticators, {
-		relationName: "userAuthenticators",
-	}),
 	ownedProjects: many(project, { relationName: "projectOwner" }),
 	roles: many(profile_role_relationship, { relationName: "userRoles" }),
 	skills: many(profile_skill_relationship, { relationName: "userSkills" }),
@@ -70,30 +66,6 @@ export const usersRelations = relations(users, ({ many, one }) => ({
 	}),
 	savedProjects: many(saved_project, { relationName: "userSavedProjects" }),
 }));
-
-export const accounts = pgTable(
-	"account",
-	{
-		userId: text("userId")
-			.notNull()
-			.references(() => users.id, { onDelete: "cascade" }),
-		type: text("type").$type<AdapterAccountType>().notNull(),
-		provider: text("provider").notNull(),
-		providerAccountId: text("providerAccountId").notNull(),
-		refresh_token: text("refresh_token"),
-		access_token: text("access_token"),
-		expires_at: integer("expires_at"),
-		token_type: text("token_type"),
-		scope: text("scope"),
-		id_token: text("id_token"),
-		session_state: text("session_state"),
-	},
-	(account) => ({
-		compoundKey: primaryKey({
-			columns: [account.provider, account.providerAccountId],
-		}),
-	}),
-);
 
 export const sessions = pgTable("session", {
 	sessionToken: text("sessionToken").primaryKey(),
@@ -138,10 +110,34 @@ export const authenticators = pgTable(
 	}),
 );
 
+export const accounts = pgTable(
+	"account",
+	{
+		userId: text("userId")
+			.notNull()
+			.references(() => users.id, { onDelete: "cascade" }),
+		type: text("type").$type<AdapterAccountType>().notNull(),
+		provider: text("provider").notNull(),
+		providerAccountId: text("providerAccountId").notNull(),
+		refresh_token: text("refresh_token"),
+		access_token: text("access_token"),
+		expires_at: integer("expires_at"),
+		token_type: text("token_type"),
+		scope: text("scope"),
+		id_token: text("id_token"),
+		session_state: text("session_state"),
+	},
+	(account) => ({
+		compoundKey: primaryKey({
+			columns: [account.provider, account.providerAccountId],
+		}),
+	}),
+);
+
 export const profile_education = pgTable("profile_education", {
 	id: uuid("id").notNull().defaultRandom().primaryKey(),
 	created_at: timestamp("created_at", { mode: "date" }).defaultNow(),
-	profile_id: uuid("profile_id")
+	profile_id: text("profile_id")
 		.notNull()
 		.references(() => users.id, { onDelete: "cascade" }),
 	school_name: text("school_name"),
@@ -154,7 +150,7 @@ export const profile_education = pgTable("profile_education", {
 export const profile_work_experience = pgTable("profile_work_experience", {
 	id: uuid("id").notNull().defaultRandom().primaryKey(),
 	created_at: timestamp("created_at", { mode: "date" }).defaultNow(),
-	profile_id: uuid("profile_id")
+	profile_id: text("profile_id")
 		.notNull()
 		.references(() => users.id, { onDelete: "cascade" }),
 	company_name: text("company_name"),
@@ -188,14 +184,14 @@ export const profileWorkExperienceRelations = relations(
 export const chat_room = pgTable("chat_room", {
 	id: uuid("id"),
 	created_at: timestamp("created_at", { mode: "date" }).defaultNow(),
-	owner_profile_id: uuid("owner_profile_id"),
+	owner_profile_id: text("owner_profile_id"),
 	name: text("name"),
 });
 
 export const chat_member = pgTable("chat_member", {
 	id: uuid("id"),
 	created_at: timestamp("created_at", { mode: "date" }).defaultNow(),
-	profile_id: uuid("profile_id"),
+	profile_id: text("profile_id"),
 	chat_room_id: uuid("chat_room_id"),
 	unread_messages: integer("unread_messages"),
 });
@@ -203,7 +199,7 @@ export const chat_member = pgTable("chat_member", {
 export const chat_message = pgTable("chat_message", {
 	id: uuid("id").notNull(),
 	created_at: timestamp("created_at", { mode: "date" }).defaultNow(),
-	sender_profile_id: uuid("sender_profile_id"),
+	sender_profile_id: text("sender_profile_id"),
 	chat_room_id: uuid("chat_room_id"),
 	message_content: text("message_content"),
 });
@@ -244,7 +240,7 @@ export const project = pgTable("project", {
 	created_at: timestamp("created_at", { mode: "date" }).defaultNow(),
 	name: text("name"),
 	description: text("description"),
-	owner_profile_id: uuid("owner_profile_id")
+	owner_profile_id: text("owner_profile_id")
 		.references(() => users.id, { onDelete: "set null" })
 		.notNull(),
 	skill_level: text("skill_level"),
@@ -258,7 +254,7 @@ export const project_member = pgTable("project_member", {
 	project_id: uuid("project_id")
 		.notNull()
 		.references(() => project.id, { onDelete: "cascade" }),
-	profile_id: uuid("profile_id")
+	profile_id: text("profile_id")
 		.notNull()
 		.references(() => users.id, { onDelete: "cascade" }),
 	project_role: integer("project_role"), //this will be an enum to represent the role
@@ -296,7 +292,7 @@ export const role = pgTable("role", {
 
 export const profile_role_relationship = pgTable("profile_role_relationship", {
 	id: uuid("id"),
-	profile_id: uuid("profile_id")
+	profile_id: text("profile_id")
 		.notNull()
 		.references(() => users.id, {
 			onDelete: "cascade",
@@ -309,7 +305,7 @@ export const profile_role_relationship = pgTable("profile_role_relationship", {
 });
 
 export const skill = pgTable("skill", {
-	id: uuid("id"),
+	id: uuid("id").primaryKey(),
 	name: text("name"),
 	icon_location: text("icon_location"),
 });
@@ -317,7 +313,7 @@ export const skill = pgTable("skill", {
 export const profile_skill_relationship = pgTable(
 	"profile_skill_relationship",
 	{
-		profile_id: uuid("profile_id")
+		profile_id: text("profile_id")
 			.notNull()
 			.references(() => users.id, { onDelete: "cascade" }),
 		skill_id: uuid("skill_id")
@@ -379,7 +375,7 @@ export const project_application = pgTable("project_application", {
 	project_id: uuid("project_id")
 		.notNull()
 		.references(() => project.id, { onDelete: "cascade" }),
-	applicant_profile_id: uuid("applicant_profile_id")
+	applicant_profile_id: text("applicant_profile_id")
 		.notNull()
 		.references(() => users.id, { onDelete: "cascade" }),
 	role_id: uuid("role_id"),
@@ -393,7 +389,7 @@ export const project_invite = pgTable("project_invite", {
 	project_id: uuid("project_id")
 		.notNull()
 		.references(() => project.id, { onDelete: "cascade" }),
-	profile_id: uuid("profile_id")
+	profile_id: text("profile_id")
 		.notNull()
 		.references(() => users.id, { onDelete: "cascade" }),
 	role_id: uuid("role_id"),
@@ -405,7 +401,7 @@ export const project_collaborator = pgTable("project_collaborator", {
 	id: uuid("id"),
 	created_at: timestamp("created_at", { mode: "date" }),
 	project_id: uuid("project_id"),
-	profile_id: uuid("profile_id"),
+	profile_id: text("profile_id"),
 	role_id: uuid("role_id"),
 });
 
@@ -426,7 +422,7 @@ export const saved_project = pgTable("saved_project", {
 	project_id: uuid("project_id")
 		.notNull()
 		.references(() => project.id, { onDelete: "cascade" }),
-	profile_id: uuid("profile_id")
+	profile_id: text("profile_id")
 		.notNull()
 		.references(() => users.id, { onDelete: "cascade" }),
 });
