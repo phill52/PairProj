@@ -22,6 +22,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import Image from "next/image";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 type UserProfile = {
 	first_name: string;
@@ -66,10 +68,11 @@ const SampleUserProfile: UserProfile = {
 			"Lorem ipsum dolor sit amet, consectetur adipiscing elit, ",
 		],
 	],
-	languages: ["English","Spanish"]
+	languages: ["English", "Spanish"],
 };
 
-export function ViewProfile() {
+export function ViewProfile({ profile }: { profile: UserProfile }) {
+	//TODO: replace instances of SampleUserProfile with the profile prop when we have the backend set up
 	const supabase = createClientSupabase();
 	const router = useRouter();
 
@@ -77,84 +80,87 @@ export function ViewProfile() {
 		<div>
 			<Card className="mb-8 flex items-center space-x-8 space-y-1 p-4">
 				<CardHeader className=" ">
-					<img
-						src={SampleUserProfile.avatar_location}
-						alt="User Image"
-						className="w-25 mb-4 h-auto rounded-full p-2 shadow-md ring-gray-800"
-					/>
+					<Avatar className="w-25 mb-4 h-auto rounded-full p-2 shadow-md ring-gray-800">
+						<AvatarImage
+							src={SampleUserProfile.avatar_location}
+							alt="User Image"
+						/>
+						<AvatarFallback className="bg-gray-300">
+							{SampleUserProfile?.first_name[0]}
+							{SampleUserProfile?.last_name[0]}
+						</AvatarFallback>
+					</Avatar>
 				</CardHeader>
 				<CardContent className="gap- grid w-full">
-					<div className="flex grid w-full gap-2">
-						<div className="flex w-full items-center justify-between">
-							<p style={{ fontSize: "1.7rem" }} className="text-lg font-bold">
+					<div className="flex w-full flex-col gap-2 lg:flex-row">
+						<div className="flex w-full flex-col items-start justify-center bg-red-200">
+							<p
+								style={{ fontSize: "1.7rem" }}
+								className="text-lg font-bold"
+							>
 								{SampleUserProfile.first_name}{" "}
-								{SampleUserProfile.last_name}{" "}
+								{SampleUserProfile.last_name}
 							</p>
-              <p className="">
-                <div style={{ fontSize: "2rem" }} className=" font-bold">
-                  Education
-                </div>
-          
-
-              
-              </p>
-							<button className="rounded-lg bg-black p-3 text-white">
-								Message
-							</button>
-						</div>
-            <div className="flex w-full items-center justify-between">
-            <div style={{ fontSize: "1.3rem" }}className=" text-lg flex items-center gap-2" >
-							{SampleUserProfile.role}{" "}
-							<div className="rounded-full bg-green-400 p-2 text-white">
-								{SampleUserProfile.skill_level}
+							<div
+								style={{ fontSize: "1.3rem" }}
+								className=" flex items-center gap-2 text-lg"
+							>
+								{SampleUserProfile.role}{" "}
+								<div className="rounded-full bg-green-400 p-2 text-white">
+									{SampleUserProfile.skill_level}
+								</div>
+							</div>
+							<div
+								style={{ fontSize: "1.4rem" }}
+								className="text-lg font-bold"
+							>
+								Top Skills:
+							</div>
+							<div className="flex flex-wrap gap-2">
+								{SampleUserProfile.topSkills.map(
+									(item, index) => (
+										<div
+											key={index}
+											className="rounded-full  border   border-black p-2 font-bold"
+										>
+											{item}
+										</div>
+									),
+								)}
+							</div>
+							<div
+								style={{ fontSize: "1.4rem" }}
+								className="text-lg font-bold"
+							>
+								Skills:
+							</div>
+							<div className="flex max-w-md flex-wrap gap-2">
+								{SampleUserProfile.skills.map((item, index) => (
+									<div
+										key={index}
+										className="rounded-full  border  border-black p-2 font-bold"
+									>
+										{item}
+									</div>
+								))}
 							</div>
 						</div>
-            <div className="">
-              <div style={{ fontSize: "1.3rem" }} className=" font-bold">
-                <br></br>
-              {SampleUserProfile.education[0][0]}<br/><br/>
-              </div>
-            <div style={{ fontSize: "1.1rem" }} className="italic">
-			{SampleUserProfile.education[0][1]}<br/>
-            {SampleUserProfile.education[0][2]}<br/>
-			</div>
-            
-            </div>
-            <div className="">
-              
-            </div>
-       
-            <br/>
-            
-            
+						<div className="flex w-full flex-col items-center justify-between bg-blue-200">
+							<h2
+								style={{ fontSize: "1.6rem" }}
+								className="w-full text-lg font-bold  "
+							>
+								Education
+							</h2>
 
-            </div>
-						
-					
-					
-						<div style={{ fontSize: "1.4rem" }} className="text-lg font-bold">Top Skills:</div>
-					
-						<div className="flex flex-wrap gap-2">
-							{SampleUserProfile.topSkills.map((item, index) => (
-								<div
-									key={index}
-									className="rounded-full  p-2   border border-black font-bold"
-								>
-									{item}
-								</div>
-							))}
-						</div>
-						<br />
-						<div style={{ fontSize: "1.4rem" }} className="text-lg font-bold">Skills:</div>
-						<div className="flex max-w-md flex-wrap gap-2">
-							{SampleUserProfile.skills.map((item, index) => (
-								<div
-									key={index}
-									className="rounded-full  p-2  border border-black font-bold"
-								>
-									{item}
-								</div>
-							))}
+							{/* TODO:Finish rest of this when I fix the typing here. */}
+							{/* {SampleUserProfile.education.map(
+								(item)=> {
+									return (
+										<h3 className="">{ite}</h3>
+									)
+								}} */}
+							<div className=""></div>
 						</div>
 					</div>
 				</CardContent>
@@ -164,66 +170,63 @@ export function ViewProfile() {
 				<CardHeader className=" "></CardHeader>
 				<CardContent className="gap- grid">
 					<div className="flex grid">
-          <div className="flex w-full items-center justify-between">
-            <div>
-             <div style={{ fontSize: "2rem" }} className="mb-4 mt-4 text-lg font-bold ">
-							About
-							<br />
-						  </div>
-						<div className="flex w-1/2 items-center ">
-							{SampleUserProfile.bio}
-							<br/><br/>
-							
-							Languages: {SampleUserProfile.languages[0]}, {SampleUserProfile.languages[1]}
+						<div className="flex w-full items-center justify-between">
+							<div>
+								<div
+									style={{ fontSize: "2rem" }}
+									className="mb-4 mt-4 text-lg font-bold "
+								>
+									About
+									<br />
+								</div>
+								<div className="flex w-1/2 items-center ">
+									{SampleUserProfile.bio}
+									<br />
+									<br />
+									Languages: {
+										SampleUserProfile.languages[0]
+									}, {SampleUserProfile.languages[1]}
+								</div>
+							</div>
+
+							<div className="mr-8 w-full rounded-lg border border-black p-6">
+								<div
+									style={{ fontSize: "1.6rem" }}
+									className="w-full text-lg font-bold  "
+								>
+									Past Projects
+									<br />
+								</div>
+								<div className="italic">
+									{SampleUserProfile.pastProjects[0][0]}
+								</div>
+
+								{SampleUserProfile.pastProjects[0][1]}
+							</div>
 						</div>
-            </div>
-
-            <div className="border w-full border-black p-6 rounded-lg mr-8">
-            <div style={{ fontSize: "1.6rem" }}  className="text-lg font-bold w-full  ">
-								Past Projects
-								<br />
-							</div>
-							<div className="italic">
-							{SampleUserProfile.pastProjects[0][0]} 
-							</div>
-							
-							
-							
-							
-							{SampleUserProfile.pastProjects[0][1]}
-							
-            </div>
-						
-                
-
-
-            </div>
 
 						<br />
 						<br />
-						<div className="flex grid gap-2">
+						<div className="flex gap-2">
 							<div className="text-lg font-bold">
 								Experience
 								<br />
 							</div>
 							<div className="">
-
 								<div className="font-bold">
-									{SampleUserProfile.experience[0][0]}<br/>	
+									{SampleUserProfile.experience[0][0]}
+									<br />
 								</div>
 								<div className="italic">
-									{SampleUserProfile.experience[0][1]}<br/>	
+									{SampleUserProfile.experience[0][1]}
+									<br />
 								</div>
-								
-							
+
 								{SampleUserProfile.experience[0][2]}
-								
 							</div>
 							<br />
-							
 
 							<br />
-							
 						</div>
 					</div>
 				</CardContent>
