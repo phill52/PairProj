@@ -1,11 +1,10 @@
 import React, { useState } from "react";
 import Autocomplete from "@/components/autocomplete";
 import Badge from "@/components/badge";
-import type { Skill } from "../utils";
-import type { Areas } from "../utils";
+import type { SkillTable, AreaTable } from "@/types/profile-items";
 import { set } from "date-fns";
-import { SubmitProfileDataAction } from "../page";
-import { SubmitProfileDataState } from "../utils";
+import { SubmitProfileDataAction } from "../create-profile";
+import { SubmitProfile } from "@/types/profile-items";
 
 type DataType = "BEST_SKILLS" | "ALL_SKILLS" | "AREAS";
 
@@ -15,55 +14,78 @@ export function View4({
 	ExistingData,
 	OnUpdate,
 }: {
-	skills: Skill[];
-	areas: Areas[];
-	ExistingData: SubmitProfileDataState;
+	skills: SkillTable[];
+	areas: AreaTable[];
+	ExistingData: SubmitProfile;
 	OnUpdate: React.Dispatch<SubmitProfileDataAction>;
 }) {
 	const skillsList = skills.map((skill) => skill.name);
 	const areasList = areas.map((area) => area.name);
 
-	const { bestSkills, allSkills, areas: existingAreas } = ExistingData;
-	const formattedBestSkills = bestSkills
-		.map((skill) => skills.find((s) => s.name === skill))
-		.filter((skill): skill is Skill => skill !== undefined);
-	const formmatedAllSkills = allSkills
-		.map((skill) => skills.find((s) => s.name === skill))
-		.filter((skill): skill is Skill => skill !== undefined);
+	const { best_skills, all_skills, areas: existingAreas } = ExistingData;
+	// const formattedBestSkills = best_skills
+	// 	.map((skill) => skills.find((s) => s.name === skill))
+	// 	.filter((skill): skill is Skill => skill !== undefined);
+	const formattedBestSkills = best_skills
+		.map((skill) => skills.find((s) => s.name === skill.name))
+		.filter((skill): skill is SkillTable => skill !== undefined);
+	// const formattedAllSkills = all_skills
+	// 	.map((skill) => skills.find((s) => s.name === skill))
+	// 	.filter((skill): skill is Skill => skill !== undefined);
+	const formattedAllSkills = all_skills
+		.map((skill) => skills.find((s) => s.name === skill.name))
+		.filter((skill): skill is SkillTable => skill !== undefined);
+	// const formattedAreas = existingAreas
+	// 	.map((area) => areas.find((a) => a.name === area))
+	// 	.filter((area): area is Areas => area !== undefined);
 	const formattedAreas = existingAreas
-		.map((area) => areas.find((a) => a.name === area))
-		.filter((area): area is Areas => area !== undefined);
+		.map((area) => areas.find((a) => a.name === area.name))
+		.filter((area): area is AreaTable => area !== undefined);
 
-	const addOrRemoveItem = (type: DataType, item: string) => {
-		let actionType: SubmitProfileDataAction["type"];
-		let currentItems: string[];
-
-		switch (type) {
-			case "BEST_SKILLS":
-				actionType = "SET_BEST_SKILLS";
-				currentItems = ExistingData.bestSkills;
-				break;
-			case "ALL_SKILLS":
-				actionType = "SET_ALL_SKILLS";
-				currentItems = ExistingData.allSkills;
-				break;
-			case "AREAS":
-				actionType = "SET_AREAS";
-				currentItems = ExistingData.areas;
-				break;
-			default:
-				throw new Error(`Unsupported type: ${type}`);
+	const handleBestSkills = (skill: SkillTable) => {
+		if (best_skills.includes(skill)) {
+			OnUpdate({
+				type: "SET_BEST_SKILLS",
+				payload: best_skills.filter((s) => s !== skill),
+			});
+		} else {
+			OnUpdate({
+				type: "SET_BEST_SKILLS",
+				payload: [...best_skills, skill],
+			});
 		}
-
-		const updatedItems = currentItems.includes(item)
-			? currentItems.filter((i) => i !== item)
-			: [...currentItems, item];
-
-		OnUpdate({
-			type: actionType,
-			payload: updatedItems,
-		});
 	};
+
+	const handleAllSkills = (skill: SkillTable) => {
+		if (all_skills.includes(skill)) {
+			OnUpdate({
+				type: "SET_ALL_SKILLS",
+				payload: all_skills.filter((s) => s !== skill),
+			});
+		} else {
+			OnUpdate({
+				type: "SET_ALL_SKILLS",
+				payload: [...all_skills, skill],
+			});
+		}
+	};
+
+	const handleAreas = (area: AreaTable) => {
+		if (existingAreas.includes(area)) {
+			OnUpdate({
+				type: "SET_AREAS",
+				payload: existingAreas.filter((a) => a !== area),
+			});
+		} else {
+			OnUpdate({
+				type: "SET_AREAS",
+				payload: [...existingAreas, area],
+			});
+		}
+	};
+
+	type ItemType = "SET_BEST_SKILLS" | "SET_ALL_SKILLS" | "SET_AREAS";
+	type Item = SkillTable | AreaTable;
 
 	return (
 		<div className="flex flex-col p-4 lg:px-40">
@@ -73,21 +95,11 @@ export function View4({
 				</h1>
 				<Autocomplete
 					options={skillsList}
-					// onSelect={(value) => {
-					// 	for (let skill of skills) {
-					// 		if (skill.name === value) {
-					// 			if (!bestSkills.includes(skill)) {
-					// 				setBestSkills([...bestSkills, skill]);
-					// 			} else {
-					// 				setBestSkills(
-					// 					bestSkills.filter((s) => s !== skill),
-					// 				);
-					// 			}
-					// 		}
-					// 	}
-					// }}
 					onSelect={(value) => {
-						addOrRemoveItem("BEST_SKILLS", value);
+						const skill = skills.find((s) => s.name === value);
+						if (skill) {
+							handleBestSkills(skill);
+						}
 					}}
 				/>
 				{/* <Badge innerColor="FFD700" outerColor="FFD700" text="React"/> */}
@@ -95,10 +107,11 @@ export function View4({
 					<div className="flex flex-wrap space-x-2">
 						{formattedBestSkills.map((skill) => (
 							<Badge
-								innerColor={skill.innerColor}
-								outerColor={skill.outerColor}
+								innerColor={skill.inner_color}
+								outerColor={skill.outer_color}
 								text={skill.name}
 								key={skill.name}
+								onClick={() => handleBestSkills(skill)}
 							/>
 						))}
 					</div>
@@ -111,17 +124,21 @@ export function View4({
 				<Autocomplete
 					options={skillsList}
 					onSelect={(value) => {
-						addOrRemoveItem("ALL_SKILLS", value);
+						const skill = skills.find((s) => s.name === value);
+						if (skill) {
+							handleAllSkills(skill);
+						}
 					}}
 				/>
-				{formmatedAllSkills.length > 0 && (
+				{formattedAllSkills.length > 0 && (
 					<div className="flex flex-wrap space-x-2">
-						{formmatedAllSkills.map((skill) => (
+						{formattedAllSkills.map((skill) => (
 							<Badge
-								innerColor={skill.innerColor}
-								outerColor={skill.outerColor}
+								innerColor={skill.inner_color}
+								outerColor={skill.outer_color}
 								text={skill.name}
 								key={skill.name}
+								onClick={() => handleAllSkills(skill)}
 							/>
 						))}
 					</div>
@@ -134,17 +151,21 @@ export function View4({
 				<Autocomplete
 					options={areasList}
 					onSelect={(value) => {
-						addOrRemoveItem("AREAS", value);
+						const area = areas.find((a) => a.name === value);
+						if (area) {
+							handleAreas(area);
+						}
 					}}
 				/>
 				{formattedAreas.length > 0 && (
 					<div className="flex flex-wrap space-x-2">
 						{formattedAreas.map((area) => (
 							<Badge
-								innerColor={area.innerColor}
-								outerColor={area.outerColor}
+								innerColor={area.inner_color}
+								outerColor={area.outer_color}
 								text={area.name}
 								key={area.name}
+								onClick={() => handleAreas(area)}
 							/>
 						))}
 					</div>
