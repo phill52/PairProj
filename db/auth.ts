@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import GitHub from "next-auth/providers/github";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
-import { db, accounts, sessions, users, verificationTokens } from "./schema";
+import { db } from "./index";
 
 export const {
 	handlers: { GET, POST },
