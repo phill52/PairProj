@@ -37,3 +37,12 @@ export async function getProjects() {
 	const projects = await db.select().from(project).limit(20);
 	return projects;
 }
+
+export async function getProject(id: string) {
+	const foundProject = await db
+		.select()
+		.from(project)
+		.where(eq(project.id, id))
+		.limit(1);
+	return foundProject;
+}

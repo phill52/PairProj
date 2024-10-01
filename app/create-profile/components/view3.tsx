@@ -1,14 +1,15 @@
 import React, { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { SubmitProfileDataAction } from "../page";
+import { SubmitProfileDataAction } from "../create-profile";
+import { RoleTable } from "@/types";
 
 export function View3({
 	AccountTypes,
 	ExistingTypes,
 	OnUpdate,
 }: {
-	AccountTypes: string[];
-	ExistingTypes: string[];
+	AccountTypes: RoleTable[];
+	ExistingTypes: RoleTable[];
 	OnUpdate: React.Dispatch<SubmitProfileDataAction>;
 }) {
 	// Create a state to keep track of checked items
@@ -26,26 +27,38 @@ export function View3({
 	// 	});
 	// };
 
-	const toggleCheckbox = (type: string) => {
+	const toggleCheckbox = (type: RoleTable) => {
+		// OnUpdate({
+		// 	type: "SET_ACCOUNT_TYPE",
+		// 	payload: ExistingTypes.includes(type)
+		// 		? ExistingTypes.filter((t) => t !== type)
+		// 		: [...ExistingTypes, type],
+		// });
 		OnUpdate({
-			type: "SET_ACCOUNT_TYPE",
+			type: "SET_ROLES",
 			payload: ExistingTypes.includes(type)
 				? ExistingTypes.filter((t) => t !== type)
 				: [...ExistingTypes, type],
 		});
 	};
 
+	const hasRole = (role: RoleTable) =>
+		ExistingTypes.find((r) => r.name === role.name) !== undefined;
+
 	return (
 		<div className="flex flex-col p-4 lg:px-40">
 			<h1 className="mb-4 text-4xl font-semibold">Are you a</h1>
 			<div className="space-y-2">
 				{AccountTypes.map((type) => (
-					<label key={type} className="flex items-center space-x-3">
+					<label
+						key={type.name}
+						className="flex items-center space-x-3"
+					>
 						<Checkbox
-							checked={ExistingTypes.includes(type)}
+							checked={hasRole(type)}
 							onClick={() => toggleCheckbox(type)}
 						/>
-						<span className="text-gray-600">{type}</span>
+						<span className="text-gray-600">{type.name}</span>
 					</label>
 				))}
 			</div>

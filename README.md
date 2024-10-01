@@ -22,7 +22,13 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
     Whenever you are out of development mode, you can close it with
 
     ```bash
-       docker-compose down
+       docker-compose stop
+    ```
+
+    If you ever need to reset the DB. ONLY USE IT IF YOU'RE SURE YOU'RE USING THE LOCAL DB.
+
+    ```bash
+      docker-compose down
     ```
 
     Then, finally seed the database. Run the commands
@@ -30,6 +36,13 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
     ```bash
        npm run db:push
        npm run db:seed //SEED IS STILL A TODO
+    ```
+
+    When making any changes to the database, or pulling in someone else's changes, make sure you migrate your local DB.
+
+    ```bash
+      npm run db:generate
+      npm run db:migrate
     ```
 
 4. **View local DB**

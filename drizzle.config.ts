@@ -7,6 +7,9 @@ dotenv.config({
 });
 
 const connectionString: string = process.env.DATABASE_URL as string;
+if (!connectionString) {
+	throw new Error("DATABASE_URL is not defined");
+}
 let sslmode = "";
 if (process.env.APP_ENV === "prod") {
 	sslmode = "?sslmode=require";

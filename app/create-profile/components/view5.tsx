@@ -1,5 +1,5 @@
-import { EducationItem, ExperienceItem } from "../utils";
-import { SubmitProfileDataAction } from "../page";
+import { EducationItem, ExperienceItem } from "../../../types/profile-items";
+import { SubmitProfileDataAction } from "../create-profile";
 import { MonthPickerWithRange } from "@/components/monthrangepicker";
 // import { account } from "../../../db/schema";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -78,6 +78,7 @@ export default function View5({
 				{
 					company: "",
 					position: "",
+					description: "",
 					startDate: new Date(),
 					endDate: new Date(),
 				},
@@ -204,6 +205,18 @@ export default function View5({
 								updateExperience(
 									index,
 									"position",
+									e.target.value,
+								)
+							}
+						/>
+						<textarea
+							className="w-full rounded border border-gray-300 p-2"
+							placeholder="Description"
+							value={item.description}
+							onChange={(e) =>
+								updateExperience(
+									index,
+									"description",
 									e.target.value,
 								)
 							}
