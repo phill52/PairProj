@@ -1,0 +1,198 @@
+"use client";
+
+import { useReducer, useState } from "react";
+
+import View1 from "./components/view1";
+import View2 from "./components/view2";
+import View3 from "./components/view3";
+import { Card } from "@/components/ui/card";
+
+import { SubmitProject, CreateProjectProps } from "@/types/projects";
+import { SkillTable } from "@/types";
+
+export type SubmitProjectDataAction =
+	| { type: "SET_NAME"; payload: string }
+	| { type: "SET_DESCRIPTION"; payload: string }
+	| { type: "TOGGLE_AREA"; payload: string }
+	| { type: "TOGGLE_ROLE"; payload: string }
+	| {
+			type: "TOGGLE_SKILL_FOR_ROLE";
+			payload: {
+				roleName: string;
+				skill: SkillTable;
+				isRequired: boolean;
+			};
+	  }
+	| {
+			type: "SET_ROLE_DESCRIPTION";
+			payload: { roleName: string; description: string };
+	  };
+
+export default function CreateProject({
+	pageData,
+}: {
+	pageData: CreateProjectProps;
+}) {
+	const [stage, setStage] = useState(0);
+	const totalStages = 3;
+
+	const submitProjectStateReducer = (
+		state: SubmitProject,
+		action: SubmitProjectDataAction,
+	): SubmitProject => {
+		switch (action.type) {
+			case "SET_NAME":
+				return { ...state, name: action.payload };
+			case "SET_DESCRIPTION":
+				return { ...state, description: action.payload };
+			case "TOGGLE_AREA":
+				const area = pageData.areasOfInterest.find(
+					(a) => a.name === action.payload,
+				);
+				if (!area) return state;
+				const areaIndex = state.areasOfInterest.findIndex(
+					(a) => a.name === area.name,
+				);
+				if (areaIndex === -1) {
+					return {
+						...state,
+						areasOfInterest: [...state.areasOfInterest, area],
+					};
+				} else {
+					return {
+						...state,
+						areasOfInterest: state.areasOfInterest.filter(
+							(a) => a.name !== area.name,
+						),
+					};
+				}
+			case "TOGGLE_ROLE":
+				const role = action.payload;
+				if (state.roles[role]) {
+					const { [role]: _, ...roles } = state.roles;
+					return { ...state, roles };
+				} else {
+					return {
+						...state,
+						roles: {
+							...state.roles,
+							[role]: {
+								description: null,
+								skills: [],
+								requiredSkills: [],
+							},
+						},
+					};
+				}
+			case "SET_ROLE_DESCRIPTION":
+				return {
+					...state,
+					roles: {
+						...state.roles,
+						[action.payload.roleName]: {
+							...state.roles[action.payload.roleName],
+							description: action.payload.description,
+						},
+					},
+				};
+			case "TOGGLE_SKILL_FOR_ROLE":
+				const { roleName, skill, isRequired } = action.payload;
+				const roleInfo = state.roles[roleName];
+				if (!roleInfo) return state;
+
+				let updatedSkills = [...roleInfo.skills];
+				const skillIndex = updatedSkills.findIndex(
+					(s) => s.name === skill.name,
+				);
+
+				let updatedRequiredSkills = [...roleInfo.requiredSkills];
+				const requiredSkillIndex = updatedRequiredSkills.findIndex(
+					(s) => s.name === skill.name,
+				);
+
+				if (isRequired) {
+					if (requiredSkillIndex === -1) {
+						updatedRequiredSkills.push(skill);
+						if (skillIndex === -1) {
+							updatedSkills.push(skill);
+						}
+					} else {
+						updatedRequiredSkills = updatedRequiredSkills.filter(
+							(s) => s.name !== skill.name,
+						);
+					}
+				} else {
+					if (skillIndex === -1) {
+						updatedSkills.push(skill);
+					} else {
+						updatedSkills = updatedSkills.filter(
+							(s) => s.name !== skill.name,
+						);
+						updatedRequiredSkills = updatedRequiredSkills.filter(
+							(s) => s.name !== skill.name,
+						);
+					}
+				}
+				return {
+					...state,
+					roles: {
+						...state.roles,
+						[roleName]: {
+							...roleInfo,
+							skills: updatedSkills,
+							requiredSkills: updatedRequiredSkills,
+						},
+					},
+				};
+			default:
+				return state;
+		}
+	};
+
+	const Dot = ({ index }: { index: number }) => (
+		<span
+			className={`mx-2 h-4 w-4 cursor-pointer rounded-full ${stage === index ? "bg-[#353535] hover:bg-black" : "bg-[#D9D9D9] hover:bg-[#8c8c8c]"} duration-100 ease-in-out`}
+			onClick={() => setStage(index)}
+		/>
+	);
+
+	const initialProjectState: SubmitProject = {
+		name: "",
+		description: "",
+		areasOfInterest: [],
+		roles: {},
+	};
+
+	const [state, dispatch] = useReducer(
+		submitProjectStateReducer,
+		initialProjectState,
+	);
+
+	return (
+		<div className="flex h-screen flex-col items-center justify-center overflow-scroll bg-light-grey">
+			<Card className=" h-[85%] w-[80%] overflow-scroll">
+				<div className="mt-4 flex justify-center">
+					{Array.from({ length: totalStages }, (_, i) => (
+						<Dot key={i} index={i} />
+					))}
+				</div>
+				{stage === 0 && (
+					<View1
+						State={state}
+						OnUpdate={dispatch}
+						areas={pageData.areasOfInterest}
+					/>
+				)}
+				{stage === 1 && (
+					<View2
+						State={state}
+						OnUpdate={dispatch}
+						roles={pageData.roles}
+						skills={pageData.skills}
+					/>
+				)}
+				{stage === 2 && <View3 State={state} />}
+			</Card>
+		</div>
+	);
+}
