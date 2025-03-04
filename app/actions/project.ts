@@ -1,48 +1,106 @@
 "use server";
-import { eq, not } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { auth } from "@/db/auth";
-import { db, project } from "@/db/schema";
 import { z } from "zod";
 
-export const projectSchema = z.object({
-	name: z.string().min(3),
-	description: z.string().min(3),
-});
+import { auth } from "@/db/auth";
+import { db } from "@/db";
+import {
+	areas_of_interest,
+	project,
+	skill,
+	role,
+	users,
+	project_role_relationship,
+	project_role_skill_relationship,
+} from "@/db/schema";
+import { SubmitProjectSchema } from "@/utils/validation/projects";
+import { routes } from "@/routes/routes";
 
-export async function createProject(name: string, description: string) {
-	//TODO: add more fields to the parameters for the stuff in the project table, I just did this as a mockup
+import { CreateProjectProps, SubmitProject } from "@/types/projects";
+
+export async function getCreateProjectProps(): Promise<CreateProjectProps> {
+	const roles = await db.select().from(role);
+	const skills = await db.select().from(skill);
+	const areasOfInterest = await db.select().from(areas_of_interest);
+	return { roles, skills, areasOfInterest };
+}
+
+export async function createProject(submitProject: SubmitProject) {
+	let validatedData: z.infer<typeof SubmitProjectSchema>;
+	try {
+		validatedData = SubmitProjectSchema.parse(submitProject);
+	} catch (error) {
+		if (error instanceof z.ZodError) {
+			throw new Error(
+				JSON.stringify(
+					error.errors.map((err) => ({
+						path: err.path.join("."),
+						message: err.message,
+					})),
+				),
+			);
+		}
+		console.error("Unexpected error during validation:", error);
+		throw new Error("An unexpected error occurred during validation");
+	}
+
 	const session = await auth();
 	if (!session) {
-		return { error: "Not authorized" };
+		throw new Error("Not authenticated");
 	}
+
 	const userId = session.user.id;
-
-	const validatedData = projectSchema.parse({ name, description });
-
-	if (!validatedData) {
-		return { error: "Invalid data" };
+	const user = await db
+		.select({ id: users.id })
+		.from(users)
+		.where(eq(users.id, userId));
+	if (!user) {
+		throw new Error("User not found");
 	}
 
-	const insertedProject = await db.insert(project).values({
-		name: validatedData.name,
-		description: validatedData.description,
-		owner_profile_id: userId,
+	await db.transaction(async (db) => {
+		const [insertedProject] = await db
+			.insert(project)
+			.values({
+				name: validatedData.name,
+				description: validatedData.description,
+				owner_profile_id: userId,
+			})
+			.returning({ id: project.id });
+
+		for (const [roleName, roleInfo] of Object.entries(
+			validatedData.roles,
+		)) {
+			const foundRole = await db.query.role.findFirst({
+				where: eq(role.name, roleName),
+			});
+
+			if (!foundRole) {
+				throw new Error(`Role ${roleName} not found`);
+			}
+
+			const [insertedProjectRole] = await db
+				.insert(project_role_relationship)
+				.values({
+					project_id: insertedProject.id,
+					role_id: foundRole.id,
+				})
+				.returning({ id: project_role_relationship.id });
+
+			const allSkills = [...roleInfo.skills, ...roleInfo.requiredSkills];
+			await db.insert(project_role_skill_relationship).values(
+				allSkills.map((skillInfo) => ({
+					project_role_id: insertedProjectRole.id,
+					skill_id: skillInfo.id,
+					is_required: roleInfo.requiredSkills.some(
+						(s) => s.name === skillInfo.name,
+					),
+				})),
+			);
+		}
 	});
 
-	await revalidatePath("/api/projects");
-}
-
-export async function getProjects() {
-	const projects = await db.select().from(project).limit(20);
-	return projects;
-}
-
-export async function getProject(id: string) {
-	const foundProject = await db
-		.select()
-		.from(project)
-		.where(eq(project.id, id))
-		.limit(1);
-	return foundProject;
+	await revalidatePath(routes.projects.search());
+	return { success: true };
 }
