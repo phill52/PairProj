@@ -5,19 +5,13 @@ import {
 	text,
 	numeric,
 	integer,
-	bigint,
 	date,
 	primaryKey,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
-import postgres from "postgres";
-import { drizzle } from "drizzle-orm/postgres-js";
 import { relations } from "drizzle-orm";
 import type { AdapterAccountType } from "next-auth/adapters";
-import { int } from "drizzle-orm/mysql-core";
-import dotenv from "dotenv";
 import { createId } from "@paralleldrive/cuid2";
-import { profile } from "console";
 
 // dotenv.config({
 // 	path: ".env",
@@ -38,7 +32,7 @@ export const EXPERIENCE_LEVEL = {
 	beginner: 1,
 	intermediate: 2,
 	advanced: 3,
-} as const;
+};
 
 export type ExperienceLevel =
 	(typeof EXPERIENCE_LEVEL)[keyof typeof EXPERIENCE_LEVEL];
@@ -89,6 +83,27 @@ export const accounts = pgTable(
 	}),
 );
 
+export const authenticators = pgTable(
+	"authenticator",
+	{
+		credentialID: text("credentialID").notNull().unique(),
+		userId: text("userId")
+			.notNull()
+			.references(() => users.id, { onDelete: "cascade" }),
+		providerAccountId: text("providerAccountId").notNull(),
+		credentialPublicKey: text("credentialPublicKey").notNull(),
+		counter: integer("counter").notNull(),
+		credentialDeviceType: text("credentialDeviceType").notNull(),
+		credentialBackedUp: boolean("credentialBackedUp").notNull(),
+		transports: text("transports"),
+	},
+	(authenticator) => ({
+		compositePK: primaryKey({
+			columns: [authenticator.userId, authenticator.credentialID],
+		}),
+	}),
+);
+
 export const usersRelations = relations(users, ({ many, one }) => ({
 	ownedProjects: many(project, { relationName: "projectOwner" }),
 	projectMemberships: many(project_member, {
@@ -122,27 +137,6 @@ export const verificationTokens = pgTable(
 	(verificationToken) => ({
 		compositePk: primaryKey({
 			columns: [verificationToken.identifier, verificationToken.token],
-		}),
-	}),
-);
-
-export const authenticators = pgTable(
-	"authenticator",
-	{
-		credentialID: text("credentialID").notNull().unique(),
-		userId: text("userId")
-			.notNull()
-			.references(() => users.id, { onDelete: "cascade" }),
-		providerAccountId: text("providerAccountId").notNull(),
-		credentialPublicKey: text("credentialPublicKey").notNull(),
-		counter: integer("counter").notNull(),
-		credentialDeviceType: text("credentialDeviceType").notNull(),
-		credentialBackedUp: boolean("credentialBackedUp").notNull(),
-		transports: text("transports"),
-	},
-	(authenticator) => ({
-		compositePK: primaryKey({
-			columns: [authenticator.userId, authenticator.credentialID],
 		}),
 	}),
 );
@@ -292,12 +286,9 @@ export const project_member = pgTable("project_member", {
 	profile_id: text("profile_id")
 		.notNull()
 		.references(() => users.id, { onDelete: "cascade" }),
-	project_role: bigint("project_role", { mode: "number" }).references(
-		() => role.id,
-		{
-			onDelete: "set null",
-		},
-	),
+	project_role: text("project_role")
+		.notNull()
+		.references(() => role.id, { onDelete: "cascade" }),
 	membership_status: integer("membership_status"),
 });
 
@@ -307,6 +298,7 @@ export const projectRelations = relations(project, ({ one, many }) => ({
 		references: [users.id],
 		relationName: "projectOwner",
 	}),
+	roles: many(project_role_relationship),
 	members: many(project_member),
 	skills: many(project_skill_relationship),
 	applications: many(project_application),
@@ -332,10 +324,10 @@ export const projectMemberRelations = relations(project_member, ({ one }) => ({
 }));
 
 export const role = pgTable("role", {
-	id: bigint("id", { mode: "number" })
+	id: text("id")
 		.primaryKey()
 		.notNull()
-		.generatedAlwaysAsIdentity(),
+		.$defaultFn(() => createId()),
 	name: text("name").notNull().notNull(),
 });
 
@@ -345,6 +337,68 @@ export const roleRelations = relations(role, ({ many }) => ({
 	projectApplications: many(project_application),
 	projectInvites: many(project_invite),
 }));
+
+export const project_role_relationship = pgTable("project_role_relationship", {
+	id: text("id")
+		.primaryKey()
+		.notNull()
+		.$defaultFn(() => createId()),
+	project_id: text("project_id")
+		.notNull()
+		.references(() => project.id, { onDelete: "cascade" }),
+	role_id: text("role_id")
+		.notNull()
+		.references(() => role.id, { onDelete: "cascade" }),
+});
+
+export const projectRoleRelationshipRelations = relations(
+	project_role_relationship,
+	({ one }) => ({
+		project: one(project, {
+			fields: [project_role_relationship.project_id],
+			references: [project.id],
+		}),
+		role: one(role, {
+			fields: [project_role_relationship.role_id],
+			references: [role.id],
+		}),
+	}),
+);
+
+export const project_role_skill_relationship = pgTable(
+	"project_role_skill_relationship",
+	{
+		id: text("id")
+			.primaryKey()
+			.notNull()
+			.$defaultFn(() => createId()),
+		project_role_id: text("project_role_id")
+			.notNull()
+			.references(() => project_role_relationship.id, {
+				onDelete: "cascade",
+			}),
+		skill_id: text("skill_id")
+			.notNull()
+			.references(() => skill.id, {
+				onDelete: "cascade",
+			}),
+		is_required: boolean("is_required"),
+	},
+);
+
+export const projectRoleSkillRelationshipRelations = relations(
+	project_role_skill_relationship,
+	({ one }) => ({
+		projectRole: one(project_role_relationship, {
+			fields: [project_role_skill_relationship.project_role_id],
+			references: [project_role_relationship.id],
+		}),
+		skill: one(skill, {
+			fields: [project_role_skill_relationship.skill_id],
+			references: [skill.id],
+		}),
+	}),
+);
 
 export const profile_role_relationship = pgTable("profile_role_relationship", {
 	id: text("id")
@@ -356,7 +410,7 @@ export const profile_role_relationship = pgTable("profile_role_relationship", {
 		.references(() => users.id, {
 			onDelete: "cascade",
 		}),
-	role_id: bigint("role_id", { mode: "number" })
+	role_id: text("role_id")
 		.notNull()
 		.references(() => role.id, {
 			onDelete: "cascade",
@@ -364,10 +418,10 @@ export const profile_role_relationship = pgTable("profile_role_relationship", {
 });
 
 export const areas_of_interest = pgTable("areas_of_interest", {
-	id: bigint("id", { mode: "number" })
+	id: text("id")
 		.primaryKey()
 		.notNull()
-		.generatedAlwaysAsIdentity(),
+		.$defaultFn(() => createId()),
 	name: text("name").notNull(),
 	inner_color: text("inner_color").notNull(),
 	outer_color: text("outer_color").notNull(),
@@ -381,7 +435,7 @@ export const profile_area_relationship = pgTable("profile_area_relationship", {
 	profile_id: text("profile_id")
 		.notNull()
 		.references(() => users.id, { onDelete: "cascade" }),
-	area_id: bigint("area_id", { mode: "number" })
+	area_id: text("area_id")
 		.notNull()
 		.references(() => areas_of_interest.id, { onDelete: "cascade" }),
 });
@@ -415,10 +469,10 @@ export const profileRoleRelationshipRelations = relations(
 );
 
 export const skill = pgTable("skill", {
-	id: bigint("id", { mode: "number" })
+	id: text("id")
 		.primaryKey()
 		.notNull()
-		.generatedAlwaysAsIdentity(),
+		.$defaultFn(() => createId()),
 	name: text("name").notNull(),
 	icon_location: text("icon_location").notNull(),
 	inner_color: text("inner_color").notNull(),
@@ -438,7 +492,7 @@ export const profile_skill_relationship = pgTable(
 		profile_id: text("profile_id")
 			.notNull()
 			.references(() => users.id, { onDelete: "cascade" }),
-		skill_id: bigint("skill_id", { mode: "number" })
+		skill_id: text("skill_id")
 			.notNull()
 			.references(() => skill.id, { onDelete: "cascade" }),
 		experience_level: integer("experience_level").notNull(),
@@ -458,7 +512,7 @@ export const project_skill_relationship = pgTable(
 		project_id: text("project_id")
 			.notNull()
 			.references(() => project.id, { onDelete: "cascade" }),
-		skill_id: bigint("skill_id", { mode: "number" })
+		skill_id: text("skill_id")
 			.notNull()
 			.references(() => skill.id, { onDelete: "cascade" }),
 		is_required: boolean("is_required"),
@@ -510,9 +564,9 @@ export const project_application = pgTable("project_application", {
 	applicant_profile_id: text("applicant_profile_id")
 		.notNull()
 		.references(() => users.id, { onDelete: "cascade" }),
-	role_id: bigint("role_id", { mode: "number" }).references(() => role.id, {
-		onDelete: "set null",
-	}),
+	role_id: text("role_id")
+		.notNull()
+		.references(() => role.id, { onDelete: "cascade" }),
 	message: text("message"),
 	is_denied: boolean("is_denied"),
 });
@@ -550,9 +604,9 @@ export const project_invite = pgTable("project_invite", {
 	invitee_id: text("invitee_id")
 		.notNull()
 		.references(() => users.id, { onDelete: "cascade" }),
-	role_id: bigint("role_id", { mode: "number" }).references(() => role.id, {
-		onDelete: "set null",
-	}),
+	role_id: text("role_id")
+		.notNull()
+		.references(() => role.id, { onDelete: "cascade" }),
 	message: text("message"),
 	status: integer("status"),
 });
@@ -586,7 +640,9 @@ export const project_collaborator = pgTable("project_collaborator", {
 	created_at: timestamp("created_at", { mode: "date" }),
 	project_id: text("project_id"),
 	profile_id: text("profile_id"),
-	role_id: bigint("role_id", { mode: "number" }),
+	role_id: text("role_id")
+		.notNull()
+		.references(() => role.id, { onDelete: "cascade" }),
 });
 
 export const project_news = pgTable("project_news", {
