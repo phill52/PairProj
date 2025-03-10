@@ -1,9 +1,7 @@
 import { InferSelectModel } from "drizzle-orm";
 import { project } from "@/db/schema";
-import dateToMonthYear from "../utils/dateHelpers";
 
-import { AreaTable, RoleTable, Skill, SkillTable } from "./profile-items";
-import { areas_of_interest } from "../db/schema";
+import { AreaTable, RoleTable, SkillTable } from "./profile-items";
 
 export type Project = InferSelectModel<typeof project>;
 
@@ -26,3 +24,17 @@ export interface CreateProjectProps {
 	roles: RoleTable[];
 	skills: SkillTable[];
 }
+
+export type ProjectProps = Project & {
+	roles: Array<{
+		id: RoleTable["id"];
+		name: RoleTable["name"];
+		skills: Array<{
+			id: SkillTable["id"];
+			name: SkillTable["name"];
+			innerColor: SkillTable["inner_color"];
+			outerColor: SkillTable["outer_color"];
+			isRequired: boolean | null;
+		}>;
+	}>;
+};

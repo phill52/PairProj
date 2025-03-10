@@ -1,4 +1,5 @@
 "use server";
+
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -17,7 +18,50 @@ import {
 import { SubmitProjectSchema } from "@/utils/validation/projects";
 import { routes } from "@/routes/routes";
 
-import { CreateProjectProps, SubmitProject } from "@/types/projects";
+import {
+	CreateProjectProps,
+	SubmitProject,
+	ProjectProps,
+} from "@/types/projects";
+
+export async function getProject(projectId: string): Promise<ProjectProps> {
+	const result = await db.query.project.findFirst({
+		where: eq(project.id, projectId),
+		with: {
+			roles: {
+				with: {
+					role: true,
+					skills: {
+						with: {
+							skill: true,
+						},
+					},
+				},
+			},
+		},
+	});
+
+	if (!result) {
+		throw new Error("Project not found");
+	}
+
+	const transformedResult: ProjectProps = {
+		...result,
+		roles: result.roles.map((projectRole) => ({
+			id: projectRole.role.id,
+			name: projectRole.role.name,
+			skills: projectRole.skills.map((skillRelation) => ({
+				id: skillRelation.skill.id,
+				name: skillRelation.skill.name,
+				innerColor: skillRelation.skill.inner_color,
+				outerColor: skillRelation.skill.outer_color,
+				isRequired: skillRelation.is_required,
+			})),
+		})),
+	};
+
+	return transformedResult;
+}
 
 export async function getCreateProjectProps(): Promise<CreateProjectProps> {
 	const roles = await db.select().from(role);
