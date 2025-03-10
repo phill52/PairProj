@@ -1,6 +1,6 @@
 import CreateProject from "./create-project";
 import { Suspense } from "react";
-import { getCreateProjectProps } from "@/app/actions/project";
+import { getCreateProjectProps } from "@/app/actions/projects";
 
 async function CreateProfilePage() {
 	const props = await getCreateProjectProps();

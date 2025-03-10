@@ -353,7 +353,7 @@ export const project_role_relationship = pgTable("project_role_relationship", {
 
 export const projectRoleRelationshipRelations = relations(
 	project_role_relationship,
-	({ one }) => ({
+	({ one, many }) => ({
 		project: one(project, {
 			fields: [project_role_relationship.project_id],
 			references: [project.id],
@@ -362,6 +362,7 @@ export const projectRoleRelationshipRelations = relations(
 			fields: [project_role_relationship.role_id],
 			references: [role.id],
 		}),
+		skills: many(project_role_skill_relationship),
 	}),
 );
 

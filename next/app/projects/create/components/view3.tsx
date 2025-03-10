@@ -1,4 +1,4 @@
-import { createProject } from "@/app/actions/project";
+import { createProject } from "@/app/actions/projects";
 
 import { SubmitProject } from "@/types/projects";
 import Badge from "@/components/badge";
