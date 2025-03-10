@@ -11,8 +11,8 @@ package-lock.json
 /coverage
 
 # next.js
-/.next/
-/out/
+.next/
+.out/
 
 # production
 /build
@@ -38,4 +38,4 @@ yarn-error.log*
 next-env.d.ts
 
 # drizzle files
-/drizzle
+drizzle
