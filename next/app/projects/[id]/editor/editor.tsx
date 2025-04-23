@@ -10,6 +10,9 @@ import { useRoom, useSelf } from "@liveblocks/react/suspense";
 import { useEffect, useRef, useState } from "react";
 import styles from "./components/Editor.module.css";
 
+import dynamic from "next/dynamic";
+import React from "react";
+
 // Collaborative text editor with simple rich text, live cursors, and live avatars
 type DataProp = {
   data: string|undefined;

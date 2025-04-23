@@ -179,6 +179,13 @@ export default function ProjectComponent({
 						<Button>Applications</Button>
 					</div>
 				</section> */}
+				<Link
+					href={routes.projects.editor({ id: project.id })}
+				>
+					<Button className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-lg shadow-md">
+						Open Live Editor
+					</Button>
+				</Link>
 			</CardContent>
 
 			{/* <CardFooter className="flex items-center justify-between border-t p-6"> TODO: add project news
