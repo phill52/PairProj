@@ -1,0 +1,65 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  border-radius: 12px;
+  background: #fff; /* Default light mode */
+  width: 100%;
+  height: 100%;
+  color: #111827; /* Dark text in light mode */
+}
+
+.dark .container {
+  background: #1a1a1a; /* Dark background */
+  color: #ffffff; /* White text */
+}
+
+.editorHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.editor {
+  border-radius: inherit;
+  flex-grow: 1;
+  width: 100%;
+  height: 100%;
+  padding: 1rem;
+  outline: none;
+}
+
+.dark .editor {
+  background: #1a1a1a; /* Dark background */
+  color: #ffffff; /* White text */
+}
+
+.editorContainer {
+  position: relative;
+  height: 100%;
+}
+
+.dark .editorContainer {
+  background: #222; /* Darker background */
+  border-color: #444; /* Darker border */
+}
+
+.placeholder {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0.3;
+  padding: 0 1em;
+}
+
+.dark .placeholder {
+  color: #aaaaaa; /* Lighter placeholder in dark mode */
+}
+
+.editor p {
+  margin: 1em 0;
+}
+
+.dark .editor p {
+  color: #ffffff;
+}
