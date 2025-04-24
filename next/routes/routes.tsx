@@ -10,7 +10,4 @@ export const routes = registerRoutes({
 		search: "/projects/search",
 		project: "/projects/:id",
 	},
-	editor: "/editor"
-	
-	
 });
