@@ -17,6 +17,7 @@
 		"@auth/drizzle-adapter": "^1.4.1",
 		"@codemirror/basic-setup": "^0.20.0",
 		"@codemirror/lang-javascript": "^6.2.3",
+		"@codemirror/theme-one-dark": "^6.1.2",
 		"@codemirror/view": "^6.36.6",
 		"@hookform/resolvers": "^3.3.4",
 		"@liveblocks/react": "^2.23.1",

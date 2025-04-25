@@ -1,18 +1,16 @@
 "use client";
 
 import Quill from "quill";
-import ReactQuill from "react-quill";
-import { QuillBinding } from "y-quill";
 import QuillCursors from "quill-cursors";
 import * as Y from "yjs";
 import { LiveblocksYjsProvider } from "@liveblocks/yjs";
 import { useRoom, useSelf } from "@liveblocks/react/suspense";
 import { useEffect, useRef, useState } from "react";
-import styles from "./components/Editor.module.css";
+// import styles from "./components/Editor.module.css";
 
 import dynamic from "next/dynamic";
 import React from "react";
-import CodeMirror from "./components/codemirror";
+import CodeMirror from "./CodeMirror";
 
 // Collaborative text editor with simple rich text, live cursors, and live avatars
 type DataProp = {
