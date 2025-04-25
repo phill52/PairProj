@@ -11,11 +11,6 @@ import File_Upload from "./components/file_uploader.tsx";
 import { useState } from "react";
 //import React, { useState } from 'react';
 import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardFooter,
-	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
 
@@ -23,11 +18,12 @@ export default function Page() {
   const [fileData, setFileData] = useState<string>();
   //const [dataFromChild, setDataFromChild] = useState("");
   function handleDataFromChild(data: string) {
-    //setDataFromChild(data);
-    console.log('recieved data from child');
+    // setDataFromChild(data);
+    // console.log('recieved data from child');
+    
     
     setFileData(data);
-    console.log(fileData);
+    // console.log(fileData);
   }
   return (
     <div className="grid grid-cols-12 min-h-screen" suppressHydrationWarning>

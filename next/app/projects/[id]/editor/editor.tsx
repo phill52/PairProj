@@ -12,6 +12,7 @@ import styles from "./components/Editor.module.css";
 
 import dynamic from "next/dynamic";
 import React from "react";
+import CodeMirror from "./components/codemirror";
 
 // Collaborative text editor with simple rich text, live cursors, and live avatars
 type DataProp = {
@@ -45,7 +46,7 @@ export function CollaborativeEditor ({ data }: DataProp) {
 
   useEffect(() => {
     console.log('recieved data in editor');
-    console.log(data);
+    // console.log(data);
     if (data != undefined){
       //const yText = new Y.Text(data)
       
@@ -55,57 +56,12 @@ export function CollaborativeEditor ({ data }: DataProp) {
       //setText(yText);
     }
     
-  }, [data]);
+  }, [data, text]);
 
 
   if (!text || !provider) {
     return null;
   }
 
-  return <QuillEditor yText={text} provider={provider} />;
-}
-
-type EditorProps = {
-  yText: Y.Text;
-  provider: any;
-  
-};
-
-function QuillEditor({ yText, provider }: EditorProps) {
-  const reactQuillRef = useRef<ReactQuill>(null);
-
-  // Set up Yjs and Quill
-  //const userInfo = useSelf((me) => me.info);
-  
-  useEffect(() => {
-    let quill: ReturnType<ReactQuill["getEditor"]>;
-    let binding: QuillBinding;
-
-    if (!reactQuillRef.current) {
-      return;
-    }
-
-    quill = reactQuillRef.current.getEditor();
-    binding = new QuillBinding(yText, quill, provider.awareness);
-    return () => {
-      binding?.destroy?.();
-    };
-    
-  }, [yText, provider]);
-
-  return (
-    <div className="container bg-white dark:bg-black rounded-md p-4">
-      <ReactQuill
-        className="editor text-black dark:text-white"
-        placeholder="Start typing here…"
-        ref={reactQuillRef}
-        theme="snow"
-        modules={{
-          toolbar: false,
-          history: { userOnly: true },
-        }}
-      />
-    </div>
-  );
-  
+  return <CodeMirror yText={text} provider={provider} />;
 }
