@@ -6,12 +6,11 @@ import {
 	CardTitle,
 	CardContent,
 	CardFooter,
-	Button,
-	Avatar,
-} from "@/components/ui";
+} from "@/components/ui/card";
 import { ProjectProps } from "@/types/projects";
 import Badge from "@/components/badge";
-import { AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { routes } from "@/routes/routes";
 

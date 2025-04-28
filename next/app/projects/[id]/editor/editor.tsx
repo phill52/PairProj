@@ -1,67 +1,92 @@
 "use client";
 
-import Quill from "quill";
-import ReactQuill from "react-quill";
-import { QuillBinding } from "y-quill";
-import QuillCursors from "quill-cursors";
 import * as Y from "yjs";
-import { LiveblocksYjsProvider } from "@liveblocks/yjs";
+import { yCollab } from "y-codemirror.next";
+import { EditorView, basicSetup } from "codemirror";
+import { EditorState } from "@codemirror/state";
+import { javascript } from "@codemirror/lang-javascript";
+import { useCallback, useEffect, useState } from "react";
+import { getYjsProviderForRoom } from "@liveblocks/yjs";
 import { useRoom, useSelf } from "@liveblocks/react/suspense";
-import { useEffect, useRef, useState } from "react";
-import styles from "./components/Editor.module.css";
+import styles from "./components/editor.module.css";
+import { Avatars } from "./components/avatars";
+import { Toolbar } from "./components/toolbar";
 
-import dynamic from "next/dynamic";
-import React from "react";
-import CodeMirror from "./components/codemirror";
-
-// Collaborative text editor with simple rich text, live cursors, and live avatars
-type DataProp = {
-  data: string|undefined;
-}
-
-Quill.register("modules/cursors", QuillCursors);
-export function CollaborativeEditor ({ data }: DataProp) {
+// Collaborative code editor with undo/redo, live cursors, and live avatars
+export function CollaborativeEditor({ data }: { data? : string }) {
   const room = useRoom();
-  const [doc, setDoc] = useState<Y.Doc>();
-  const [text, setText] = useState<Y.Text>();
-  const [provider, setProvider] = useState<any>();
-  
-  
+  const provider = getYjsProviderForRoom(room);
+  const [element, setElement] = useState<HTMLElement>();
+  const [yUndoManager, setYUndoManager] = useState<Y.UndoManager>();
 
-  // Set up Liveblocks Yjs provider
+  // Get user info from Liveblocks authentication endpoint
+  const userInfo = useSelf((me) => me.info);
+
+  const ref = useCallback((node: HTMLElement | null) => {
+    if (!node) return;
+    setElement(node);
+  }, []);
+
+  // Set up Liveblocks Yjs provider and attach CodeMirror editor
   useEffect(() => {
-    const yDoc = new Y.Doc();
-    const yText = yDoc.getText("quill");
-    const yProvider = new LiveblocksYjsProvider(room, yDoc);
-    setDoc(yDoc);
-    setText(yText);
-    setProvider(yProvider);
 
-    
-    return () => {
-      yDoc?.destroy();
-      yProvider?.destroy();
-    };
-  }, [room]);
-
-  useEffect(() => {
-    console.log('recieved data in editor');
-    // console.log(data);
-    if (data != undefined){
-      //const yText = new Y.Text(data)
-      
-      console.log('setting text')
-      text?.delete(0, text.length)
-      text?.insert(0, data);
-      //setText(yText);
+    if (!element || !room || !userInfo) {
+      return;
     }
-    
-  }, [data, text]);
 
+    // Create Yjs provider and document
+    const ydoc = provider.getYDoc();
+    const ytext = ydoc.getText("codemirror");
+    const undoManager = new Y.UndoManager(ytext);
+    setYUndoManager(undoManager);
 
-  if (!text || !provider) {
-    return null;
-  }
+    // Attach user info to Yjs
+    provider.awareness.setLocalStateField("user", {
+      name: userInfo.name,
+      color: userInfo.color,
+      colorLight: userInfo.color + "80", // 6-digit hex code at 50% opacity
+    });
 
-  return <CodeMirror yText={text} provider={provider} />;
+    // Set up CodeMirror and extensions
+    const state = EditorState.create({
+      doc: ytext.toString(),
+      extensions: [
+        basicSetup,
+        javascript(),
+        yCollab(ytext, provider.awareness, { undoManager }),
+      ],
+    });
+
+    // Attach CodeMirror to element
+    const view = new EditorView({
+      state,
+      parent: element,
+    });
+
+    return () => {
+      view?.destroy();
+    };
+  }, [element, room, userInfo]);
+
+  useEffect(() => {
+    if (data && provider) {
+      const ydoc = provider.getYDoc();
+      const ytext = ydoc.getText("codemirror");
+
+      ytext.delete(0, ytext.length); // Clear existing content
+      ytext.insert(0, data); // Insert uploaded file content
+    }
+  }, [data, provider]);
+
+  return (
+    <div className={styles.container}>
+      <div className={styles.editorHeader}>
+        <div>
+          {yUndoManager ? <Toolbar yUndoManager={yUndoManager} /> : null}
+        </div>
+        <Avatars />
+      </div>
+      <div className={styles.editorContainer} ref={ref}></div>
+    </div>
+  );
 }

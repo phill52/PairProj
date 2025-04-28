@@ -19,6 +19,7 @@
 		"@codemirror/lang-javascript": "^6.2.3",
 		"@codemirror/view": "^6.36.6",
 		"@hookform/resolvers": "^3.3.4",
+		"@liveblocks/node": "^2.23.2",
 		"@liveblocks/react": "^2.23.1",
 		"@liveblocks/yjs": "^2.23.1",
 		"@paralleldrive/cuid2": "^2.2.2",
@@ -75,5 +76,8 @@
 		"tailwindcss": "^3.3.0",
 		"ts-node": "^10.9.2",
 		"typescript": "^5.6.2"
-	}
+	},
+	"resolutions": {
+  		"yjs": "^13.6.26"
+}
 }

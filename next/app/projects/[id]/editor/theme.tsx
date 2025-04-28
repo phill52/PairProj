@@ -1,7 +1,12 @@
 "use client";
 
-import { ThemeProvider } from "next-themes";
+import { LiveblocksProvider } from "@liveblocks/react";
+import { PropsWithChildren } from "react";
 
-export function Providers({ children }: { children: React.ReactNode }) {
-    return <ThemeProvider attribute="class" defaultTheme="system" enableSystem>{children}</ThemeProvider>;
+export function Providers({ children }: PropsWithChildren) {
+  return (
+    <LiveblocksProvider authEndpoint="/api/liveblocks-auth">
+      {children}
+    </LiveblocksProvider>
+  );
 }
