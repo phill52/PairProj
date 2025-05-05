@@ -223,15 +223,19 @@ const Sidebar = () => {
 						Projects
 					</h1>
 					{/* create a new project */}
-					<div className="flex w-full cursor-pointer items-center justify-center space-x-4 rounded-md px-4 py-2 transition-all ease-linear hover:bg-gray-200 dark:hover:bg-gray-700">
-						<Image
-							src="/icons/plus-svgrepo-com.svg"
-							alt="Create New Project"
-							width={30}
-							height={30}
-						/>
-						<p className="text-md text-black">Create New Project</p>
-					</div>
+					<Link
+						href={routes.projects.create()}
+					>
+						<div className="flex w-full cursor-pointer items-center justify-center space-x-4 rounded-md px-4 py-2 transition-all ease-linear hover:bg-gray-200 dark:hover:bg-gray-700">
+							<Image
+								src="/icons/plus-svgrepo-com.svg"
+								alt="Create New Project"
+								width={30}
+								height={30}
+								/>
+							<p className="text-md text-black">Create New Project</p>
+						</div>
+					</Link>
 					<div className="w-full">
 						{SampleInput.projects.map((project) => (
 							<div

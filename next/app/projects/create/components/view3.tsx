@@ -10,7 +10,8 @@ interface Props {
 const View3: React.FC<Props> = ({ State }) => {
 	return (
 		<div className="flex flex-col p-4 lg:px-40">
-			<h1>Review your shit</h1>
+			{/* <h1>Review your shit</h1> */}
+			<h1>Review Your Project:</h1>
 
 			<h1 className="mb-4 text-2xl font-bold">{State.name}</h1>
 			<p className="mb-6">{State.description}</p>
