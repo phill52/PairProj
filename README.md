@@ -35,7 +35,7 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
     ```bash
        npm run db:push
-       npm run db:seed //SEED IS STILL A TODO
+       npm run db:seed //Seed works but needs to be expanded
     ```
 
     When making any changes to the database, or pulling in someone else's changes, make sure you migrate your local DB.
