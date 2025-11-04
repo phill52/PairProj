@@ -10,16 +10,19 @@ const connectionString: string = process.env.DATABASE_URL as string;
 if (!connectionString) {
 	throw new Error("DATABASE_URL is not defined");
 }
-let sslmode = "";
+
+console.log("this is the connection string", connectionString);
+
+let sslConfig = "";
 if (process.env.APP_ENV === "prod") {
-	sslmode = "?sslmode=require";
+	sslConfig = "?ssl=true";
 }
 export default defineConfig({
 	schema: "./db/schema.ts",
-	dialect: "postgresql",
+	dialect: "mysql",
 	out: "./drizzle",
 	dbCredentials: {
-		url: connectionString + sslmode,
+		url: connectionString + sslConfig,
 	},
 	verbose: true,
 	strict: true,
