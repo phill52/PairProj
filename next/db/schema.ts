@@ -1,32 +1,18 @@
 import {
 	boolean,
 	timestamp,
-	pgTable,
+	mysqlTable,
 	text,
-	numeric,
-	integer,
+	decimal,
+	int,
 	date,
 	primaryKey,
-} from "drizzle-orm/pg-core";
+	varchar,
+} from "drizzle-orm/mysql-core";
 import { sql } from "drizzle-orm";
 import { relations } from "drizzle-orm";
 import type { AdapterAccountType } from "next-auth/adapters";
 import { createId } from "@paralleldrive/cuid2";
-
-// dotenv.config({
-// 	path: ".env",
-// });
-// const connectionString: string = process.env.DATABASE_URL as string;
-// if (!connectionString) {
-// 	throw new Error("DATABASE_URL is not defined");
-// }
-
-// let sslmode = "";
-// if (process.env.APP_ENV === "prod") {
-// 	sslmode = "?sslmode=require";
-// }
-// const pool = postgres(connectionString + sslmode, { max: 1 });
-// export const db = drizzle(pool, { logger: true });
 
 export const EXPERIENCE_LEVEL = {
 	beginner: 1,
@@ -37,12 +23,12 @@ export const EXPERIENCE_LEVEL = {
 export type ExperienceLevel =
 	(typeof EXPERIENCE_LEVEL)[keyof typeof EXPERIENCE_LEVEL];
 
-export const users = pgTable("user", {
-	id: text("id")
+export const users = mysqlTable("user", {
+	id: varchar("id", { length: 255 })
 		.primaryKey()
 		.$defaultFn(() => createId()),
 	name: text("name"),
-	username: text("username").unique(),
+	username: varchar("username", { length: 255 }).unique(),
 	first_name: text("first_name"),
 	last_name: text("last_name"),
 	email: text("email"),
@@ -50,8 +36,8 @@ export const users = pgTable("user", {
 	image: text("image"),
 	bio: text("bio"),
 	pronouns: text("pronouns"),
-	experience_level: integer("experience"),
-	skill_level: integer("skill_level"),
+	experience_level: int("experience"),
+	skill_level: int("skill_level"),
 	avatar_location: text("avatar_location"),
 	resume_location: text("resume_location"),
 	created_at: timestamp("created_at", { mode: "date" })
@@ -59,18 +45,22 @@ export const users = pgTable("user", {
 		.defaultNow(),
 });
 
-export const accounts = pgTable(
+export const accounts = mysqlTable(
 	"account",
 	{
-		userId: text("userId")
+		userId: varchar("userId", { length: 255 })
 			.notNull()
-			.references(() => users.id, { onDelete: "cascade" }),
-		type: text("type").$type<AdapterAccountType>().notNull(),
-		provider: text("provider").notNull(),
-		providerAccountId: text("providerAccountId").notNull(),
+			.references(() => users.id, { onDelete: "restrict" }),
+		type: varchar("type", { length: 255 })
+			.$type<AdapterAccountType>()
+			.notNull(),
+		provider: varchar("provider", { length: 255 }).notNull(),
+		providerAccountId: varchar("providerAccountId", {
+			length: 255,
+		}).notNull(),
 		refresh_token: text("refresh_token"),
 		access_token: text("access_token"),
-		expires_at: integer("expires_at"),
+		expires_at: int("expires_at"),
 		token_type: text("token_type"),
 		scope: text("scope"),
 		id_token: text("id_token"),
@@ -83,16 +73,20 @@ export const accounts = pgTable(
 	}),
 );
 
-export const authenticators = pgTable(
+export const authenticators = mysqlTable(
 	"authenticator",
 	{
-		credentialID: text("credentialID").notNull().unique(),
-		userId: text("userId")
+		credentialID: varchar("credentialID", { length: 255 })
 			.notNull()
-			.references(() => users.id, { onDelete: "cascade" }),
-		providerAccountId: text("providerAccountId").notNull(),
+			.unique(),
+		userId: varchar("userId", { length: 255 })
+			.notNull()
+			.references(() => users.id, { onDelete: "restrict" }),
+		providerAccountId: varchar("providerAccountId", {
+			length: 255,
+		}).notNull(),
 		credentialPublicKey: text("credentialPublicKey").notNull(),
-		counter: integer("counter").notNull(),
+		counter: int("counter").notNull(),
 		credentialDeviceType: text("credentialDeviceType").notNull(),
 		credentialBackedUp: boolean("credentialBackedUp").notNull(),
 		transports: text("transports"),
@@ -119,19 +113,19 @@ export const usersRelations = relations(users, ({ many, one }) => ({
 	savedProjects: many(saved_project),
 }));
 
-export const sessions = pgTable("session", {
-	sessionToken: text("sessionToken").primaryKey(),
-	userId: text("userId")
+export const sessions = mysqlTable("session", {
+	sessionToken: varchar("sessionToken", { length: 255 }).primaryKey(),
+	userId: varchar("userId", { length: 255 })
 		.notNull()
-		.references(() => users.id, { onDelete: "cascade" }),
+		.references(() => users.id, { onDelete: "restrict" }),
 	expires: timestamp("expires", { mode: "date" }).notNull(),
 });
 
-export const verificationTokens = pgTable(
+export const verificationTokens = mysqlTable(
 	"verificationToken",
 	{
-		identifier: text("identifier").notNull(),
-		token: text("token").notNull(),
+		identifier: varchar("identifier", { length: 255 }).notNull(),
+		token: varchar("token", { length: 255 }).notNull(),
 		expires: timestamp("expires", { mode: "date" }).notNull(),
 	},
 	(verificationToken) => ({
@@ -141,32 +135,32 @@ export const verificationTokens = pgTable(
 	}),
 );
 
-export const profile_education = pgTable("profile_education", {
-	id: text("id")
+export const profile_education = mysqlTable("prof_education", {
+	id: varchar("id", { length: 255 })
 		.primaryKey()
 		.notNull()
 		.$defaultFn(() => createId()),
 	created_at: timestamp("created_at", { mode: "date" }).defaultNow(),
-	profile_id: text("profile_id")
+	profile_id: varchar("profile_id", { length: 255 })
 		.notNull()
-		.references(() => users.id, { onDelete: "cascade" }),
+		.references(() => users.id, { onDelete: "restrict" }),
 	school_name: text("school_name").notNull(),
 	major: text("major").notNull(),
 	degree: text("degree").notNull(),
 	start_date: date("start_date", { mode: "date" }).notNull(),
 	end_date: date("end_date", { mode: "date" }),
-	gpa: numeric("gpa"),
+	gpa: decimal("gpa"),
 });
 
-export const profile_work_experience = pgTable("profile_work_experience", {
-	id: text("id")
+export const profile_work_experience = mysqlTable("prof_work_exp", {
+	id: varchar("id", { length: 255 })
 		.primaryKey()
 		.notNull()
 		.$defaultFn(() => createId()),
 	created_at: timestamp("created_at", { mode: "date" }).defaultNow(),
-	profile_id: text("profile_id")
+	profile_id: varchar("profile_id", { length: 255 })
 		.notNull()
-		.references(() => users.id, { onDelete: "cascade" }),
+		.references(() => users.id, { onDelete: "restrict" }),
 	company_name: text("company_name").notNull(),
 	job_title: text("job_title").notNull(),
 	job_description: text("job_description").notNull(),
@@ -194,35 +188,35 @@ export const profileWorkExperienceRelations = relations(
 	}),
 );
 
-export const chat_room = pgTable("chat_room", {
-	id: text("id")
+export const chat_room = mysqlTable("chat_room", {
+	id: varchar("id", { length: 255 })
 		.primaryKey()
 		.notNull()
 		.$defaultFn(() => createId()),
 	created_at: timestamp("created_at", { mode: "date" }).defaultNow(),
-	owner_profile_id: text("owner_profile_id"),
+	owner_profile_id: varchar("owner_profile_id", { length: 255 }),
 	name: text("name"),
 });
 
-export const chat_member = pgTable("chat_member", {
-	id: text("id")
+export const chat_member = mysqlTable("chat_member", {
+	id: varchar("id", { length: 255 })
 		.primaryKey()
 		.notNull()
 		.$defaultFn(() => createId()),
 	created_at: timestamp("created_at", { mode: "date" }).defaultNow(),
-	profile_id: text("profile_id"),
-	chat_room_id: text("chat_room_id"),
-	unread_messages: integer("unread_messages"),
+	profile_id: varchar("profile_id", { length: 255 }),
+	chat_room_id: varchar("chat_room_id", { length: 255 }),
+	unread_messages: int("unread_messages"),
 });
 
-export const chat_message = pgTable("chat_message", {
-	id: text("id")
+export const chat_message = mysqlTable("chat_message", {
+	id: varchar("id", { length: 255 })
 		.primaryKey()
 		.notNull()
 		.$defaultFn(() => createId()),
 	created_at: timestamp("created_at", { mode: "date" }).defaultNow(),
-	sender_profile_id: text("sender_profile_id"),
-	chat_room_id: text("chat_room_id"),
+	sender_profile_id: varchar("sender_profile_id", { length: 255 }),
+	chat_room_id: varchar("chat_room_id", { length: 255 }),
 	message_content: text("message_content"),
 });
 
@@ -257,16 +251,16 @@ export const chatMessageRelations = relations(chat_message, ({ one }) => ({
 	}),
 }));
 
-export const project = pgTable("project", {
-	id: text("id")
+export const project = mysqlTable("project", {
+	id: varchar("id", { length: 255 })
 		.primaryKey()
 		.notNull()
 		.$defaultFn(() => createId()),
 	created_at: timestamp("created_at", { mode: "date" }).defaultNow(),
 	name: text("name"),
 	description: text("description"),
-	owner_profile_id: text("owner_profile_id")
-		.references(() => users.id, { onDelete: "set null" })
+	owner_profile_id: varchar("owner_profile_id", { length: 255 })
+		.references(() => users.id, { onDelete: "restrict" })
 		.notNull(),
 	skill_level: text("skill_level"),
 	github_repository: text("github_repository"),
@@ -274,22 +268,22 @@ export const project = pgTable("project", {
 	profile_picture: text("profile_picture"),
 });
 
-export const project_member = pgTable("project_member", {
-	id: text("id")
+export const project_member = mysqlTable("proj_member", {
+	id: varchar("id", { length: 255 })
 		.primaryKey()
 		.notNull()
 		.$defaultFn(() => createId()),
 	created_at: timestamp("created_at", { mode: "date" }).defaultNow(),
-	project_id: text("project_id")
+	project_id: varchar("project_id", { length: 255 })
 		.notNull()
-		.references(() => project.id, { onDelete: "cascade" }),
-	profile_id: text("profile_id")
+		.references(() => project.id, { onDelete: "restrict" }),
+	profile_id: varchar("profile_id", { length: 255 })
 		.notNull()
-		.references(() => users.id, { onDelete: "cascade" }),
-	project_role: text("project_role")
+		.references(() => users.id, { onDelete: "restrict" }),
+	project_role: varchar("project_role", { length: 255 })
 		.notNull()
-		.references(() => role.id, { onDelete: "cascade" }),
-	membership_status: integer("membership_status"),
+		.references(() => role.id, { onDelete: "restrict" }),
+	membership_status: int("membership_status"),
 });
 
 export const projectRelations = relations(project, ({ one, many }) => ({
@@ -323,8 +317,8 @@ export const projectMemberRelations = relations(project_member, ({ one }) => ({
 	}),
 }));
 
-export const role = pgTable("role", {
-	id: text("id")
+export const role = mysqlTable("role", {
+	id: varchar("id", { length: 255 })
 		.primaryKey()
 		.notNull()
 		.$defaultFn(() => createId()),
@@ -338,17 +332,17 @@ export const roleRelations = relations(role, ({ many }) => ({
 	projectInvites: many(project_invite),
 }));
 
-export const project_role_relationship = pgTable("project_role_relationship", {
-	id: text("id")
+export const project_role_relationship = mysqlTable("proj_role_rel", {
+	id: varchar("id", { length: 255 })
 		.primaryKey()
 		.notNull()
 		.$defaultFn(() => createId()),
-	project_id: text("project_id")
+	project_id: varchar("project_id", { length: 255 })
 		.notNull()
-		.references(() => project.id, { onDelete: "cascade" }),
-	role_id: text("role_id")
+		.references(() => project.id, { onDelete: "restrict" }),
+	role_id: varchar("role_id", { length: 255 })
 		.notNull()
-		.references(() => role.id, { onDelete: "cascade" }),
+		.references(() => role.id, { onDelete: "restrict" }),
 });
 
 export const projectRoleRelationshipRelations = relations(
@@ -366,26 +360,23 @@ export const projectRoleRelationshipRelations = relations(
 	}),
 );
 
-export const project_role_skill_relationship = pgTable(
-	"project_role_skill_relationship",
-	{
-		id: text("id")
-			.primaryKey()
-			.notNull()
-			.$defaultFn(() => createId()),
-		project_role_id: text("project_role_id")
-			.notNull()
-			.references(() => project_role_relationship.id, {
-				onDelete: "cascade",
-			}),
-		skill_id: text("skill_id")
-			.notNull()
-			.references(() => skill.id, {
-				onDelete: "cascade",
-			}),
-		is_required: boolean("is_required"),
-	},
-);
+export const project_role_skill_relationship = mysqlTable("proj_role_skill", {
+	id: varchar("id", { length: 255 })
+		.primaryKey()
+		.notNull()
+		.$defaultFn(() => createId()),
+	project_role_id: varchar("project_role_id", { length: 255 })
+		.notNull()
+		.references(() => project_role_relationship.id, {
+			onDelete: "restrict",
+		}),
+	skill_id: varchar("skill_id", { length: 255 })
+		.notNull()
+		.references(() => skill.id, {
+			onDelete: "restrict",
+		}),
+	is_required: boolean("is_required"),
+});
 
 export const projectRoleSkillRelationshipRelations = relations(
 	project_role_skill_relationship,
@@ -401,25 +392,25 @@ export const projectRoleSkillRelationshipRelations = relations(
 	}),
 );
 
-export const profile_role_relationship = pgTable("profile_role_relationship", {
-	id: text("id")
+export const profile_role_relationship = mysqlTable("prof_role_rel", {
+	id: varchar("id", { length: 255 })
 		.primaryKey()
 		.notNull()
 		.$defaultFn(() => createId()),
-	profile_id: text("profile_id")
+	profile_id: varchar("profile_id", { length: 255 })
 		.notNull()
 		.references(() => users.id, {
-			onDelete: "cascade",
+			onDelete: "restrict",
 		}),
-	role_id: text("role_id")
+	role_id: varchar("role_id", { length: 255 })
 		.notNull()
 		.references(() => role.id, {
-			onDelete: "cascade",
+			onDelete: "restrict",
 		}),
 });
 
-export const areas_of_interest = pgTable("areas_of_interest", {
-	id: text("id")
+export const areas_of_interest = mysqlTable("areas_of_interest", {
+	id: varchar("id", { length: 255 })
 		.primaryKey()
 		.notNull()
 		.$defaultFn(() => createId()),
@@ -428,17 +419,17 @@ export const areas_of_interest = pgTable("areas_of_interest", {
 	outer_color: text("outer_color").notNull(),
 });
 
-export const profile_area_relationship = pgTable("profile_area_relationship", {
-	id: text("id")
+export const profile_area_relationship = mysqlTable("prof_area_rel", {
+	id: varchar("id", { length: 255 })
 		.primaryKey()
 		.notNull()
 		.$defaultFn(() => createId()),
-	profile_id: text("profile_id")
+	profile_id: varchar("profile_id", { length: 255 })
 		.notNull()
-		.references(() => users.id, { onDelete: "cascade" }),
-	area_id: text("area_id")
+		.references(() => users.id, { onDelete: "restrict" }),
+	area_id: varchar("area_id", { length: 255 })
 		.notNull()
-		.references(() => areas_of_interest.id, { onDelete: "cascade" }),
+		.references(() => areas_of_interest.id, { onDelete: "restrict" }),
 });
 
 export const profileAreaRelationship = relations(
@@ -469,8 +460,8 @@ export const profileRoleRelationshipRelations = relations(
 	}),
 );
 
-export const skill = pgTable("skill", {
-	id: text("id")
+export const skill = mysqlTable("skill", {
+	id: varchar("id", { length: 255 })
 		.primaryKey()
 		.notNull()
 		.$defaultFn(() => createId()),
@@ -487,35 +478,35 @@ export const SKILL_LEVELS = {
 
 export type SkillLevel = (typeof SKILL_LEVELS)[keyof typeof SKILL_LEVELS];
 
-export const profile_skill_relationship = pgTable(
-	"profile_skill_relationship",
+export const profile_skill_relationship = mysqlTable(
+	"prof_skill_rel",
 	{
-		profile_id: text("profile_id")
+		profile_id: varchar("profile_id", { length: 255 })
 			.notNull()
-			.references(() => users.id, { onDelete: "cascade" }),
-		skill_id: text("skill_id")
+			.references(() => users.id, { onDelete: "restrict" }),
+		skill_id: varchar("skill_id", { length: 255 })
 			.notNull()
-			.references(() => skill.id, { onDelete: "cascade" }),
-		experience_level: integer("experience_level").notNull(),
+			.references(() => skill.id, { onDelete: "restrict" }),
+		experience_level: int("experience_level").notNull(),
 	},
 	(table) => ({
 		experienceLevelCheck: sql`check(${table.experience_level} in (${sql.join(Object.values(SKILL_LEVELS))}))`,
 	}),
 );
 
-export const project_skill_relationship = pgTable(
+export const project_skill_relationship = mysqlTable(
 	"project_skill_relationship",
 	{
-		id: text("id")
+		id: varchar("id", { length: 255 })
 			.primaryKey()
 			.notNull()
 			.$defaultFn(() => createId()),
-		project_id: text("project_id")
+		project_id: varchar("project_id", { length: 255 })
 			.notNull()
-			.references(() => project.id, { onDelete: "cascade" }),
-		skill_id: text("skill_id")
+			.references(() => project.id, { onDelete: "restrict" }),
+		skill_id: varchar("skill_id", { length: 255 })
 			.notNull()
-			.references(() => skill.id, { onDelete: "cascade" }),
+			.references(() => skill.id, { onDelete: "restrict" }),
 		is_required: boolean("is_required"),
 	},
 );
@@ -553,21 +544,21 @@ export const projectSkillRelationshipRelations = relations(
 	}),
 );
 
-export const project_application = pgTable("project_application", {
-	id: text("id")
+export const project_application = mysqlTable("proj_application", {
+	id: varchar("id", { length: 255 })
 		.primaryKey()
 		.notNull()
 		.$defaultFn(() => createId()),
 	created_at: timestamp("created_at", { mode: "date" }).defaultNow(),
-	project_id: text("project_id")
+	project_id: varchar("project_id", { length: 255 })
 		.notNull()
-		.references(() => project.id, { onDelete: "cascade" }),
-	applicant_profile_id: text("applicant_profile_id")
+		.references(() => project.id, { onDelete: "restrict" }),
+	applicant_profile_id: varchar("applicant_profile_id", { length: 255 })
 		.notNull()
-		.references(() => users.id, { onDelete: "cascade" }),
-	role_id: text("role_id")
+		.references(() => users.id, { onDelete: "restrict" }),
+	role_id: varchar("role_id", { length: 255 })
 		.notNull()
-		.references(() => role.id, { onDelete: "cascade" }),
+		.references(() => role.id, { onDelete: "restrict" }),
 	message: text("message"),
 	is_denied: boolean("is_denied"),
 });
@@ -590,26 +581,26 @@ export const projectApplicationRelations = relations(
 	}),
 );
 
-export const project_invite = pgTable("project_invite", {
-	id: text("id")
+export const project_invite = mysqlTable("proj_invite", {
+	id: varchar("id", { length: 255 })
 		.primaryKey()
 		.notNull()
 		.$defaultFn(() => createId()),
 	created_at: timestamp("created_at", { mode: "date" }).defaultNow(),
-	project_id: text("project_id")
+	project_id: varchar("project_id", { length: 255 })
 		.notNull()
-		.references(() => project.id, { onDelete: "cascade" }),
-	inviter_id: text("inviter_id")
+		.references(() => project.id, { onDelete: "restrict" }),
+	inviter_id: varchar("inviter_id", { length: 255 })
 		.notNull()
-		.references(() => users.id, { onDelete: "cascade" }),
-	invitee_id: text("invitee_id")
+		.references(() => users.id, { onDelete: "restrict" }),
+	invitee_id: varchar("invitee_id", { length: 255 })
 		.notNull()
-		.references(() => users.id, { onDelete: "cascade" }),
-	role_id: text("role_id")
+		.references(() => users.id, { onDelete: "restrict" }),
+	role_id: varchar("role_id", { length: 255 })
 		.notNull()
-		.references(() => role.id, { onDelete: "cascade" }),
+		.references(() => role.id, { onDelete: "restrict" }),
 	message: text("message"),
-	status: integer("status"),
+	status: int("status"),
 });
 
 export const projectInviteRelations = relations(project_invite, ({ one }) => ({
@@ -633,30 +624,30 @@ export const projectInviteRelations = relations(project_invite, ({ one }) => ({
 	}),
 }));
 
-export const project_collaborator = pgTable("project_collaborator", {
-	id: text("id")
+export const project_collaborator = mysqlTable("proj_collaborator", {
+	id: varchar("id", { length: 255 })
 		.primaryKey()
 		.notNull()
 		.$defaultFn(() => createId()),
 	created_at: timestamp("created_at", { mode: "date" }),
-	project_id: text("project_id"),
-	profile_id: text("profile_id"),
-	role_id: text("role_id")
+	project_id: varchar("project_id", { length: 255 }),
+	profile_id: varchar("profile_id", { length: 255 }),
+	role_id: varchar("role_id", { length: 255 })
 		.notNull()
-		.references(() => role.id, { onDelete: "cascade" }),
+		.references(() => role.id, { onDelete: "restrict" }),
 });
 
-export const project_news = pgTable("project_news", {
-	id: text("id")
+export const project_news = mysqlTable("proj_news", {
+	id: varchar("id", { length: 255 })
 		.primaryKey()
 		.notNull()
 		.$defaultFn(() => createId()),
 	created_at: timestamp("created_at", { mode: "date" })
 		.notNull()
 		.defaultNow(),
-	project_id: text("project_id")
+	project_id: varchar("project_id", { length: 255 })
 		.notNull()
-		.references(() => project.id, { onDelete: "cascade" }),
+		.references(() => project.id, { onDelete: "restrict" }),
 	message: text("message"),
 });
 
@@ -667,18 +658,18 @@ export const projectNewsRelations = relations(project_news, ({ one }) => ({
 	}),
 }));
 
-export const saved_project = pgTable("saved_project", {
-	id: text("id")
+export const saved_project = mysqlTable("saved_proj", {
+	id: varchar("id", { length: 255 })
 		.primaryKey()
 		.notNull()
 		.$defaultFn(() => createId()),
 	saved_at: timestamp("saved_at", { mode: "date" }).notNull().defaultNow(),
-	project_id: text("project_id")
+	project_id: varchar("project_id", { length: 255 })
 		.notNull()
-		.references(() => project.id, { onDelete: "cascade" }),
-	profile_id: text("profile_id")
+		.references(() => project.id, { onDelete: "restrict" }),
+	profile_id: varchar("profile_id", { length: 255 })
 		.notNull()
-		.references(() => users.id, { onDelete: "cascade" }),
+		.references(() => users.id, { onDelete: "restrict" }),
 });
 
 export const savedProjectRelations = relations(saved_project, ({ one }) => ({

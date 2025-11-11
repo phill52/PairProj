@@ -9,7 +9,7 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
     [Install Docker](https://docs.docker.com/engine/install/)
 
 2. **Create env file**
-   write this at some point
+   In the `next` directory create a file called `.env`. In this file, copy paste the contents from the latest message in the `dot-env` channel in the discord.
 
 3. **Set up local DB with Docker**
 
@@ -53,20 +53,10 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
        npm run db:studio
     ```
 
-    If you want to more directly view it through PGAdmin (which is unlikely necessary), you can optionally take these steps:
+    If you want to more directly view it through PHPMyAdmin (which is unlikely necessary), you can optionally take these steps:
     First run
 
-    ```bash
-      docker container ls
-    ```
-
-    and copy the hash of the postgres image. You can then run
-
-    ```bash
-      docker inspect <hash>
-    ```
-
-    Scroll up a little, and you will see an IPaddress. Copy this. Then go to localhost:5050 and login with the email and password in .env. Click add new server, and go over to the connections tab. Put the IPaddress as the hostname/address in the connections, and take the username/password from the .env file.
+    Then go to localhost:8080 and login with the email and password in .env. Use the username and password from the `.env`.
 
 5. Get development server running
    First, install necessary packages

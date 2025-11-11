@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
-import postgres from "postgres";
-import { drizzle } from "drizzle-orm/postgres-js";
+import mysql from "mysql2/promise";
+import { drizzle } from "drizzle-orm/mysql2";
 import { relations } from "drizzle-orm";
 import type { AdapterAccountType } from "next-auth/adapters";
 import dotenv from "dotenv";
@@ -14,10 +14,11 @@ if (!connectionString) {
 	throw new Error("DATABASE_URL is not defined");
 }
 
-let sslmode = "";
+let sslConfig = "";
 if (process.env.APP_ENV === "prod") {
-	sslmode = "?sslmode=require";
+	sslConfig = "?ssl=true";
 }
-const pool = postgres(connectionString + sslmode, { max: 1 });
 
-export const db = drizzle(pool, { schema });
+const poolConnection = mysql.createPool(connectionString + sslConfig);
+
+export const db = drizzle(poolConnection, { schema, mode: "default" });

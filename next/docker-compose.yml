@@ -2,26 +2,29 @@ version: "3.8"
 
 services:
     db:
-        image: postgres:14
+        image: mysql:8.0
         restart: always
-        container_name: postgres
+        container_name: mysql
         ports:
-            - 5432:5432
+            - 3306:3306
         environment:
-            POSTGRES_USER: ${POSTGRES_USER}
-            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-            POSTGRES_DB: ${POSTGRES_DB}
-            PGDATA: /data/postgres
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+            MYSQL_DATABASE: ${MYSQL_DATABASE}
+            MYSQL_USER: ${MYSQL_USER}
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD}
         volumes:
-            - postgres_data:/var/lib/postgresql/data
-    pgadmin:
-        image: dpage/pgadmin4
+            - mysql_data:/var/lib/mysql
+        command: --default-authentication-plugin=mysql_native_password
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
         restart: always
-        container_name: pgadmin
+        container_name: phpmyadmin
         ports:
-            - 5050:80
+            - 8080:80
         environment:
-            PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-            PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+            PMA_HOST: db
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+        depends_on:
+            - db
 volumes:
-    postgres_data:
+    mysql_data:
