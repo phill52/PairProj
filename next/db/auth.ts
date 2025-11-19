@@ -15,4 +15,14 @@ export const {
 		},
 	},
 });
+
+/** Not sure if we should add this? **/
+// import NextAuth from "next-auth"
+// import { PrismaAdapter } from "@auth/prisma-adapter"
+// import { prisma } from "./prisma"
+ 
+// export const { handlers, auth, signIn, signOut } = NextAuth({
+//   adapter: PrismaAdapter(prisma),
+//   providers: [],
+// })
 //taken from https://github.com/fullstackbook/next-auth-drizzle-postgres-tutorial
