@@ -1,2 +1,2 @@
-export { GET, POST } from "@/db/auth";
-//taken from https://github.com/fullstackbook/next-auth-drizzle-postgres-tutorial
+import { handlers } from "../../../../db/auth" // refers to the auth.ts we just created
+export const { GET, POST } = handlers

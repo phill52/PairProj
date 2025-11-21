@@ -1,351 +1,85 @@
-generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
-}
-
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
-
-model account {
-  userId            String  @db.VarChar(255)
-  type              String  @db.VarChar(255)
-  provider          String  @db.VarChar(255)
-  providerAccountId String  @db.VarChar(255)
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
-  expires_at        Int?
-  token_type        String? @db.Text
-  scope             String? @db.Text
-  id_token          String? @db.Text
-  session_state     String? @db.Text
-  user              user    @relation(fields: [userId], references: [id], onUpdate: NoAction, map: "account_userId_user_id_fk")
-
-  @@id([provider, providerAccountId])
-  @@index([userId], map: "account_userId_user_id_fk")
+ 
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
-
-model areas_of_interest {
-  id            String          @id @db.VarChar(255)
-  name          String          @db.Text
-  inner_color   String          @db.Text
-  outer_color   String          @db.Text
-  prof_area_rel prof_area_rel[]
+ 
+model User {
+  id            String          @id @default(cuid())
+  name          String?
+  username      String?         @unique
+  email         String?         @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  // Optional for WebAuthn support
+  Authenticator Authenticator[]
+ 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
-
-model authenticator {
-  credentialID         String  @unique(map: "authenticator_credentialID_unique") @db.VarChar(255)
-  userId               String  @db.VarChar(255)
-  providerAccountId    String  @db.VarChar(255)
-  credentialPublicKey  String  @db.Text
+ 
+model Account {
+  id                       String  @id @default(cuid())
+  userId                   String  @unique
+  type                     String
+  provider                 String
+  providerAccountId        String
+  refresh_token            String? @db.Text
+  access_token             String? @db.Text
+  expires_at               Int?
+  token_type               String?
+  scope                    String?
+  id_token                 String? @db.Text
+  session_state            String?
+  refresh_token_expires_in Int?
+  user                     User?   @relation(fields: [userId], references: [id])
+ 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+ 
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+ 
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id])
+ 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+ 
+  @@index([userId])
+}
+ 
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+ 
+  @@unique([identifier, token])
+}
+ 
+// Optional for WebAuthn support
+model Authenticator {
+  credentialID         String  @unique
+  userId               String
+  providerAccountId    String
+  credentialPublicKey  String
   counter              Int
-  credentialDeviceType String  @db.Text
+  credentialDeviceType String
   credentialBackedUp   Boolean
-  transports           String? @db.Text
-  user                 user    @relation(fields: [userId], references: [id], onUpdate: NoAction, map: "authenticator_userId_user_id_fk")
-
+  transports           String?
+ 
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+ 
   @@id([userId, credentialID])
-}
-
-model chat_member {
-  id              String    @id @db.VarChar(255)
-  created_at      DateTime? @default(dbgenerated("(now())")) @db.Timestamp(0)
-  profile_id      String?   @db.VarChar(255)
-  chat_room_id    String?   @db.VarChar(255)
-  unread_messages Int?
-}
-
-model chat_message {
-  id                String    @id @db.VarChar(255)
-  created_at        DateTime? @default(dbgenerated("(now())")) @db.Timestamp(0)
-  sender_profile_id String?   @db.VarChar(255)
-  chat_room_id      String?   @db.VarChar(255)
-  message_content   String?   @db.Text
-}
-
-model chat_room {
-  id               String    @id @db.VarChar(255)
-  created_at       DateTime? @default(dbgenerated("(now())")) @db.Timestamp(0)
-  owner_profile_id String?   @db.VarChar(255)
-  name             String?   @db.Text
-}
-
-model prof_area_rel {
-  id                String            @id @db.VarChar(255)
-  profile_id        String            @db.VarChar(255)
-  area_id           String            @db.VarChar(255)
-  areas_of_interest areas_of_interest @relation(fields: [area_id], references: [id], onUpdate: NoAction, map: "prof_area_rel_area_id_areas_of_interest_id_fk")
-  user              user              @relation(fields: [profile_id], references: [id], onUpdate: NoAction, map: "prof_area_rel_profile_id_user_id_fk")
-
-  @@index([area_id], map: "prof_area_rel_area_id_areas_of_interest_id_fk")
-  @@index([profile_id], map: "prof_area_rel_profile_id_user_id_fk")
-}
-
-model prof_education {
-  id          String    @id @db.VarChar(255)
-  created_at  DateTime? @default(dbgenerated("(now())")) @db.Timestamp(0)
-  profile_id  String    @db.VarChar(255)
-  school_name String    @db.Text
-  major       String    @db.Text
-  degree      String    @db.Text
-  start_date  DateTime  @db.Date
-  end_date    DateTime? @db.Date
-  gpa         Decimal?  @db.Decimal(10, 0)
-  user        user      @relation(fields: [profile_id], references: [id], onUpdate: NoAction, map: "prof_education_profile_id_user_id_fk")
-
-  @@index([profile_id], map: "prof_education_profile_id_user_id_fk")
-}
-
-model prof_role_rel {
-  id         String @id @db.VarChar(255)
-  profile_id String @db.VarChar(255)
-  role_id    String @db.VarChar(255)
-  user       user   @relation(fields: [profile_id], references: [id], onUpdate: NoAction, map: "prof_role_rel_profile_id_user_id_fk")
-  role       role   @relation(fields: [role_id], references: [id], onUpdate: NoAction, map: "prof_role_rel_role_id_role_id_fk")
-
-  @@index([profile_id], map: "prof_role_rel_profile_id_user_id_fk")
-  @@index([role_id], map: "prof_role_rel_role_id_role_id_fk")
-}
-
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-model prof_skill_rel {
-  profile_id       String @db.VarChar(255)
-  skill_id         String @db.VarChar(255)
-  experience_level Int
-  user             user   @relation(fields: [profile_id], references: [id], onUpdate: NoAction, map: "prof_skill_rel_profile_id_user_id_fk")
-  skill            skill  @relation(fields: [skill_id], references: [id], onUpdate: NoAction, map: "prof_skill_rel_skill_id_skill_id_fk")
-
-  @@index([profile_id], map: "prof_skill_rel_profile_id_user_id_fk")
-  @@index([skill_id], map: "prof_skill_rel_skill_id_skill_id_fk")
-  @@ignore
-}
-
-model prof_work_exp {
-  id              String    @id @db.VarChar(255)
-  created_at      DateTime? @default(dbgenerated("(now())")) @db.Timestamp(0)
-  profile_id      String    @db.VarChar(255)
-  company_name    String    @db.Text
-  job_title       String    @db.Text
-  job_description String    @db.Text
-  start_date      DateTime  @db.Date
-  end_date        DateTime? @db.Date
-  user            user      @relation(fields: [profile_id], references: [id], onUpdate: NoAction, map: "prof_work_exp_profile_id_user_id_fk")
-
-  @@index([profile_id], map: "prof_work_exp_profile_id_user_id_fk")
-}
-
-model proj_application {
-  id                   String    @id @db.VarChar(255)
-  created_at           DateTime? @default(dbgenerated("(now())")) @db.Timestamp(0)
-  project_id           String    @db.VarChar(255)
-  applicant_profile_id String    @db.VarChar(255)
-  role_id              String    @db.VarChar(255)
-  message              String?   @db.Text
-  is_denied            Boolean?
-  user                 user      @relation(fields: [applicant_profile_id], references: [id], onUpdate: NoAction, map: "proj_application_applicant_profile_id_user_id_fk")
-  project              project   @relation(fields: [project_id], references: [id], onUpdate: NoAction, map: "proj_application_project_id_project_id_fk")
-  role                 role      @relation(fields: [role_id], references: [id], onUpdate: NoAction, map: "proj_application_role_id_role_id_fk")
-
-  @@index([applicant_profile_id], map: "proj_application_applicant_profile_id_user_id_fk")
-  @@index([project_id], map: "proj_application_project_id_project_id_fk")
-  @@index([role_id], map: "proj_application_role_id_role_id_fk")
-}
-
-model proj_collaborator {
-  id         String    @id @db.VarChar(255)
-  created_at DateTime? @db.Timestamp(0)
-  project_id String?   @db.VarChar(255)
-  profile_id String?   @db.VarChar(255)
-  role_id    String    @db.VarChar(255)
-  role       role      @relation(fields: [role_id], references: [id], onUpdate: NoAction, map: "proj_collaborator_role_id_role_id_fk")
-
-  @@index([role_id], map: "proj_collaborator_role_id_role_id_fk")
-}
-
-model proj_invite {
-  id                                String    @id @db.VarChar(255)
-  created_at                        DateTime? @default(dbgenerated("(now())")) @db.Timestamp(0)
-  project_id                        String    @db.VarChar(255)
-  inviter_id                        String    @db.VarChar(255)
-  invitee_id                        String    @db.VarChar(255)
-  role_id                           String    @db.VarChar(255)
-  message                           String?   @db.Text
-  status                            Int?
-  user_proj_invite_invitee_idTouser user      @relation("proj_invite_invitee_idTouser", fields: [invitee_id], references: [id], onUpdate: NoAction, map: "proj_invite_invitee_id_user_id_fk")
-  user_proj_invite_inviter_idTouser user      @relation("proj_invite_inviter_idTouser", fields: [inviter_id], references: [id], onUpdate: NoAction, map: "proj_invite_inviter_id_user_id_fk")
-  project                           project   @relation(fields: [project_id], references: [id], onUpdate: NoAction, map: "proj_invite_project_id_project_id_fk")
-  role                              role      @relation(fields: [role_id], references: [id], onUpdate: NoAction, map: "proj_invite_role_id_role_id_fk")
-
-  @@index([invitee_id], map: "proj_invite_invitee_id_user_id_fk")
-  @@index([inviter_id], map: "proj_invite_inviter_id_user_id_fk")
-  @@index([project_id], map: "proj_invite_project_id_project_id_fk")
-  @@index([role_id], map: "proj_invite_role_id_role_id_fk")
-}
-
-model proj_member {
-  id                String    @id @db.VarChar(255)
-  created_at        DateTime? @default(dbgenerated("(now())")) @db.Timestamp(0)
-  project_id        String    @db.VarChar(255)
-  profile_id        String    @db.VarChar(255)
-  project_role      String    @db.VarChar(255)
-  membership_status Int?
-  user              user      @relation(fields: [profile_id], references: [id], onUpdate: NoAction, map: "proj_member_profile_id_user_id_fk")
-  project           project   @relation(fields: [project_id], references: [id], onUpdate: NoAction, map: "proj_member_project_id_project_id_fk")
-  role              role      @relation(fields: [project_role], references: [id], onUpdate: NoAction, map: "proj_member_project_role_role_id_fk")
-
-  @@index([profile_id], map: "proj_member_profile_id_user_id_fk")
-  @@index([project_id], map: "proj_member_project_id_project_id_fk")
-  @@index([project_role], map: "proj_member_project_role_role_id_fk")
-}
-
-model proj_news {
-  id         String   @id @db.VarChar(255)
-  created_at DateTime @default(dbgenerated("(now())")) @db.Timestamp(0)
-  project_id String   @db.VarChar(255)
-  message    String?  @db.Text
-  project    project  @relation(fields: [project_id], references: [id], onUpdate: NoAction, map: "proj_news_project_id_project_id_fk")
-
-  @@index([project_id], map: "proj_news_project_id_project_id_fk")
-}
-
-model proj_role_rel {
-  id              String            @id @db.VarChar(255)
-  project_id      String            @db.VarChar(255)
-  role_id         String            @db.VarChar(255)
-  project         project           @relation(fields: [project_id], references: [id], onUpdate: NoAction, map: "proj_role_rel_project_id_project_id_fk")
-  role            role              @relation(fields: [role_id], references: [id], onUpdate: NoAction, map: "proj_role_rel_role_id_role_id_fk")
-  proj_role_skill proj_role_skill[]
-
-  @@index([project_id], map: "proj_role_rel_project_id_project_id_fk")
-  @@index([role_id], map: "proj_role_rel_role_id_role_id_fk")
-}
-
-model proj_role_skill {
-  id              String        @id @db.VarChar(255)
-  project_role_id String        @db.VarChar(255)
-  skill_id        String        @db.VarChar(255)
-  is_required     Boolean?
-  proj_role_rel   proj_role_rel @relation(fields: [project_role_id], references: [id], onUpdate: NoAction, map: "proj_role_skill_project_role_id_proj_role_rel_id_fk")
-  skill           skill         @relation(fields: [skill_id], references: [id], onUpdate: NoAction, map: "proj_role_skill_skill_id_skill_id_fk")
-
-  @@index([project_role_id], map: "proj_role_skill_project_role_id_proj_role_rel_id_fk")
-  @@index([skill_id], map: "proj_role_skill_skill_id_skill_id_fk")
-}
-
-model project {
-  id                         String                       @id @db.VarChar(255)
-  created_at                 DateTime?                    @default(dbgenerated("(now())")) @db.Timestamp(0)
-  name                       String?                      @db.Text
-  description                String?                      @db.Text
-  owner_profile_id           String                       @db.VarChar(255)
-  skill_level                String?                      @db.Text
-  github_repository          String?                      @db.Text
-  is_locked                  Boolean?
-  profile_picture            String?                      @db.Text
-  proj_application           proj_application[]
-  proj_invite                proj_invite[]
-  proj_member                proj_member[]
-  proj_news                  proj_news[]
-  proj_role_rel              proj_role_rel[]
-  user                       user                         @relation(fields: [owner_profile_id], references: [id], onUpdate: NoAction, map: "project_owner_profile_id_user_id_fk")
-  project_skill_relationship project_skill_relationship[]
-  saved_proj                 saved_proj[]
-
-  @@index([owner_profile_id], map: "project_owner_profile_id_user_id_fk")
-}
-
-model project_skill_relationship {
-  id          String   @id @db.VarChar(255)
-  project_id  String   @db.VarChar(255)
-  skill_id    String   @db.VarChar(255)
-  is_required Boolean?
-  project     project  @relation(fields: [project_id], references: [id], onUpdate: NoAction, map: "project_skill_relationship_project_id_project_id_fk")
-  skill       skill    @relation(fields: [skill_id], references: [id], onUpdate: NoAction, map: "project_skill_relationship_skill_id_skill_id_fk")
-
-  @@index([project_id], map: "project_skill_relationship_project_id_project_id_fk")
-  @@index([skill_id], map: "project_skill_relationship_skill_id_skill_id_fk")
-}
-
-model role {
-  id                String              @id @db.VarChar(255)
-  name              String              @db.Text
-  prof_role_rel     prof_role_rel[]
-  proj_application  proj_application[]
-  proj_collaborator proj_collaborator[]
-  proj_invite       proj_invite[]
-  proj_member       proj_member[]
-  proj_role_rel     proj_role_rel[]
-}
-
-model saved_proj {
-  id         String   @id @db.VarChar(255)
-  saved_at   DateTime @default(dbgenerated("(now())")) @db.Timestamp(0)
-  project_id String   @db.VarChar(255)
-  profile_id String   @db.VarChar(255)
-  user       user     @relation(fields: [profile_id], references: [id], onUpdate: NoAction, map: "saved_proj_profile_id_user_id_fk")
-  project    project  @relation(fields: [project_id], references: [id], onUpdate: NoAction, map: "saved_proj_project_id_project_id_fk")
-
-  @@index([profile_id], map: "saved_proj_profile_id_user_id_fk")
-  @@index([project_id], map: "saved_proj_project_id_project_id_fk")
-}
-
-model session {
-  sessionToken String   @id @db.VarChar(255)
-  userId       String   @db.VarChar(255)
-  expires      DateTime @db.Timestamp(0)
-  user         user     @relation(fields: [userId], references: [id], onUpdate: NoAction, map: "session_userId_user_id_fk")
-
-  @@index([userId], map: "session_userId_user_id_fk")
-}
-
-model skill {
-  id                         String                       @id @db.VarChar(255)
-  name                       String                       @db.Text
-  icon_location              String                       @db.Text
-  inner_color                String                       @db.Text
-  outer_color                String                       @db.Text
-  prof_skill_rel             prof_skill_rel[]             @ignore
-  proj_role_skill            proj_role_skill[]
-  project_skill_relationship project_skill_relationship[]
-}
-
-model user {
-  id                                       String             @id @db.VarChar(255)
-  name                                     String?            @db.Text
-  username                                 String?            @unique(map: "user_username_unique") @db.VarChar(255)
-  first_name                               String?            @db.Text
-  last_name                                String?            @db.Text
-  email                                    String?            @db.Text
-  emailVerified                            DateTime?          @db.Timestamp(0)
-  image                                    String?            @db.Text
-  bio                                      String?            @db.Text
-  pronouns                                 String?            @db.Text
-  experience                               Int?
-  skill_level                              Int?
-  avatar_location                          String?            @db.Text
-  resume_location                          String?            @db.Text
-  created_at                               DateTime           @default(dbgenerated("(now())")) @db.Timestamp(0)
-  account                                  account[]
-  authenticator                            authenticator[]
-  prof_area_rel                            prof_area_rel[]
-  prof_education                           prof_education[]
-  prof_role_rel                            prof_role_rel[]
-  prof_skill_rel                           prof_skill_rel[]   @ignore
-  prof_work_exp                            prof_work_exp[]
-  proj_application                         proj_application[]
-  proj_invite_proj_invite_invitee_idTouser proj_invite[]      @relation("proj_invite_invitee_idTouser")
-  proj_invite_proj_invite_inviter_idTouser proj_invite[]      @relation("proj_invite_inviter_idTouser")
-  proj_member                              proj_member[]
-  project                                  project[]
-  saved_proj                               saved_proj[]
-  session                                  session[]
-}
-
-model verificationToken {
-  identifier String   @db.VarChar(255)
-  token      String   @db.VarChar(255)
-  expires    DateTime @db.Timestamp(0)
-
-  @@id([identifier, token])
 }
