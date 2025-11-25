@@ -1,4 +1,4 @@
-import { auth } from "@/db/auth";
+import { auth } from "@/lib/auth";
 import { ReactNode } from "react";
 import SessionProvider from "@/components/session-provider";
 
