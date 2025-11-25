@@ -1,7 +1,7 @@
 "use server";
 import { eq, not } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { auth } from "@/db/auth";
+import { auth } from "@/lib/auth";
 import {
 	users,
 	skill,

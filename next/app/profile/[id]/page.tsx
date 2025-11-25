@@ -1,7 +1,7 @@
 import { ViewProfile } from "../components/profile";
 import Sidebar from "../../../components/sidebar";
 import { Suspense } from "react";
-import { auth } from "@/db/auth";
+import { auth } from "@/lib/auth";
 import { getViewProfileProps } from "../../actions/user";
 import { notFound } from "next/navigation";
 

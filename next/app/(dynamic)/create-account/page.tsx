@@ -1,7 +1,7 @@
 import { CreateAccount } from "./components/create-account";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { auth } from "@/db/auth";
+import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
 export default async function Page() {
