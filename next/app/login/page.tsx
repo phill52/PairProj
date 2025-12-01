@@ -1,5 +1,4 @@
-import { SignIn } from "./components/sign-in";
-import { Button } from "@/components/ui/button";
+import { SignIn } from "./login/components/sign-in";
 import Image from "next/image";
 
 export default function Page() {
@@ -10,9 +9,7 @@ export default function Page() {
     >
       <div className="flex justify-between items-center px-5 py-3 bg-white shadow-sm">
         <div className="text-3xl">ProgPair</div>
-        <a href="/create-account">
-          <Button>Create Account</Button>
-        </a>
+        {/* Create Account button removed */}
       </div>
       <span className="hidden md:block">
         <div
