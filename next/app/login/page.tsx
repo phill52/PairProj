@@ -9,7 +9,6 @@ export default function Page() {
     >
       <div className="flex justify-between items-center px-5 py-3 bg-white shadow-sm">
         <div className="text-3xl">ProgPair</div>
-        {/* Create Account button removed */}
       </div>
       <span className="hidden md:block">
         <div
