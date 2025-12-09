@@ -11,7 +11,12 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 2. **Create env file**
    In the `next` directory create a file called `.env`. In this file, copy paste the contents from the latest message in the `dot-env` channel in the discord.
 
-3. **Set up local DB with Docker**
+3. **Install Dependencies**
+   ```bash
+       npm install
+   ```
+
+4. **Set up local DB with Docker**
 
     Verify that docker is installed and running with the docker desktop app. Then run the following command in your terminal.
 
@@ -45,7 +50,7 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
       npx prisma generate
     ```
 
-4. **View local DB**
+5. **View local DB**
 
     If you want to view the contents of the database you can run the command. You can also test run SQL and Drizzle queries here.
 
@@ -58,14 +63,7 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
     Then go to localhost:8080 and login with the email and password in .env. Use the username and password from the `.env`.
 
-5. Get development server running
-   First, install necessary packages
-
-    ```bash
-    npm i
-    ```
-
-    Lastly, run the development server:
+6. Get development server running
 
     ```bash
     npm run dev
@@ -83,7 +81,7 @@ To learn more about our tech stack, take a look at the following resources:
 
 -   [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
 -   [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
--   [Drizzle Documentation](https://orm.drizzle.team/docs/overview) - learn more about the ORM and features.
+-   [Prisma Documentation](https://www.prisma.io/docs/getting-started) - learn more about the ORM and features.
 -   [AuthJS Documentation](https://authjs.dev/) - learn more about our local authentication system.
 -   [Tailwind Documentation](https://v2.tailwindcss.com/docs) - learn more about our style solution.
 -   [ShadCN UI](https://ui.shadcn.com/) - learn more about our component library.
