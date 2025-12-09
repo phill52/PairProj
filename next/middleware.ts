@@ -70,7 +70,7 @@ export async function middleware(request: NextRequest) {
 		return NextResponse.next();
 	}
 
-	const publicPaths = ["/login", "/create-account"];
+	const publicPaths = ["/login", "/create-account", "/landing"];
 	const isPublic = publicPaths.some((p) => pathname.startsWith(p));
 
 	const cookie = request.cookies.get("authjs.session-token") ??
