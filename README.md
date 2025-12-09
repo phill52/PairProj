@@ -9,7 +9,7 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
     [Install Docker](https://docs.docker.com/engine/install/)
 
 2. **Create env file**
-   write this at some point
+   copy and paste .env file from discord
 
 3. **Set up local DB with Docker**
 
@@ -41,8 +41,8 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
     When making any changes to the database, or pulling in someone else's changes, make sure you migrate your local DB.
 
     ```bash
-      npm run db:generate
-      npm run db:migrate
+      npx prisma migrate dev --name init
+      npx prisma generate
     ```
 
 4. **View local DB**
