@@ -11,8 +11,6 @@ if (!connectionString) {
 	throw new Error("DATABASE_URL is not defined");
 }
 
-console.log("this is the connection string", connectionString);
-
 let sslConfig = "";
 if (process.env.APP_ENV === "prod") {
 	sslConfig = "?ssl=true";

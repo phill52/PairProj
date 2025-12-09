@@ -63,6 +63,29 @@ export async function middleware(request: NextRequest) {
 	// // 	return NextResponse.redirect(new URL("/", request.url));
 	// // }
 	// return response;
+
+	const { pathname } = request.nextUrl;
+
+	if (pathname.startsWith("/api/auth")) {
+		return NextResponse.next();
+	}
+
+	const publicPaths = ["/login", "/create-account"];
+	const isPublic = publicPaths.some((p) => pathname.startsWith(p));
+
+	const cookie = request.cookies.get("authjs.session-token") ??
+		request.cookies.get("authjs.callback-token");
+	const loggedIn = Boolean(cookie);
+
+
+	if (!loggedIn && !isPublic) {
+		return NextResponse.redirect(new URL("/login", request.url));
+	}
+	if (loggedIn && isPublic) {
+		return NextResponse.redirect(new URL("/", request.url));
+	}
+
+	return NextResponse.next();
 }
 
 export const config = {
