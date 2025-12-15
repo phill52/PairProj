@@ -39,3 +39,6 @@ next-env.d.ts
 
 # drizzle files
 drizzle
+
+#prisma migration folder
+**/migrations/
