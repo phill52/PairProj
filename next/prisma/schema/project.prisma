@@ -1,0 +1,42 @@
+model Project {
+  id                String              @id @default(cuid())
+  name              String?
+  githubLink        String?
+  owner             User                @relation("owner", fields: [userId], references: [id])
+  collaborators     User[]              @relation("collaborator")
+  areas_of_interest Areas_of_Interest[]
+  skills            Skill[]
+  difficulty        Int
+  githubIssues      Issue[]
+  userId            String
+
+  @@unique([id])
+  @@index([name])
+  @@map("projects")
+}
+
+model Issue {
+  id        String
+  url       String
+  title     String
+  users     User[]
+  project   Project @relation(fields: [projectId], references: [id])
+  state     String
+  labels    Label[]
+  projectId String
+
+  @@unique([id])
+  @@index([title])
+  @@map("issues")
+}
+
+model Label {
+  id      String
+  name    String
+  issue   Issue?  @relation(fields: [issueId], references: [id])
+  issueId String?
+
+  @@unique([id])
+  @@index([name])
+  @@map("labels")
+}
