@@ -1,6 +1,6 @@
 model Account {
   id                String  @id @default(cuid())
-  userId            String  @map("user_id")
+  user_id           String  @map("user_id")
   type              String
   provider          String
   providerAccountId String  @map("provider_account_id")
@@ -11,10 +11,10 @@ model Account {
   scope             String?
   id_token          String? @db.Text
   session_state     String?
-  user              User    @relation(fields: [userId], references: [id], onDelete: Restrict)
+  user              User    @relation(fields: [user_id], references: [id], onDelete: Restrict)
 
   @@unique([provider, providerAccountId])
-  @@index([userId], map: "accounts_user_id_fkey")
+  @@index([user_id], map: "accounts_user_id_fkey")
   @@map("accounts")
 }
 
@@ -27,72 +27,81 @@ model VerificationToken {
   @@map("verification_tokens")
 }
 
+model Session {
+  id            String   @id @default(cuid())
+  session_token String   @unique @map("session_token")
+  user_id       String   @map("user_id")
+  expires       DateTime
+  user          User     @relation(fields: [user_id], references: [id], onDelete: Restrict)
+
+  @@index([user_id], map: "sessions_user_id_fkey")
+  @@map("sessions")
+}
+
 model User {
-  id                    String              @id @default(cuid())
-  name                  String?
-  email                 String?             @unique
-  emailVerified         DateTime?           @map("email_verified")
-  image                 String?
-  accounts              Account[]
-  sessions              Session[]
-  areas_of_interest     Areas_of_Interest[]
-  skills                Skill[]
-  roles                 Role[]
-  education             Education[]
-  experience            Experience[]
-  projects_owner        Project[]           @relation("owner")
-  projects_collaborated Project[]           @relation("collaborator")
-  issue                 Issue?              @relation(fields: [issueId], references: [id])
-  issueId               String?
+  id                   String               @id @default(cuid())
+  name                 String?
+  email                String?              @unique
+  emailVerified        DateTime?            @map("emailVerified")
+  image                String?
+  accounts             Account[]
+  sessions             Session[]
+  areasOfInterest      AreasOfInterest[]
+  skills               SkillsOnUsers[]
+  education            Education[]
+  experience           Experience[]
+  issue                Issue?               @relation(fields: [issueId], references: [id], onDelete: Restrict)
+  issueId              String?
+  projectContributions ProjectStakeholder[]
 
   @@unique([id])
   @@index([name])
   @@map("users")
 }
 
-model Areas_of_Interest {
-  id          String   @id @default(cuid())
-  name        String
-  users       User[]
-  outer_color String
-  inner_color String
-  project     Project? @relation(fields: [projectId], references: [id])
-  projectId   String?
+model AreasOfInterest {
+  id         String    @id @default(cuid())
+  name       String
+  users      User[]
+  outerColor String
+  innerColor String
+  projects   Project[]
 
   @@unique([id])
   @@index([name])
-  @@map("areas_of_interest")
-}
-
-model Role {
-  id    String @id @default(cuid())
-  name  String
-  users User[]
-
-  @@unique([id])
-  @@index([name])
-  @@map("roles")
+  @@map("areasOfInterest")
 }
 
 model Skill {
-  id          String   @id @default(cuid())
-  name        String
-  users       User[]
-  outer_color String
-  inner_color String
-  project     Project? @relation(fields: [projectId], references: [id])
-  projectId   String?
+  id         String          @id @default(cuid())
+  name       String
+  Users      SkillsOnUsers[]
+  outerColor String
+  innerColor String
+  projects   Project[]
 
   @@unique([id])
   @@index([name])
   @@map("skills")
 }
 
+model SkillsOnUsers {
+  user       User   @relation(fields: [userId], references: [id])
+  userId     String
+  skill      Skill  @relation(fields: [skillId], references: [id])
+  skillId    String
+  skillLevel String
+
+  @@id([userId, skillId])
+}
+
 model Education {
-  id     String @id @default(cuid())
-  school String
-  level  String
-  users  User[]
+  id          String @id @default(cuid())
+  school      String
+  level       String
+  users       User[]
+  date        String
+  description String
 
   @@unique([id])
   @@index([school])
@@ -110,13 +119,24 @@ model Experience {
   @@map("experience")
 }
 
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique @map("session_token")
-  userId       String   @map("user_id")
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+model ProjectStakeholder {
+  id         String  @id @default(cuid())
+  user       User    @relation(fields: [userId], references: [id], onDelete: Restrict)
+  userId     String
+  project    Project @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  projectId  String
+  role       Role[]
+  dateJoined String
 
-  @@index([userId], map: "sessions_user_id_fkey")
-  @@map("sessions")
+  @@unique([id])
+  @@map("projectStakeholders")
+}
+
+model Role {
+  id                  String               @id @default(cuid())
+  name                String
+  ProjectStakeholders ProjectStakeholder[]
+
+  @@unique([id])
+  @@map("role")
 }
