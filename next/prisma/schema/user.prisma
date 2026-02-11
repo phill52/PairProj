@@ -46,21 +46,21 @@ model User {
   image                String?
   accounts             Account[]
   sessions             Session[]
-  areasOfInterest      AreasOfInterest[]
+  areaOfInterest       AreaOfInterest[]
   skills               SkillsOnUsers[]
-  education            Education[]
+  education            Education[]          
   experience           Experience[]
-  issue                Issue?               @relation(fields: [issueId], references: [id], onDelete: Restrict)
-  issueId              String?
-  projectContributions ProjectStakeholder[]
+  issue                Issue[]             
+  projectContributions ProjectMembership[]
 
   @@unique([id])
   @@index([name])
   @@map("users")
 }
 
-model AreasOfInterest {
-  id         String    @id @default(cuid())
+
+model AreaOfInterest {
+  id         String         @id @default(cuid())
   name       String
   users      User[]
   outerColor String
@@ -96,10 +96,11 @@ model SkillsOnUsers {
 }
 
 model Education {
-  id          String @id @default(cuid())
+  id          String    @id @default(cuid())
   school      String
   level       String
-  users       User[]
+  users       User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+  userId      String 
   date        String
   description String
 
@@ -108,18 +109,23 @@ model Education {
   @@map("education")
 }
 
+
+
 model Experience {
-  id       String @id @default(cuid())
-  employer String
-  position String
-  users    User[]
+  id          String    @id @default(cuid())
+  employer    String
+  position    String
+  users       User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+  userId      String
+  date        String 
+  description String 
 
   @@unique([id])
-  @@index([employer])
   @@map("experience")
 }
 
-model ProjectStakeholder {
+
+model ProjectMembership {
   id         String  @id @default(cuid())
   user       User    @relation(fields: [userId], references: [id], onDelete: Restrict)
   userId     String
@@ -129,14 +135,14 @@ model ProjectStakeholder {
   dateJoined String
 
   @@unique([id])
-  @@map("projectStakeholders")
+  @@map("projectMemberships")
 }
 
 model Role {
   id                  String               @id @default(cuid())
   name                String
-  ProjectStakeholders ProjectStakeholder[]
+  ProjectMembership   ProjectMembership[]
 
   @@unique([id])
-  @@map("role")
+  @@map("roles")
 }

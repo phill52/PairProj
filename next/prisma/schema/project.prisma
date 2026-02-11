@@ -2,12 +2,11 @@ model Project {
   id                  String               @id @default(cuid())
   name                String?
   githubLink          String?
-  areasOfInterest     AreasOfInterest[]
+  areaOfInterest      AreaOfInterest[]
   skills              Skill[]
-  difficulty          Int
+  difficulty          String
   githubIssues        Issue[]
-  userId              String
-  ProjectStakeholders ProjectStakeholder[]
+  ProjectMembership   ProjectMembership[]
 
   @@unique([id])
   @@index([name])
@@ -15,15 +14,16 @@ model Project {
 }
 
 model Issue {
-  id        String
-  url       String
-  title     String
-  assigned  User[]
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Restrict)
-  state     String
-  labels    Label[]
-  projectId String
-  status    String
+  id          String                        @id @default(cuid())
+  url         String
+  title       String
+  assigned    User[]
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  state       String
+  labels      Label[]
+  projectId   String
+  status      String
+  description String
 
   @@unique([id])
   @@index([title])
@@ -31,7 +31,7 @@ model Issue {
 }
 
 model Label {
-  id      String
+  id      String                           @id @default(cuid())
   name    String
   issue   Issue?  @relation(fields: [issueId], references: [id], onDelete: Restrict)
   issueId String?
