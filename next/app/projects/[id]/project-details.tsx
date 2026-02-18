@@ -5,7 +5,6 @@ import {
 	CardHeader,
 	CardTitle,
 	CardContent,
-	CardFooter,
 	Button,
 	Avatar,
 } from "@/components/ui";
@@ -14,13 +13,6 @@ import Badge from "@/components/badge";
 import { AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import { routes } from "@/routes/routes";
-
-type Collaborator = {
-	id: number;
-	username: string;
-	profilePicture: string;
-	role: string;
-};
 
 export default function ProjectComponent({
 	project,
@@ -34,105 +26,112 @@ export default function ProjectComponent({
 					{project.name}
 				</CardTitle>
 				<p className="text-gray-600">{project.description}</p>
-				<div className="mt-4 flex items-center justify-between">
-					{/* <div className="font-semibold text-red-600"> TODO: Add skill level to project
-						Skill Level: <strong>{project.skillLevel}</strong>
-					</div> */}
+				<div className="mt-4 flex flex-col gap-2">
+					{project.skill_level && (
+						<div className="font-semibold">
+							Skill Level: <strong>{project.skill_level}</strong>
+						</div>
+					)}
+					{project.github_repository && (
+						<div>
+							<a
+								href={project.github_repository}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="text-blue-600 hover:underline"
+							>
+								GitHub Repository
+							</a>
+						</div>
+					)}
 				</div>
 			</CardHeader>
 
 			<CardContent className="p-6">
-				{/* <section className="mb-6"> TODO: Add currently needed roles to project
-					<h2 className="mb-2 text-xl font-semibold">
-						Currently Needed Roles
-					</h2>
-					<div className="mb-2 flex space-x-2">
-						{project.neededRoles.map((role, index) => (
-							<span
-								key={index}
-								className="rounded-full bg-green-100 px-3 py-1 text-green-800"
-							>
-								{role}
-							</span>
-						))}
-					</div>
-				</section> */}
-
 				<section className="mb-6">
-					<h2 className="mb-2 text-xl font-semibold">Roles</h2>
-					<div className="mb-2 flex space-x-2">
-						{project.roles.map((role, index) => (
-							<div key={index}>
-								<h3
-									key={index}
-									className="text-lg font-semibold"
+					<h2 className="mb-4 text-xl font-semibold">
+						Looking for Help
+					</h2>
+					<div className="grid gap-4">
+						{project.roles.length > 0 ? (
+							project.roles.map((role) => (
+								<div
+									key={role.id}
+									className="rounded-lg border border-gray-200 p-4"
 								>
-									{role.name}
-								</h3>
-								<div className="mb-1 flex space-x-1">
-									<strong>Skills:</strong>
-									<div className="space-x-2">
-										{role.skills.map((skill, index) => (
-											<Badge
-												text={skill.name}
-												key={index}
-												innerColor={skill.innerColor}
-												outerColor={skill.outerColor}
-											/>
-										))}
+									<h3 className="mb-3 text-lg font-semibold">
+										{role.name}
+									</h3>
+									<div className="mb-3 flex flex-col gap-2">
+										<div>
+											<strong className="text-sm text-gray-700">
+												All Skills:
+											</strong>
+											<div className="mt-1 flex flex-wrap gap-2">
+												{role.skills.length > 0 ? (
+													role.skills.map((skill) => (
+														<Badge
+															text={skill.name}
+															key={skill.id}
+															innerColor={
+																skill.innerColor
+															}
+															outerColor={
+																skill.outerColor
+															}
+														/>
+													))
+												) : (
+													<span className="text-sm text-gray-500">
+														No skills listed
+													</span>
+												)}
+											</div>
+										</div>
+										<div>
+											<strong className="text-sm text-gray-700">
+												Required Skills:
+											</strong>
+											<div className="mt-1 flex flex-wrap gap-2">
+												{role.skills.filter(
+													(skill) =>
+														skill.isRequired
+												).length > 0 ? (
+													role.skills
+														.filter(
+															(skill) =>
+																skill.isRequired
+														)
+														.map((skill) => (
+															<Badge
+																text={
+																	skill.name
+																}
+																key={skill.id}
+																innerColor={
+																	skill.innerColor
+																}
+																outerColor={
+																	skill.outerColor
+																}
+															/>
+														))
+												) : (
+													<span className="text-sm text-gray-500">
+														None
+													</span>
+												)}
+											</div>
+										</div>
 									</div>
 								</div>
-								<div className="mb-1 flex space-x-1">
-									<strong>Required Skill:</strong>
-									<div className="space-x-2">
-										{role.skills
-											.filter((skill) => {
-												return skill.isRequired;
-											})
-											.map((skill, index) => (
-												<Badge
-													text={skill.name}
-													key={index}
-													innerColor={
-														skill.innerColor
-													}
-													outerColor={
-														skill.outerColor
-													}
-												/>
-											))}
-									</div>
-								</div>
-							</div>
-						))}
+							))
+						) : (
+							<p className="text-gray-500">
+								No roles defined for this project
+							</p>
+						)}
 					</div>
-					{/* <div className="mb-1 flex space-x-1">
-						<strong>Required:</strong>
-						<div className="space-x-2">
-							{project.techStack.required.map((skill, index) => (
-								<Badge
-									text={skill.name}
-									key={index}
-									{...skill}
-								/>
-							))}
-						</div>
-					</div>
-					<div className="mb-1 flex space-x-1">
-						<strong>Preferred:</strong>{" "}
-						<div className="space-x-2">
-							{project.techStack.preferred.map((skill, index) => (
-								<Badge
-									text={skill.name}
-									key={index}
-									{...skill}
-								/>
-							))}
-						</div>
-					</div>
-					<p className="text-green-600">
-						You meet the minimum requirements to apply!
-					</p> */}
 				</section>
 
 				{/* <section className="mb-6">
