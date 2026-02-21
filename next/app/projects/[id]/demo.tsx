@@ -1,13 +1,30 @@
-//Demo page shows sample data for testing the project view page without backend functions
-import ProjectDetails from "./project-details";
+export default async function DemoPage() {
+	await new Promise((r) => setTimeout(r, 700));
 
-export default function DemoPage() {
 	const sampleProject = {
-		id: "demo-project-1",
+		id: "demo",
 		name: "PairProj Platform",
 		description:
-			"PairProj is a platform that connects developers with compatible team members and open source projects based on skills, experience level, and project interests.",
-		owner_profile_id: "user-123",
+			"PairProj connects developers with compatible team members and open source projects based on skills, experience level, and interests.",
+		owner: {
+			id: "user-123",
+			username: "pairproj owner",
+			profilePicture: null,
+		},
+		members: [
+			{
+				id: "user-456",
+				username: "alice",
+				profilePicture: null,
+				role: "Designer",
+			},
+			{
+				id: "user-789",
+				username: "bob",
+				profilePicture: null,
+				role: "Contributor",
+			},
+		],
 		skill_level: "Beginner to Advanced",
 		github_repository: "https://github.com/phill52/PairProj",
 		is_locked: false,
@@ -58,6 +75,13 @@ export default function DemoPage() {
 						name: "Tailwind CSS",
 						innerColor: "#06B6D4",
 						outerColor: "#0A1929",
+						isRequired: false,
+					},
+					{
+						id: "skill-14",
+						name: "VS Code",
+						innerColor: "#007ACC",
+						outerColor: "#EFF6FF",
 						isRequired: false,
 					},
 				],
@@ -126,5 +150,5 @@ export default function DemoPage() {
 		],
 	};
 
-	return <ProjectDetails project={sampleProject} />;
+	return sampleProject;
 }
