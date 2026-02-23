@@ -1,6 +1,6 @@
 model Account {
   id                String  @id @default(cuid())
-  user_id           String  @map("user_id")
+  userId           String  @map("user_id")
   type              String
   provider          String
   providerAccountId String  @map("provider_account_id")
@@ -11,10 +11,10 @@ model Account {
   scope             String?
   id_token          String? @db.Text
   session_state     String?
-  user              User    @relation(fields: [user_id], references: [id], onDelete: Restrict)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Restrict)
 
   @@unique([provider, providerAccountId])
-  @@index([user_id], map: "accounts_user_id_fkey")
+  @@index([userId], map: "accounts_user_id_fkey")
   @@map("accounts")
 }
 
@@ -29,12 +29,12 @@ model VerificationToken {
 
 model Session {
   id            String   @id @default(cuid())
-  session_token String   @unique @map("session_token")
-  user_id       String   @map("user_id")
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
   expires       DateTime
-  user          User     @relation(fields: [user_id], references: [id], onDelete: Restrict)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Restrict)
 
-  @@index([user_id], map: "sessions_user_id_fkey")
+  @@index([userId], map: "sessions_user_id_fkey")
   @@map("sessions")
 }
 
