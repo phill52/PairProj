@@ -8,7 +8,7 @@ export async function getUser(id: string) {
 			where: { id },
 			include: { 
 				skills: true,
-				areaOfInterest: true,
+				areasOfInterest: true,
 				projectContributions: true, 
 				experience: true,
 				sessions:true

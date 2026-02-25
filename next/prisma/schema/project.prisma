@@ -2,7 +2,7 @@ model Project {
   id                  String               @id @default(cuid())
   name                String?
   githubLink          String?
-  areaOfInterest      AreaOfInterest[]
+  areasOfInterest      AreaOfInterest[]
   skills              Skill[]
   difficulty          String
   githubIssues        Issue[]
