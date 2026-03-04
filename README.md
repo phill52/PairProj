@@ -51,10 +51,10 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 5. **View local DB**
 
-    If you want to view the contents of the database you can run the command. You can also test run SQL and Drizzle queries here.
+    If you want to view the contents of the database you can run the command. You can also test run SQL and Prisma queries here.
 
     ```bash
-       npm run db:studio
+       npx prisma studio
     ```
 
     If you want to more directly view it through PHPMyAdmin (which is unlikely necessary), you can optionally take these steps:
