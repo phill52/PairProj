@@ -39,10 +39,10 @@ model Session {
 }
 
 model User {
-  id                   String              @id @default(cuid())
+  id                   String               @id @default(cuid())
   name                 String?
-  email                String?             @unique
-  emailVerified        DateTime?           @map("emailVerified")
+  email                String?              @unique
+  emailVerified        DateTime?            @map("emailVerified")
   image                String?
   accounts             Account[]
   sessions             Session[]
@@ -52,6 +52,7 @@ model User {
   experience           Experience[]
   issue                Issue[]
   projectContributions ProjectMembership[]
+  projectApplications  ProjectApplication[]
 
   @@unique([id])
   @@index([name])

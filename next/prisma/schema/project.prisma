@@ -1,5 +1,5 @@
 model Project {
-  id                String              @id @default(cuid())
+  id                String               @id @default(cuid())
   name              String?
   githubLink        String?
   areasOfInterest   AreaOfInterest[]
@@ -7,8 +7,9 @@ model Project {
   difficulty        String
   githubIssues      Issue[]
   ProjectMembership ProjectMembership[]
-  isLocked          Boolean             @default(false)
+  isLocked          Boolean              @default(false)
   description       String?
+  applications      ProjectApplication[]
 
   @@unique([id])
   @@index([name])
@@ -26,6 +27,19 @@ model ProjectMembership {
 
   @@unique([id])
   @@map("projectMemberships")
+}
+
+model ProjectApplication {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  userId    String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  projectId String
+  createdAt DateTime @default(now())
+  status    String   @default("pending")
+
+  @@unique([userId, projectId])
+  @@map("projectApplications")
 }
 
 model Issue {
