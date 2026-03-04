@@ -2,6 +2,9 @@ import db from "@/lib/prisma";
 
 export async function getUser(id: string) {
 	try {
+		if (!id) {
+			throw "Profile ID is required";
+		}
 		const profile = await db.user.findUnique({
 			where: { id },
 			include: {
@@ -115,3 +118,64 @@ export async function createExperience(
 		throw "Failed to create experience";
 	}
 }
+
+export async function canEditOrViewProfile(
+	viewerId: string,
+	profileId: string
+) {
+	if (!viewerId || !profileId) return false;
+
+	if (viewerId === profileId) return true;
+
+	return false;
+}
+
+export async function updateProfile(
+	profileId: string,
+	name?: string,
+	email?: string,
+	image?: string
+) {
+
+	try {
+
+		if (!profileId) {
+			throw "Profile ID is required to update profile.";
+		}
+		
+		const updated = await db.user.update({
+			where: { id: profileId },
+			data: {
+				...(name !== undefined && { name }),
+				...(email !== undefined && { email }),
+				...(image !== undefined && { image }),
+			},
+		});
+
+		return updated;
+		
+	} catch (e) {
+
+		throw "Failed to update profile";
+
+	}
+}
+
+export async function deleteProfile(profileId: string) {
+	
+	try {
+		if (!profileId) {
+			throw "Profile ID is required";
+		}
+
+		const deleted = await db.user.delete({
+			where: { id: profileId },
+		});
+
+		return deleted;
+
+	} catch (e) {
+		throw "Failed to delete profile";
+	}
+}
+
