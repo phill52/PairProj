@@ -1,70 +1,59 @@
 import { PrismaClient } from "../app/generated/prisma/client";
-import { getUser } from "@/lib/users";
+import { getAllUsers, getUser } from "@/lib/users";
+import { createProject, getProject, updateProject } from "@/lib/projects";
+import db from "@/lib/prisma";
 
 const prisma = new PrismaClient();
 
 async function main() {
 	await prisma.projectMembership.deleteMany();
 	await prisma.project.deleteMany();
-    await prisma.skill.deleteMany();
+	await prisma.skill.deleteMany();
 
-
-	const userId = "cmlyjzzd50000gmjwsc8fy1ve";
-	console.log("AAA");
+	const users = await getAllUsers();
+	const userId = users[0].id;
 	console.log(await getUser(userId));
-	console.log("AAA");
 
-	const project = await prisma.project.create({
-		data: {
-			name: "PairProj",
-			githubLink:
-				"https://https://github.com/phill52/PairProj",
-			difficulty: "Intermediate",
-			skills: {
-				connectOrCreate: [
-					{
-						where: { id: "skill-ts" },
-						create: {
-							id: "skill-ts",
-							name: "TypeScript",
-							outerColor: "#3178c6",
-							innerColor: "#ffffff",
-						},
-					},
-				],
-			},
-			areasOfInterest: {
-				connectOrCreate: [
-					{
-						where: { id: "area-web" },
-						create: {
-							id: "area-web",
-							name: "Web Development",
-							outerColor: "#000",
-							innerColor: "#fff",
-						},
-					},
-				],
-			},
-			ProjectMembership: {
-				create: {
-					userId: userId,
-					role: "owner",
-					dateJoined: new Date().toISOString(),
-				},
-			},
-		},
-	});
+	const project1 = await createProject(
+		userId,
+		"PairProj",
+		"https://https://github.com/phill52/PairProj",
+		"Intermediate",
+		"Test description",
+		[],
+		[],
+	);
 
-	console.log({ project });
+	console.log({ project1 });
+
+	const updated1 = await updateProject(
+		userId,
+		project1.id,
+		"PairProjUpdated",
+		"https://https://github.com/phill52/PairProj",
+		"easy",
+		"Testing project update",
+		[],
+		[],
+	);
 }
 
 main()
 	.then(async () => {
 		await prisma.$disconnect();
+		try {
+			await db.$disconnect();
+		} catch (e) {
+			//do nothing
+		}
 	})
 	.catch(async (e) => {
 		console.error(e);
 		await prisma.$disconnect();
+		try {
+			await db.$disconnect();
+		} catch (e) {
+			//do nothing
+		}
 		process.exit(1);
 	});

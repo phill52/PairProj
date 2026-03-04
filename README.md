@@ -39,8 +39,7 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
     Then, finally seed the database. Run the commands
 
     ```bash
-       npm run db:push
-       npm run db:seed //Seed works but needs to be expanded
+       npx prisma db seed
     ```
 
     When making any changes to the database, or pulling in someone else's changes, make sure you migrate your local DB.
