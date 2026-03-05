@@ -142,7 +142,7 @@ export async function updateProfile(
 		if (!profileId) {
 			throw "Profile ID is required to update profile.";
 		}
-		
+
 		const updated = await db.user.update({
 			where: { id: profileId },
 			data: {
@@ -163,19 +163,50 @@ export async function updateProfile(
 
 export async function deleteProfile(profileId: string) {
 	
+	if (!profileId) {
+	  throw "Profile ID is required";
+	}
+  
 	try {
-		if (!profileId) {
-			throw "Profile ID is required";
-		}
-
-		const deleted = await db.user.delete({
-			where: { id: profileId },
-		});
-
-		return deleted;
+	  
+	  await db.skillsOnUsers.deleteMany({
+		where: { userId: profileId },
+	  });
+  
+	  await db.projectMembership.deleteMany({
+		where: { userId: profileId },
+	  });
+	 
+	  await db.projectApplication.deleteMany({
+		where: { userId: profileId },
+	  });
+  
+	  await db.account.deleteMany({
+		where: { userId: profileId },
+	  });
+  
+	  await db.session.deleteMany({
+		where: { userId: profileId },
+	  });
+  
+	  await db.education.deleteMany({
+		where: { userId: profileId },
+	  });
+  
+	  await db.experience.deleteMany({
+		where: { userId: profileId },
+	  });
+  
+	  const deleted = await db.user.delete({
+		where: { id: profileId },
+	  });
+  
+	  return deleted;
 
 	} catch (e) {
-		throw "Failed to delete profile";
-	}
-}
 
+	  throw "Failed to delete profile";
+
+	}
+  }
+  
