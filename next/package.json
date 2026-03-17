@@ -2,19 +2,16 @@
 	"name": "seniord",
 	"version": "0.1.0",
 	"private": true,
-	"prisma": {
-		"seed": "npx tsx prisma/seed.ts"
-	},
 	"scripts": {
 		"dev": "next dev",
 		"build": "next build",
 		"start": "next start",
 		"lint": "next lint",
-		"db:generate": "drizzle-kit generate",
-		"db:migrate": "drizzle-kit migrate",
+		"db:generate": "npx prisma generate",
+		"db:migrate": "npx prisma migrate dev --name init",
 		"db:push": "drizzle-kit push",
-		"db:studio": "drizzle-kit studio",
-		"db:seed": "tsx db/seed.ts"
+		"db:studio": "npx prisma studio",
+		"db:seed": "npx tsx prisma/seed.ts"
 	},
 	"dependencies": {
 		"@auth/drizzle-adapter": "^1.4.1",

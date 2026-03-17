@@ -3,7 +3,7 @@ import db from "@/lib/prisma";
 export async function getUser(id: string) {
 	try {
 		if (!id) {
-			throw "Profile ID is required";
+			throw new Error("Profile ID is required");
 		}
 		const profile = await db.user.findUnique({
 			where: { id },
@@ -17,33 +17,12 @@ export async function getUser(id: string) {
 		});
 
 		if (!profile) {
-			console.log("Profile not found");
-			return null;
+			throw new Error("Profile Not Found");
 		}
 
 		return profile;
 	} catch (e) {
-		console.error("Database Error:", e);
-		throw "Failed to fetch profile";
-	}
-}
-
-export async function getAllUsers() {
-	try {
-		const users = await db.user.findMany({
-			include: {
-				skills: true,
-				areasOfInterest: true,
-				projectContributions: true,
-				experience: true,
-				sessions: true,
-			},
-		});
-
-		return users;
-	} catch (e) {
-		console.error("Database Error:", e);
-		throw "Failed to fetch profiles";
+		throw new Error("Failed to fetch profile");
 	}
 }
 
@@ -59,8 +38,7 @@ export async function createSkill(
 
 		return created;
 	} catch (e) {
-		console.error("Database Error:", e);
-		throw "Failed to create skill";
+		throw new Error("Failed to create skill");
 	}
 }
 
@@ -76,8 +54,7 @@ export async function createAreaOfInterest(
 
 		return created;
 	} catch (e) {
-		console.error("Database Error:", e);
-		throw "Failed to create area of interest";
+		throw new Error("Failed to create area of interest");
 	}
 }
 
@@ -95,8 +72,7 @@ export async function createEducation(
 
 		return created;
 	} catch (e) {
-		console.error("Database Error:", e);
-		throw "Failed to create education";
+		throw new Error("Failed to create education");
 	}
 }
 
@@ -114,33 +90,26 @@ export async function createExperience(
 
 		return created;
 	} catch (e) {
-		console.error("Database Error:", e);
-		throw "Failed to create experience";
+		throw new Error("Failed to create experience");
 	}
 }
 
 export async function canEditOrViewProfile(
 	viewerId: string,
-	profileId: string
+	profileId: string,
 ) {
-	if (!viewerId || !profileId) return false;
-
-	if (viewerId === profileId) return true;
-
-	return false;
+	return viewerId === profileId;
 }
 
 export async function updateProfile(
 	profileId: string,
 	name?: string,
 	email?: string,
-	image?: string
+	image?: string,
 ) {
-
 	try {
-
 		if (!profileId) {
-			throw "Profile ID is required to update profile.";
+			throw new Error("Profile ID is required to update profile.");
 		}
 
 		const updated = await db.user.update({
@@ -153,60 +122,49 @@ export async function updateProfile(
 		});
 
 		return updated;
-		
 	} catch (e) {
-
-		throw "Failed to update profile";
-
+		throw new Error("Failed to update profile");
 	}
 }
 
 export async function deleteProfile(profileId: string) {
-	
 	if (!profileId) {
-	  throw "Profile ID is required";
+		throw new Error("Profile ID is required");
 	}
-  
-	try {
-	  
-	  await db.skillsOnUsers.deleteMany({
-		where: { userId: profileId },
-	  });
-  
-	  await db.projectMembership.deleteMany({
-		where: { userId: profileId },
-	  });
-	 
-	  await db.projectApplication.deleteMany({
-		where: { userId: profileId },
-	  });
-  
-	  await db.account.deleteMany({
-		where: { userId: profileId },
-	  });
-  
-	  await db.session.deleteMany({
-		where: { userId: profileId },
-	  });
-  
-	  await db.education.deleteMany({
-		where: { userId: profileId },
-	  });
-  
-	  await db.experience.deleteMany({
-		where: { userId: profileId },
-	  });
-  
-	  const deleted = await db.user.delete({
-		where: { id: profileId },
-	  });
-  
-	  return deleted;
 
-	} catch (e) {
+	return db.$transaction(async (tx) => {
+		await tx.skillsOnUsers.deleteMany({
+			where: { userId: profileId },
+		});
 
-	  throw "Failed to delete profile";
+		await tx.projectMembership.deleteMany({
+			where: { userId: profileId },
+		});
 
-	}
-  }
-  
+		await tx.projectApplication.deleteMany({
+			where: { userId: profileId },
+		});
+
+		await tx.account.deleteMany({
+			where: { userId: profileId },
+		});
+
+		await tx.session.deleteMany({
+			where: { userId: profileId },
+		});
+
+		await tx.education.deleteMany({
+			where: { userId: profileId },
+		});
+
+		await tx.experience.deleteMany({
+			where: { userId: profileId },
+		});
+
+		const deleted = await tx.user.delete({
+			where: { id: profileId },
+		});
+
+		return deleted;
+	});
+}

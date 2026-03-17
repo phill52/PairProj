@@ -7,7 +7,7 @@ import { getProject } from "@/lib/projects";
 async function ProjectDetailsPage({ params }: { params: { id: string } }) {
 	const props = await getProject(params.id);
 	console.log(props);
-	// return <ProjectDetails project={props} />;
+	return <ProjectDetails project={props} />;
 }
 
 export default function Page({ params }: { params: { id: string } }) {

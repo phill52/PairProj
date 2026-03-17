@@ -37,6 +37,7 @@ model ProjectApplication {
   projectId String
   createdAt DateTime @default(now())
   status    String   @default("pending")
+  body      String
 
   @@unique([userId, projectId])
   @@map("projectApplications")

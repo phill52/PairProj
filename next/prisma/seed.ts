@@ -38,17 +38,12 @@ async function main() {
 	);
 }
 
-
-
-
 main()
 	.then(async () => {
 		await prisma.$disconnect();
 		try {
 			await db.$disconnect();
-		} catch (e) {
-			//do nothing
-		}
+		} catch (e) {}
 	})
 	.catch(async (e) => {
 		console.error(e);
@@ -56,7 +51,6 @@ main()
 		try {
 			await db.$disconnect();
 		} catch (e) {
-			//do nothing
 		}
 		process.exit(1);
 	});
