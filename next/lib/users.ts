@@ -1,5 +1,7 @@
 import db from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { z } from "zod";
+
 
 export async function getUser(id: string) {
 	try {
@@ -24,6 +26,25 @@ export async function getUser(id: string) {
 		throw new Error("Failed to fetch profile");
 	}
 }
+  
+export async function createProfile(
+	name?: string,
+	email?: string,
+	image?: string
+  ) {
+	try {
+	  const profile = await db.user.create({
+		data: {
+		  ...(name && { name }),
+		  ...(email && { email }),
+		  ...(image && { image }),
+		},
+	  });
+	  return profile;
+	} catch (e) {
+	  throw new Error(`Failed to create profile: (${e})`);
+	}
+  }
 
 export async function createSkill(
 	name: string,
@@ -36,7 +57,7 @@ export async function createSkill(
 		});
 		return created;
 	} catch (e) {
-		throw new Error("Failed to create skill");
+		throw new Error(`Failed to create skill: ${e}`);
 	}
 }
 
@@ -51,7 +72,7 @@ export async function createAreaOfInterest(
 		});
 		return created;
 	} catch (e) {
-		throw new Error("Failed to create area of interest");
+		throw new Error(`Failed to create area of interest: ${e}`);
 	}
 }
 
@@ -69,7 +90,7 @@ export async function createEducation(
 
 		return created;
 	} catch (e) {
-		throw new Error("Failed to create education");
+		throw new Error(`Failed to create education: ${e}`);
 	}
 }
 
@@ -86,7 +107,7 @@ export async function createExperience(
 		});
 		return created;
 	} catch (e) {
-		throw new Error("Failed to create experience");
+		throw new Error(`Failed to create experience: ${e}`)
 	}
 }
 
@@ -108,6 +129,11 @@ export async function updateProfile(
 		if (!profileId) {
 			throw new Error("Profile ID is required to update profile.");
 		}
+
+		const canEditProfile = await canEditOrViewProfile(profileId);
+		if (!canEditProfile) {
+			throw new Error("You are not authorized to edit this profile.");
+		}
 		const updated = await db.user.update({
 			where: { id: profileId },
 			data: {
@@ -118,13 +144,18 @@ export async function updateProfile(
 		});
 		return updated;
 	} catch (e) {
-		throw new Error("Failed to update profile");
+		throw new Error(`Failed to update profile: ${e}`)
 	}
 }
 
 export async function deleteProfile(profileId: string) {
 	if (!profileId) {
 		throw new Error("Profile ID is required");
+	}
+
+	const canDeleteProfile = await canEditOrViewProfile(profileId);
+	if (!canDeleteProfile) {
+		throw new Error("You are not authorized to delete this profile.");
 	}
 	return db.$transaction(async (tx) => {
 		await tx.skillsOnUsers.deleteMany({
