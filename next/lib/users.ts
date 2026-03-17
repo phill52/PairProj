@@ -1,10 +1,19 @@
 import db from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { z } from "zod";
+import {
+	SubmitProfile
+} from "@/types/profile-items"
 
+import { SubmitProfileZSchema } from "@/utils/validation/user";
 
 export async function getUser(id: string) {
+	
 	try {
+		const session = await auth();
+		if (!session) {
+			throw new Error("Profile ID is required");
+		}
 		if (!id) {
 			throw new Error("Profile ID is required");
 		}
@@ -27,161 +36,87 @@ export async function getUser(id: string) {
 	}
 }
   
-export async function createProfile(
-	name?: string,
-	email?: string,
-	image?: string
-  ) {
+export async function createProfile(profile: SubmitProfile) {
+	let validatedProfile: z.infer<typeof SubmitProfileZSchema>;
 	try {
-	  const profile = await db.user.create({
-		data: {
-		  ...(name && { name }),
-		  ...(email && { email }),
-		  ...(image && { image }),
-		},
-	  });
-	  return profile;
-	} catch (e) {
-	  throw new Error(`Failed to create profile: (${e})`);
+		validatedProfile = SubmitProfileZSchema.parse(profile);
+	} catch (error) {
+		if (error instanceof z.ZodError) {
+			throw new Error(
+				JSON.stringify(
+					error.errors.map((err) => ({
+						path: err.path.join("."),
+						message: err.message,
+					})),
+				),
+			);
+		}
+		console.error("Unexpected error during validation:", error);
+		throw new Error("An unexpected error occurred during validation");
 	}
-  }
-
-export async function createSkill(
-	name: string,
-	outerColor: string,
-	innerColor: string,
-) {
 	try {
-		const created = await db.skill.create({
-			data: { name, outerColor, innerColor },
-		});
-		return created;
-	} catch (e) {
-		throw new Error(`Failed to create skill: ${e}`);
-	}
-}
-
-export async function createAreaOfInterest(
-	name: string,
-	outerColor: string,
-	innerColor: string,
-) {
-	try {
-		const created = await db.areaOfInterest.create({
-			data: { name, outerColor, innerColor },
-		});
-		return created;
-	} catch (e) {
-		throw new Error(`Failed to create area of interest: ${e}`);
-	}
-}
-
-export async function createEducation(
-	userId: string,
-	school: string,
-	level: string,
-	date: string,
-	description: string,
-) {
-	try {
-		const created = await db.education.create({
-			data: { userId, school, level, date, description },
-		});
-
-		return created;
-	} catch (e) {
-		throw new Error(`Failed to create education: ${e}`);
-	}
-}
-
-export async function createExperience(
-	userId: string,
-	employer: string,
-	position: string,
-	date: string,
-	description: string,
-) {
-	try {
-		const created = await db.experience.create({
-			data: { userId, employer, position, date, description },
-		});
-		return created;
-	} catch (e) {
-		throw new Error(`Failed to create experience: ${e}`)
-	}
-}
-
-export async function canEditOrViewProfile(
-	profileId: string,
-) {
-	const session = await auth();
-	if (!session) return false; 
-	return session.user.id === profileId;
-}
-
-export async function updateProfile(
-	profileId: string,
-	name?: string,
-	email?: string,
-	image?: string,
-) {
-	try {
-		if (!profileId) {
-			throw new Error("Profile ID is required to update profile.");
+		const session = await auth();
+		if (!session.user.id) {
+			throw new Error("Not authorized to create profile.");
 		}
 
-		const canEditProfile = await canEditOrViewProfile(profileId);
-		if (!canEditProfile) {
-			throw new Error("You are not authorized to edit this profile.");
-		}
-		const updated = await db.user.update({
-			where: { id: profileId },
+		const {
+			name,
+			email,
+			image,
+			areasOfInterest,
+			skills,
+			education,
+			experience,
+		} = validatedProfile;
+
+		const newProfile = await db.user.create({
 			data: {
-				...(name !== undefined && { name }),
-				...(email !== undefined && { email }),
-				...(image !== undefined && { image }),
+				id: session.user.id, 
+				name,
+				email,
+				image,
+				areasOfInterest: {
+					connect: areasOfInterest.map((id) => ({ id })),
+				},
+				skills: {
+					create: skills.map((skl) => ({
+						skillId: skl.skillId,
+						skillLevel: skl.skillLevel,
+					})),
+				},
+				education: {
+					create: education.map((edu) => ({
+						school: edu.school,
+						level: edu.level,
+						date: edu.date,
+						description: edu.description,
+					})),
+				},
+				experience: {
+					create: experience.map((xp) => ({
+						employer: xp.employer,
+						position: xp.position,
+						date: xp.date,
+						description: xp.description,
+					})),
+				},
 			},
 		});
-		return updated;
+		return newProfile;
 	} catch (e) {
-		throw new Error(`Failed to update profile: ${e}`)
+		throw new Error(`Failed to create profile: (${e})`);
 	}
 }
 
-export async function deleteProfile(profileId: string) {
-	if (!profileId) {
-		throw new Error("Profile ID is required");
+export async function canEditorViewProfile(profileId: string){
+
+	const session = await auth();
+	if (!session){
+		throw new Error("Unauthorized");
 	}
 
-	const canDeleteProfile = await canEditOrViewProfile(profileId);
-	if (!canDeleteProfile) {
-		throw new Error("You are not authorized to delete this profile.");
-	}
-	return db.$transaction(async (tx) => {
-		await tx.skillsOnUsers.deleteMany({
-			where: { userId: profileId },
-		});
-		await tx.projectMembership.deleteMany({
-			where: { userId: profileId },
-		});
-		await tx.projectApplication.deleteMany({
-			where: { userId: profileId },
-		});
-		await tx.account.deleteMany({
-			where: { userId: profileId },
-		});
-		await tx.session.deleteMany({
-			where: { userId: profileId },
-		});
-		await tx.education.deleteMany({
-			where: { userId: profileId },
-		});
-		await tx.experience.deleteMany({
-			where: { userId: profileId },
-		});
-		const deleted = await tx.user.delete({
-			where: { id: profileId },
-		});
-		return deleted;
-	});
+	return session.user.id === profileId;
+
 }
+
