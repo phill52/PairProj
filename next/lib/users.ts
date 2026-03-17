@@ -1,4 +1,5 @@
 import db from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 
 export async function getUser(id: string) {
 	try {
@@ -15,11 +16,9 @@ export async function getUser(id: string) {
 				sessions: true,
 			},
 		});
-
 		if (!profile) {
 			throw new Error("Profile Not Found");
 		}
-
 		return profile;
 	} catch (e) {
 		throw new Error("Failed to fetch profile");
@@ -35,7 +34,6 @@ export async function createSkill(
 		const created = await db.skill.create({
 			data: { name, outerColor, innerColor },
 		});
-
 		return created;
 	} catch (e) {
 		throw new Error("Failed to create skill");
@@ -51,7 +49,6 @@ export async function createAreaOfInterest(
 		const created = await db.areaOfInterest.create({
 			data: { name, outerColor, innerColor },
 		});
-
 		return created;
 	} catch (e) {
 		throw new Error("Failed to create area of interest");
@@ -87,7 +84,6 @@ export async function createExperience(
 		const created = await db.experience.create({
 			data: { userId, employer, position, date, description },
 		});
-
 		return created;
 	} catch (e) {
 		throw new Error("Failed to create experience");
@@ -95,10 +91,11 @@ export async function createExperience(
 }
 
 export async function canEditOrViewProfile(
-	viewerId: string,
 	profileId: string,
 ) {
-	return viewerId === profileId;
+	const session = await auth();
+	if (!session) return false; 
+	return session.user.id === profileId;
 }
 
 export async function updateProfile(
@@ -111,7 +108,6 @@ export async function updateProfile(
 		if (!profileId) {
 			throw new Error("Profile ID is required to update profile.");
 		}
-
 		const updated = await db.user.update({
 			where: { id: profileId },
 			data: {
@@ -120,7 +116,6 @@ export async function updateProfile(
 				...(image !== undefined && { image }),
 			},
 		});
-
 		return updated;
 	} catch (e) {
 		throw new Error("Failed to update profile");
@@ -131,40 +126,31 @@ export async function deleteProfile(profileId: string) {
 	if (!profileId) {
 		throw new Error("Profile ID is required");
 	}
-
 	return db.$transaction(async (tx) => {
 		await tx.skillsOnUsers.deleteMany({
 			where: { userId: profileId },
 		});
-
 		await tx.projectMembership.deleteMany({
 			where: { userId: profileId },
 		});
-
 		await tx.projectApplication.deleteMany({
 			where: { userId: profileId },
 		});
-
 		await tx.account.deleteMany({
 			where: { userId: profileId },
 		});
-
 		await tx.session.deleteMany({
 			where: { userId: profileId },
 		});
-
 		await tx.education.deleteMany({
 			where: { userId: profileId },
 		});
-
 		await tx.experience.deleteMany({
 			where: { userId: profileId },
 		});
-
 		const deleted = await tx.user.delete({
 			where: { id: profileId },
 		});
-
 		return deleted;
 	});
 }

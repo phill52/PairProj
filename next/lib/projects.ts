@@ -96,7 +96,6 @@ export async function updateProject(
 				githubIssues: true,
 			},
 		});
-
 		return updated;
 	});
 }
@@ -115,7 +114,6 @@ export async function deleteProject(userId: string, projectId: string) {
 		const deleted = await tx.project.delete({
 			where: { id: projectId },
 		});
-
 		return deleted;
 	});
 }
