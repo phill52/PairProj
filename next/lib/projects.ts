@@ -1,5 +1,8 @@
 import db from "@/lib/prisma";
 import { getMembershipStatus } from "./utils";
+import { SubmitProject } from "@/types/project";
+import { SubmitProjectSchema } from "@/schemas/project";
+import { z } from "zod";
 
 export async function getProject(id: string) {
 	try {
@@ -23,22 +26,33 @@ export async function getProject(id: string) {
 }
 
 export async function createProject(
-	userId: string,
-	name: string,
-	githubLink: string,
-	difficulty: string,
-	description: string,
-	skills: string[],
-	areasOfInterest: string[],
+  userId: string,
+  projectData: SubmitProject
 ) {
+	let validatedProject: z.infer<typeof SubmitProjectSchema>;
 	try {
-		return db.project.create({
-			data: {
+		validatedProject = SubmitProjectSchema.parse(projectData);
+	} catch (error) {
+		if (error instanceof z.ZodError) {
+			throw new Error(
+				JSON.stringify(
+					error.errors.map((err) => ({
+						path: err.path.join("."),
+						message: err.message
+					})),
+				),
+			);
+		}
+		throw new Error("An unexpected error occurred during validation");
+	}
+	try {
+    	const { name, description, githubLink, difficulty, skills, areasOfInterest } = validatedProject;
+
+    	return await db.project.create({
+      		data: {
 				name: name,
 				githubLink: githubLink,
 				difficulty: difficulty,
-				description: description,
-
 				skills: {
 					connect: skills.map((id) => ({ id })),
 				},
@@ -52,11 +66,11 @@ export async function createProject(
 						role: "owner",
 					},
 				},
-			},
-		});
-	} catch (e) {
-		throw new Error("Failed to create project");
-	}
+      		}
+    });
+  } catch (e) {
+    throw new Error("Failed to create project");
+  }
 }
 
 export async function updateProject(
@@ -154,7 +168,7 @@ export async function lockProject(userId: string, projectId: string) {
 		const membership = await getMembershipStatus(tx, projectId, userId);
 
 		if (!membership) {
-			throw new Error("You are not authorized to delete this project.");
+			throw new Error("You are not authorized to lock this project.");
 		}
 
 		const updated = await tx.project.update({
@@ -170,7 +184,7 @@ export async function unlockProject(userId: string, projectId: string) {
 		const membership = await getMembershipStatus(tx, projectId, userId);
 
 		if (!membership) {
-			throw new Error("You are not authorized to delete this project.");
+			throw new Error("You are not authorized to unlock this project.");
 		}
 
 		const updated = await tx.project.update({

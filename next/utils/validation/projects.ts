@@ -3,8 +3,8 @@ import { z } from "zod";
 export const SkillSchema = z.object({
 	id: z.string(),
 	name: z.string(),
-	inner_color: z.string(),
-	outer_color: z.string(),
+	innerColor: z.string(),
+	outerColor: z.string(),
 });
 
 export const RoleInfoSchema = z.object({
@@ -16,11 +16,15 @@ export const RoleInfoSchema = z.object({
 export const AreaSchema = z.object({
 	id: z.string(),
 	name: z.string(),
+	innerColor: z.string(),
+	outerColor: z.string(),
 });
 
 export const SubmitProjectSchema = z.object({
 	name: z.string(),
 	description: z.string(),
-	areasOfInterest: z.array(AreaSchema),
-	roles: z.record(z.string(), RoleInfoSchema),
+	githubLink: z.string(),
+	difficulty: z.string(),
+	skills: z.array(z.string()),
+	areas: z.array(z.string())
 });
