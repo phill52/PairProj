@@ -1,6 +1,6 @@
 model Account {
   id                String  @id @default(cuid())
-  userId           String  @map("user_id")
+  userId            String  @map("user_id")
   type              String
   provider          String
   providerAccountId String  @map("provider_account_id")
@@ -28,11 +28,11 @@ model VerificationToken {
 }
 
 model Session {
-  id            String   @id @default(cuid())
+  id           String   @id @default(cuid())
   sessionToken String   @unique @map("session_token")
   userId       String   @map("user_id")
-  expires       DateTime
-  user          User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Restrict)
 
   @@index([userId], map: "sessions_user_id_fkey")
   @@map("sessions")
@@ -46,21 +46,21 @@ model User {
   image                String?
   accounts             Account[]
   sessions             Session[]
-  areaOfInterest       AreaOfInterest[]
+  areasOfInterest      AreaOfInterest[]
   skills               SkillsOnUsers[]
-  education            Education[]          
+  education            Education[]
   experience           Experience[]
-  issue                Issue[]             
+  issue                Issue[]
   projectContributions ProjectMembership[]
+  projectApplications  ProjectApplication[]
 
   @@unique([id])
   @@index([name])
   @@map("users")
 }
 
-
 model AreaOfInterest {
-  id         String         @id @default(cuid())
+  id         String    @id @default(cuid())
   name       String
   users      User[]
   outerColor String
@@ -96,11 +96,11 @@ model SkillsOnUsers {
 }
 
 model Education {
-  id          String    @id @default(cuid())
+  id          String @id @default(cuid())
   school      String
   level       String
-  users       User      @relation(fields: [userId], references: [id], onDelete: Restrict)
-  userId      String 
+  users       User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+  userId      String
   date        String
   description String
 
@@ -109,40 +109,15 @@ model Education {
   @@map("education")
 }
 
-
-
 model Experience {
-  id          String    @id @default(cuid())
+  id          String @id @default(cuid())
   employer    String
   position    String
-  users       User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+  users       User   @relation(fields: [userId], references: [id], onDelete: Restrict)
   userId      String
-  date        String 
-  description String 
+  date        String
+  description String
 
   @@unique([id])
   @@map("experience")
-}
-
-
-model ProjectMembership {
-  id         String  @id @default(cuid())
-  user       User    @relation(fields: [userId], references: [id], onDelete: Restrict)
-  userId     String
-  project    Project @relation(fields: [projectId], references: [id], onDelete: Restrict)
-  projectId  String
-  role       Role[]
-  dateJoined String
-
-  @@unique([id])
-  @@map("projectMemberships")
-}
-
-model Role {
-  id                  String               @id @default(cuid())
-  name                String
-  ProjectMembership   ProjectMembership[]
-
-  @@unique([id])
-  @@map("roles")
 }

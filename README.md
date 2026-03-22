@@ -39,8 +39,7 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
     Then, finally seed the database. Run the commands
 
     ```bash
-       npm run db:push
-       npm run db:seed //Seed works but needs to be expanded
+       npx prisma db seed
     ```
 
     When making any changes to the database, or pulling in someone else's changes, make sure you migrate your local DB.
@@ -52,10 +51,10 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 5. **View local DB**
 
-    If you want to view the contents of the database you can run the command. You can also test run SQL and Drizzle queries here.
+    If you want to view the contents of the database you can run the command. You can also test run SQL and Prisma queries here.
 
     ```bash
-       npm run db:studio
+       npx prisma studio
     ```
 
     If you want to more directly view it through PHPMyAdmin (which is unlikely necessary), you can optionally take these steps:

@@ -1,24 +1,36 @@
-import { InferSelectModel } from "drizzle-orm";
-import { project } from "@/db/schema";
+export type Project = {
+	id: string;
+	name: string | null;
+	description: string | null;
+	githubLink: string | null;
+	difficulty: string;
+	isLocked: boolean;
+};
 
-import { AreaTable, RoleTable, SkillTable } from "./profile-items";
-
-export type Project = InferSelectModel<typeof project>;
+export interface Skill {
+	id: string;
+	name: string;
+	innerColor: string;
+	outerColor: string;
+}
 
 export interface RoleInfo {
 	description: string | null;
-	skills: SkillTable[];
-	requiredSkills: SkillTable[];
+	skills: Skill[];
+	requiredSkills: Skill[];
 }
+
 export interface SubmitProject {
 	name: string;
 	description: string;
-	areasOfInterest: AreaTable[];
-	roles: {
-		[roleName: string]: RoleInfo;
-	};
+	githubLink: string;
+	difficulty: string;
+
+	skills: string[];
+	areas: string[]; 
 }
 
+//still drizzle below
 export interface CreateProjectProps {
 	areasOfInterest: AreaTable[];
 	roles: RoleTable[];

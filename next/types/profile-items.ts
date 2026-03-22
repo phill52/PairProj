@@ -1,44 +1,22 @@
-import { InferSelectModel } from "drizzle-orm";
-import {
-	users,
-	profile_education,
-	profile_work_experience,
-	skill,
-	role,
-	areas_of_interest,
-} from "@/db/schema";
-import { Project } from "./projects";
+import { Prisma } from "@prisma/client";
 
-// export type Skill = {
-// 	name: string;
-// 	innerColor: string;
-// 	outerColor: string;
-// };
-
-export type SkillTable = InferSelectModel<typeof skill>;
-
-export type EducationTable = InferSelectModel<typeof profile_education>;
-
-export type ExperienceTable = InferSelectModel<typeof profile_work_experience>;
-
-export type AreaTable = InferSelectModel<typeof areas_of_interest>;
-
-export type RoleTable = InferSelectModel<typeof role>;
+export type SkillTable = Prisma.SkillGetPayload<{}>;
+export type AreaTable = Prisma.AreaOfInterestGetPayload<{}>;
+export type EducationTable = Prisma.EducationGetPayload<{}>;
+export type ExperienceTable = Prisma.ExperienceGetPayload<{}>;
 
 export type EducationItem = {
 	school: string;
-	degree: string;
-	field: string;
-	startDate: Date;
-	endDate: Date | null;
+	level: string;
+	date: string;
+	description: string;
 };
 
 export type ExperienceItem = {
-	company: string;
+	employer: string;
 	position: string;
-	description: string;
-	startDate: Date;
-	endDate: Date | null;
+	date: string;
+	description: string
 };
 
 export type Areas = {
@@ -53,28 +31,21 @@ export type Skill = {
 	outerColor: string;
 };
 
-export interface UserProfileProject {
-	id: number;
-	name: string;
-	description: string;
-	picture: string;
-	skills: Skill[];
-}
-
 export interface SubmitProfile {
-	username: string | null;
-	first_name: string | null;
-	last_name: string | null;
-	account_type: RoleTable[];
-	best_skills: SkillTable[];
-	all_skills: SkillTable[];
-	areas: AreaTable[];
+	name: string | null;
+	email: string | null;
+	image: string | null;
+	areasOfInterest: string[];
+	skills: {
+		skillId: string;
+		skillLevel: string;
+	}[];
 	education: EducationItem[];
 	experience: ExperienceItem[];
-	pronouns: string | null;
-	bio: string | null;
+
 }
 
+//havent worked below here yet
 export interface ViewProfileProps {
 	username: string;
 	first_name: string;
@@ -95,7 +66,6 @@ export interface ViewProfileProps {
 
 export interface CreateProfileProps {
 	profile: SubmitProfile;
-	roles: RoleTable[];
 	skills: SkillTable[];
 	areas: AreaTable[];
 }
