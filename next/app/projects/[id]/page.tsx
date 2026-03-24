@@ -1,10 +1,16 @@
 import { Suspense } from "react";
 
 import ProjectDetails from "./project-details";
+import DemoPage from "./demo";
 import Sidebar from "@/components/sidebar";
 import { getProject } from "@/lib/projects";
 
 async function ProjectDetailsPage({ params }: { params: { id: string } }) {
+	if (params.id === "demo") {
+		const props = await DemoPage();
+		return <ProjectDetails project={props} />;
+	}
+
 	const props = await getProject(params.id);
 	console.log(props);
 	return <ProjectDetails project={props} />;

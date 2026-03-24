@@ -13,9 +13,7 @@ export default function Badge({
 	text,
 	...props
 }: BadgeProps) {
-	console.log(innerColor, outerColor, text);
 	const styleString = `inline-flex items-center rounded-full px-3 py-0.5 text-sm font-medium border rounded-md] ${props.onClick ? "hover:underline hover:cursor-pointer" : ""}`;
-	console.log(styleString);
 	return (
 		<span
 			className={styleString}
