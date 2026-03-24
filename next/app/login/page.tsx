@@ -9,7 +9,7 @@ export default function Page() {
       style={{ backgroundColor: "#F0F4F7" }}
     >
       <div className="flex justify-between items-center px-5 py-3 bg-white shadow-sm">
-        <div className="text-3xl">ProgPair</div>
+        <div className="text-3xl">PairProj</div>
         <a href="/create-account">
           <Button>Create Account</Button>
         </a>

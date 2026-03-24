@@ -1,7 +1,7 @@
 import db from "@/lib/prisma";
 import { getMembershipStatus } from "./utils";
 import { SubmitProject } from "@/types/project";
-import { SubmitProjectSchema } from "@/schemas/project";
+import { SubmitProjectSchema } from "@/utils/validation/projects.ts";
 import { z } from "zod";
 
 export async function getProject(id: string) {

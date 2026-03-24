@@ -17,7 +17,7 @@ export default async function Page() {
 				style={{ backgroundColor: "#F0F4F7" }}
 			>
 				<div className="flex items-center justify-between bg-white px-5 py-3 shadow-sm">
-					<div className="text-3xl">ProgPair</div>
+					<div className="text-3xl">PairProj</div>
 					<a href="/login">
 						<Button>Sign In</Button>
 					</a>
