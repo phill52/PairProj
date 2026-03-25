@@ -5,7 +5,6 @@ import {
 	CardHeader,
 	CardTitle,
 	CardContent,
-	CardFooter,
 	Button,
 	Avatar,
 } from "@/components/ui";
@@ -15,217 +14,133 @@ import { AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import { routes } from "@/routes/routes";
 
-type Collaborator = {
-	id: number;
-	username: string;
-	profilePicture: string;
-	role: string;
-};
-
 export default function ProjectComponent({
 	project,
 }: {
-	project: ProjectProps;
+	project: ProjectProps & any;
 }) {
 	return (
 		<Card className="mx-auto my-8 max-w-[90%] rounded-lg bg-white shadow-lg">
 			<CardHeader className="border-b p-6 pb-6">
-				<CardTitle className="text-2xl font-bold">
-					{project.name}
-				</CardTitle>
+				<CardTitle className="text-2xl font-bold">{project.name}</CardTitle>
 				<p className="text-gray-600">{project.description}</p>
-				<div className="mt-4 flex items-center justify-between">
-					{/* <div className="font-semibold text-red-600"> TODO: Add skill level to project
-						Skill Level: <strong>{project.skillLevel}</strong>
-					</div> */}
+
+				<div className="mt-4 flex flex-col gap-2">
+					{project.skill_level && (
+						<div className="font-semibold">
+							Skill Level: <strong>{project.skill_level}</strong>
+						</div>
+					)}
+					{project.github_repository && (
+						<div>
+							<a
+								href={project.github_repository}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="text-blue-600 hover:underline"
+							>
+								GitHub Repository
+							</a>
+						</div>
+					)}
+				</div>
+
+				{/* Owner and members */}
+				<div className="mt-4 flex items-center gap-4">
+					{project.owner ? (
+						<Link href={routes.users.profile({ id: project.owner.id })}>
+							<div className="flex items-center gap-3">
+								<Avatar className="h-10 w-10">
+									<AvatarImage src={project.owner.profilePicture || undefined} alt={project.owner.username} />
+									<AvatarFallback className="text-sm">{project.owner.username?.[0]}</AvatarFallback>
+								</Avatar>
+								<div>
+									<div className="text-sm font-semibold">{project.owner.username}</div>
+									<div className="text-xs text-gray-500">Project Owner</div>
+								</div>
+							</div>
+						</Link>
+					) : null}
+
+					{project.members && project.members.length > 0 ? (
+						<div className="ml-4 flex items-center gap-2">
+							{project.members.slice(0, 5).map((m: any) => (
+								<Link key={m.id} href={routes.users.profile({ id: m.id })}>
+									<Avatar className="h-8 w-8">
+										<AvatarImage src={m.profilePicture || undefined} alt={m.username} />
+										<AvatarFallback className="text-sm">{m.username?.[0]}</AvatarFallback>
+									</Avatar>
+								</Link>
+							))}
+							{project.members.length > 5 && <span className="text-sm text-gray-500">+{project.members.length - 5}</span>}
+						</div>
+					) : null}
 				</div>
 			</CardHeader>
 
 			<CardContent className="p-6">
-				{/* <section className="mb-6"> TODO: Add currently needed roles to project
-					<h2 className="mb-2 text-xl font-semibold">
-						Currently Needed Roles
-					</h2>
-					<div className="mb-2 flex space-x-2">
-						{project.neededRoles.map((role, index) => (
-							<span
-								key={index}
-								className="rounded-full bg-green-100 px-3 py-1 text-green-800"
-							>
-								{role}
-							</span>
-						))}
-					</div>
-				</section> */}
-
-				<section className="mb-6">
-					<h2 className="mb-2 text-xl font-semibold">Roles</h2>
-					<div className="mb-2 flex space-x-2">
-						{project.roles.map((role, index) => (
-							<div key={index}>
-								<h3
-									key={index}
-									className="text-lg font-semibold"
-								>
-									{role.name}
-								</h3>
-								<div className="mb-1 flex space-x-1">
-									<strong>Skills:</strong>
-									<div className="space-x-2">
-										{role.skills.map((skill, index) => (
-											<Badge
-												text={skill.name}
-												key={index}
-												innerColor={skill.innerColor}
-												outerColor={skill.outerColor}
-											/>
-										))}
-									</div>
-								</div>
-								<div className="mb-1 flex space-x-1">
-									<strong>Required Skill:</strong>
-									<div className="space-x-2">
-										{role.skills
-											.filter((skill) => {
-												return skill.isRequired;
-											})
-											.map((skill, index) => (
-												<Badge
-													text={skill.name}
-													key={index}
-													innerColor={
-														skill.innerColor
-													}
-													outerColor={
-														skill.outerColor
-													}
-												/>
-											))}
-									</div>
-								</div>
-							</div>
-						))}
-					</div>
-					{/* <div className="mb-1 flex space-x-1">
-						<strong>Required:</strong>
-						<div className="space-x-2">
-							{project.techStack.required.map((skill, index) => (
-								<Badge
-									text={skill.name}
-									key={index}
-									{...skill}
-								/>
-							))}
-						</div>
-					</div>
-					<div className="mb-1 flex space-x-1">
-						<strong>Preferred:</strong>{" "}
-						<div className="space-x-2">
-							{project.techStack.preferred.map((skill, index) => (
-								<Badge
-									text={skill.name}
-									key={index}
-									{...skill}
-								/>
-							))}
-						</div>
-					</div>
-					<p className="text-green-600">
-						You meet the minimum requirements to apply!
-					</p> */}
-				</section>
-
-				{/* <section className="mb-6">
-					<h2 className="mb-2 text-xl font-semibold">
-						Current Collaborators ({project.collaborators.length}{" "}
-						Total)
-					</h2>
-					<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-						{project.collaborators.map((collaborator) => (
-							<Link
-								key={collaborator.id}
-								href={routes.users.profile({
-									id: collaborator.id,
-								})}
-							>
-								<Card
-									key={collaborator.id}
-									className="flex items-center p-4"
-								>
-									<Avatar className="mr-4 h-16 w-16">
-										<AvatarImage
-											src={collaborator.profilePicture}
-											alt={collaborator.username}
-										/>
-										<AvatarFallback className="text-2xl">
-											{collaborator.username[0]}
-										</AvatarFallback>
-									</Avatar>
-									<div>
-										<h3 className="text-lg font-bold">
-											{collaborator.username}
+				{project.roles && project.roles.length > 0 ? (
+					<section className="mb-6">
+						<h2 className="mb-4 text-xl font-semibold">Looking for Help</h2>
+						<div className="grid gap-4">
+							{project.roles.map((role: any) => (
+								<div key={role.id} className="rounded-lg border border-gray-200 p-4">
+									<div className="flex items-start justify-between">
+										<h3 className="mb-3 text-lg font-semibold">
+											<Link href={`${routes.projects.project({ id: project.id })}/roles/${role.id}`}>{role.name}</Link>
 										</h3>
-										<p className="text-gray-600">
-											{collaborator.role}
-										</p>
+										<Link href={`${routes.projects.project({ id: project.id })}/apply/${role.id}`}>
+											<Button>Apply</Button>
+										</Link>
 									</div>
-								</Card>
-							</Link>
-						))}
-					</div>
-					<div className="mt-4 flex space-x-2">
-						<Button>Invite</Button>
-						<Button>Lock</Button>
-						<Button>Applications</Button>
-					</div>
-				</section> */}
-			</CardContent>
 
-			{/* <CardFooter className="flex items-center justify-between border-t p-6"> TODO: add project news
-				<aside className="w-1/2">
-					<h2 className="mb-2 text-xl font-semibold">
-						Follow the project
-					</h2>
-					<p className="mb-2 text-gray-600">
-						Most Recent Commit: {project.recentCommit}
-					</p>
-					<div className="mb-2">
-						<h3 className="font-semibold">News:</h3>
-						<ul className="list-disc pl-5">
-							{project.news.map((item, index) => (
-								<li key={index} className="text-gray-600">
-									{item}
-								</li>
+									<div className="mb-3 flex flex-col gap-2">
+										<div>
+											<strong className="text-sm text-gray-700">All Skills:</strong>
+											<div className="mt-1 flex flex-wrap gap-2">
+												{role.skills.length > 0 ? (
+													role.skills.map((skill: any) => (
+														<Badge
+															text={skill.name}
+															key={skill.id}
+															innerColor={skill.innerColor}
+															outerColor={skill.outerColor}
+															className={(skill.name || "").toLowerCase().includes("vs") || (skill.name || "").toLowerCase().includes("visual") ? "ring-2 ring-yellow-400" : ""}
+														/>
+													))
+												) : (
+													<span className="text-sm text-gray-500">No skills listed</span>
+												)}
+											</div>
+										</div>
+
+										<div>
+											<strong className="text-sm text-gray-700">Required Skills:</strong>
+											<div className="mt-1 flex flex-wrap gap-2">
+												{role.skills.filter((skill: any) => skill.isRequired).length > 0 ? (
+													role.skills
+														.filter((skill: any) => skill.isRequired)
+														.map((skill: any) => (
+															<Badge
+																text={skill.name}
+																key={skill.id}
+																innerColor={skill.innerColor}
+																outerColor={skill.outerColor}
+																className={(skill.name || "").toLowerCase().includes("vs") || (skill.name || "").toLowerCase().includes("visual") ? "ring-2 ring-yellow-400" : ""}
+															/>
+														))
+												) : (
+													<span className="text-sm text-gray-500">None</span>
+												)}
+											</div>
+										</div>
+									</div>
+								</div>
 							))}
-						</ul>
-					</div>
-					<div className="mb-2">
-						<h3 className="font-semibold">Issues:</h3>
-						<ul className="list-disc pl-5">
-							{project.issues.map((item, index) => (
-								<li key={index} className="text-gray-600">
-									{item}
-								</li>
-							))}
-						</ul>
-					</div>
-					<div>
-						<h3 className="font-semibold">Pull Requests:</h3>
-						<ul className="list-disc pl-5">
-							{project.pullRequests.map((item, index) => (
-								<li key={index} className="text-gray-600">
-									{item}
-								</li>
-							))}
-						</ul>
-					</div>
-					<Button className="mt-4">Repository</Button>
-				</aside>
-				<div className="flex space-x-2">
-					<Button>Apply Now</Button>
-					<Button>Save Project</Button>
-				</div>
-			</CardFooter> */}
+						</div>
+					</section>
+				) : null}
+			</CardContent>
 		</Card>
 	);
 }
