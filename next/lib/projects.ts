@@ -26,8 +26,8 @@ export async function getProject(id: string) {
 }
 
 export async function createProject(
-  userId: string,
-  projectData: SubmitProject
+	userId: string,
+	projectData: SubmitProject,
 ) {
 	let validatedProject: z.infer<typeof SubmitProjectSchema>;
 	try {
@@ -38,7 +38,7 @@ export async function createProject(
 				JSON.stringify(
 					error.errors.map((err) => ({
 						path: err.path.join("."),
-						message: err.message
+						message: err.message,
 					})),
 				),
 			);
@@ -46,10 +46,17 @@ export async function createProject(
 		throw new Error("An unexpected error occurred during validation");
 	}
 	try {
-    	const { name, description, githubLink, difficulty, skills, areasOfInterest } = validatedProject;
+		const {
+			name,
+			description,
+			githubLink,
+			difficulty,
+			skills,
+			areasOfInterest,
+		} = validatedProject;
 
-    	return await db.project.create({
-      		data: {
+		return await db.project.create({
+			data: {
 				name: name,
 				description: description,
 				githubLink: githubLink,
@@ -67,11 +74,11 @@ export async function createProject(
 						role: "owner",
 					},
 				},
-      		}
-    });
-  } catch (e) {
-    throw new Error("Failed to create project");
-  }
+			},
+		});
+	} catch (e) {
+		throw new Error("Failed to create project");
+	}
 }
 
 export async function updateProject(
@@ -196,19 +203,6 @@ export async function unlockProject(userId: string, projectId: string) {
 	});
 }
 
-export async function getProjectMembers(projectId: string) {
-	try {
-		const members = await db.projectMembership.findMany({
-			where: { projectId },
-			include: { user: true },
-		});
-
-		return true;
-	} catch (e) {
-		throw new Error("Failed to fetch project owner");
-	}
-}
-
 export async function getProjectApplications(id: string) {
 	try {
 		const project = await db.project.findUnique({
@@ -273,6 +267,20 @@ export async function getProjectOwner(projectId: string) {
 			throw new Error("Project owner not found");
 		}
 		return owner.user;
+	} catch (e) {
+		throw new Error("Failed to fetch project owner");
+	}
+}
+
+export async function getProjectMembers(projectId: string) {
+	try {
+		const members = await db.projectMembership.findMany({
+			where: { projectId, role: { not: "owner" } },
+			include: { user: true },
+		});
+
+		const users = members?.map((member) => member.user);
+		return users
 	} catch (e) {
 		throw new Error("Failed to fetch project owner");
 	}

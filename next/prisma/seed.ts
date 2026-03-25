@@ -10,19 +10,19 @@ async function main() {
 	await prisma.project.deleteMany();
 	await prisma.skill.deleteMany();
 
-	const project1 = await createProject("cmmbguupm0002gmtwf3z9zyln", {
+	const project1 = await createProject("cmlyjzzd50000gmjwsc8fy1ve", {
 		name: "PairProj",
 		githubLink: "https://https://github.com/phill52/PairProj",
 		difficulty: "Intermediate",
 		description: "Test description",
 		skills: [],
-		areas: [],
+		areasOfInterest: [],
 	});
 
 	console.log({ project1 });
 
 	const updated1 = await updateProject(
-		"cmmbguupm0002gmtwf3z9zyln",
+		"cmlyjzzd50000gmjwsc8fy1ve",
 		project1.id,
 		"PairProjTwo",
 		"https://https://github.com/phill52/PairProj",
