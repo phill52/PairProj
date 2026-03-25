@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import Image from "next/image";
 import {
 	Card,
 	CardHeader,
@@ -10,6 +11,7 @@ import {
 } from "@/components/ui";
 import { ProjectProps } from "@/types/projects";
 import Badge from "@/components/badge";
+import skillIcons from "@/components/skillIcons";
 import { AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import { routes } from "@/routes/routes";
@@ -99,15 +101,20 @@ export default function ProjectComponent({
 											<strong className="text-sm text-gray-700">All Skills:</strong>
 											<div className="mt-1 flex flex-wrap gap-2">
 												{role.skills.length > 0 ? (
-													role.skills.map((skill: any) => (
-														<Badge
-															text={skill.name}
-															key={skill.id}
-															innerColor={skill.innerColor}
-															outerColor={skill.outerColor}
-															className={(skill.name || "").toLowerCase().includes("vs") || (skill.name || "").toLowerCase().includes("visual") ? "ring-2 ring-yellow-400" : ""}
-														/>
-													))
+													role.skills.map((skill: any) => {
+														const src = skill.iconLocation || skillIcons[skill.name] || null;
+														return (
+															<Badge
+																key={skill.id}
+																innerColor={skill.innerColor}
+																outerColor={skill.outerColor}
+																className={(skill.name || "").toLowerCase().includes("vs") || (skill.name || "").toLowerCase().includes("visual") ? "ring-2 ring-yellow-400" : ""}
+															>
+																{src ? <img src={src} alt={skill.name} className="inline-block h-4 w-4 mr-2" /> : null}
+																{skill.name}
+															</Badge>
+														);
+													})
 												) : (
 													<span className="text-sm text-gray-500">No skills listed</span>
 												)}
@@ -120,15 +127,20 @@ export default function ProjectComponent({
 												{role.skills.filter((skill: any) => skill.isRequired).length > 0 ? (
 													role.skills
 														.filter((skill: any) => skill.isRequired)
-														.map((skill: any) => (
-															<Badge
-																text={skill.name}
-																key={skill.id}
-																innerColor={skill.innerColor}
-																outerColor={skill.outerColor}
-																className={(skill.name || "").toLowerCase().includes("vs") || (skill.name || "").toLowerCase().includes("visual") ? "ring-2 ring-yellow-400" : ""}
-															/>
-														))
+														.map((skill: any) => {
+															const src = skill.iconLocation || skillIcons[skill.name] || null;
+															return (
+																<Badge
+																	key={skill.id}
+																	innerColor={skill.innerColor}
+																	outerColor={skill.outerColor}
+																	className={(skill.name || "").toLowerCase().includes("vs") || (skill.name || "").toLowerCase().includes("visual") ? "ring-2 ring-yellow-400" : ""}
+																>
+																	{src ? <img src={src} alt={skill.name} className="inline-block h-4 w-4 mr-2" /> : null}
+																	{skill.name}
+																</Badge>
+															);
+														})
 												) : (
 													<span className="text-sm text-gray-500">None</span>
 												)}
