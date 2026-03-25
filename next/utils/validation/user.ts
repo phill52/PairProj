@@ -8,18 +8,16 @@ export const SubmitProfileZSchema = z.object({
 		.max(30, "Name must be at most 30 characters")
 		.nullable(),
 	email: z.string().email("Invalid email").nullable(),
-	image: z.string().url("Invalid image URL").nullable(),
+	image: z.string().nullable(),
 	areasOfInterest: z
-		.array(z.string().min(1, "Invalid area ID"))
-		.min(1, "Select at least one area"),
+		.array(z.string()),
 	skills: z
 		.array(
 			z.object({
-				skillId: z.string().min(1, "Invalid skill ID"),
-				skillLevel: z.string().min(1, "Skill level required"),
+				skillId: z.string(),
+				skillLevel: z.string(),
 			}),
-		)
-		.min(1, "Select at least one skill"),
+		),
 	education: z.array(
 		z.object({
 			school: z

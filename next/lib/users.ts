@@ -71,7 +71,6 @@ export async function createProfile(profile: SubmitProfile) {
 
 		const newProfile = await db.user.create({
 			data: {
-				id: session.user.id, 
 				name,
 				email,
 				image,
@@ -80,8 +79,8 @@ export async function createProfile(profile: SubmitProfile) {
 				},
 				skills: {
 					create: skills.map((skl) => ({
-						skillId: skl.skillId,
-						skillLevel: skl.skillLevel
+					  skill: { connect: { id: skl.skillId } },
+					  skillLevel: skl.skillLevel,
 					})),
 				},
 				education: {
