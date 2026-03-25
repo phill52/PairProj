@@ -13,11 +13,13 @@ export function ViewProfile({ profile }: { profile: any }) {
 		.map((n: string) => n[0])
 		.join("")
 		.toUpperCase();
-		
+
 	const skills = profile.skills ?? [];
 	const education = profile.education ?? [];
 	const experience = profile.experience ?? [];
 	const projectContributions = profile.projectContributions ?? [];
+
+	console.log(profile)
 
 	return (
 		<div>

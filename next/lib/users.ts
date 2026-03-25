@@ -24,7 +24,8 @@ export async function getUser(id: string) {
 				areasOfInterest: true,
 				projectContributions: true,
 				experience: true,
-				sessions: true
+				sessions: true, 
+				education: true,
 			},
 		});
 		if (!profile) {
