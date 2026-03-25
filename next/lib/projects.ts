@@ -1,7 +1,7 @@
 import db from "@/lib/prisma";
 import { getMembershipStatus } from "./utils";
-import { SubmitProject } from "@/types/project";
-import { SubmitProjectSchema } from "@/schemas/project";
+import { SubmitProject } from "@/types/projects";
+import { SubmitProjectSchema } from "@/utils/validation/projects.ts";
 import { z } from "zod";
 
 export async function getProject(id: string) {
@@ -51,6 +51,7 @@ export async function createProject(
     	return await db.project.create({
       		data: {
 				name: name,
+				description: description,
 				githubLink: githubLink,
 				difficulty: difficulty,
 				skills: {
@@ -195,17 +196,16 @@ export async function unlockProject(userId: string, projectId: string) {
 	});
 }
 
-export async function getProjectMembers(id: string) {
+export async function getProjectMembers(projectId: string) {
 	try {
-		const project = await db.project.findUnique({
-			where: { id },
-			include: {
-				ProjectMembership: true,
-			},
+		const members = await db.projectMembership.findMany({
+			where: { projectId },
+			include: { user: true },
 		});
-		return project?.ProjectMembership;
+
+		return true;
 	} catch (e) {
-		throw new Error("Failed to fetch project");
+		throw new Error("Failed to fetch project owner");
 	}
 }
 
@@ -261,4 +261,19 @@ export async function checkMatchingSkills(projectId: string, userId: string) {
 
 		return matchingSkills.map((s) => s.skill.name);
 	});
+}
+
+export async function getProjectOwner(projectId: string) {
+	try {
+		const owner = await db.projectMembership.findFirst({
+			where: { projectId, role: "owner" },
+			include: { user: true },
+		});
+		if (!owner) {
+			throw new Error("Project owner not found");
+		}
+		return owner.user;
+	} catch (e) {
+		throw new Error("Failed to fetch project owner");
+	}
 }

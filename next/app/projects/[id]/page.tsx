@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import ProjectDetails from "./project-details";
 import DemoPage from "./demo";
 import Sidebar from "@/components/sidebar";
-import { getProject } from "@/lib/projects";
+import { getProject, getProjectOwner, getProjectMembers } from "@/lib/projects";
 
 async function ProjectDetailsPage({ params }: { params: { id: string } }) {
 	if (params.id === "demo") {
@@ -11,8 +11,10 @@ async function ProjectDetailsPage({ params }: { params: { id: string } }) {
 		return <ProjectDetails project={props} />;
 	}
 
-	const props = await getProject(params.id);
-	console.log(props);
+	const project = await getProject(params.id);
+	const owner = await getProjectOwner(params.id);
+	const members = await getProjectMembers(params.id);
+	const props = { ...project, owner, members };
 	return <ProjectDetails project={props} />;
 }
 

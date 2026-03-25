@@ -27,7 +27,7 @@ export interface SubmitProject {
 	difficulty: string;
 
 	skills: string[];
-	areas: string[]; 
+	areasOfInterest: string[]; 
 }
 
 //still drizzle below
