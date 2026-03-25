@@ -27,8 +27,24 @@ export interface SubmitProject {
 	difficulty: string;
 
 	skills: string[];
-	areasOfInterest: string[]; 
+	areasOfInterest: string[];
+	roles: {
+		name: string;
+		outerColor: string;
+		innerColor: string;
+		description?: string;
+		optionalSkillIds?: string[];
+		requiredSkillIds?: string[];
+	}[];
 }
+
+export type ProjectRoleCreateData = {
+	name: string;
+	outerColor: string;
+	innerColor: string;
+	requiredSkillIds?: string[];
+	optionalSkillIds?: string[];
+};
 
 //still drizzle below
 export interface CreateProjectProps {

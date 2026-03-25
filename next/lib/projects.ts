@@ -1,6 +1,6 @@
 import db from "@/lib/prisma";
 import { getMembershipStatus } from "./utils";
-import { SubmitProject } from "@/types/projects";
+import { SubmitProject, ProjectRoleCreateData } from "@/types/projects";
 import { SubmitProjectSchema } from "@/utils/validation/projects.ts";
 import { z } from "zod";
 
@@ -14,6 +14,12 @@ export async function getProject(id: string) {
 				githubIssues: true,
 				ProjectMembership: true,
 				applications: true,
+				roles: {
+					include: {
+						requiredSkills: true,
+						optionalSkills: true,
+					},
+				},
 			},
 		});
 		if (!project) {
@@ -21,7 +27,7 @@ export async function getProject(id: string) {
 		}
 		return project;
 	} catch (e) {
-		throw new Error("Failed to fetch project");
+		throw new Error(`Failed to fetch project: ${e}`);
 	}
 }
 
@@ -53,6 +59,7 @@ export async function createProject(
 			difficulty,
 			skills,
 			areasOfInterest,
+			roles,
 		} = validatedProject;
 
 		return await db.project.create({
@@ -66,6 +73,27 @@ export async function createProject(
 				},
 				areasOfInterest: {
 					connect: areasOfInterest.map((id) => ({ id })),
+				},
+				roles: {
+					create: (roles ?? []).map((role) => ({
+						name: role.name,
+						outerColor: role.outerColor,
+						innerColor: role.innerColor,
+						requiredSkills: role.requiredSkillIds
+							? {
+									connect: role.requiredSkillIds.map(
+										(id) => ({ id }),
+									),
+								}
+							: undefined,
+						optionalSkills: role.optionalSkillIds
+							? {
+									connect: role.optionalSkillIds.map(
+										(id) => ({ id }),
+									),
+								}
+							: undefined,
+					})),
 				},
 				ProjectMembership: {
 					create: {
@@ -90,6 +118,7 @@ export async function updateProject(
 	description: string,
 	skills: string[],
 	areasOfInterest: string[],
+	roles: ProjectRoleCreateData[] = [],
 ) {
 	return db.$transaction(async (tx) => {
 		const membership = await getMembershipStatus(tx, projectId, userId);
@@ -111,10 +140,33 @@ export async function updateProject(
 				areasOfInterest: {
 					set: areasOfInterest.map((id) => ({ id })),
 				},
+				roles: {
+					deleteMany: {},
+					create: roles.map((role) => ({
+						name: role.name,
+						outerColor: role.outerColor,
+						innerColor: role.innerColor,
+						requiredSkills: role.requiredSkillIds
+							? {
+									connect: role.requiredSkillIds.map(
+										(id) => ({ id }),
+									),
+								}
+							: undefined,
+						optionalSkills: role.optionalSkillIds
+							? {
+									connect: role.optionalSkillIds.map(
+										(id) => ({ id }),
+									),
+								}
+							: undefined,
+					})),
+				},
 			},
 			include: {
 				areasOfInterest: true,
 				skills: true,
+				roles: true,
 				githubIssues: true,
 			},
 		});
@@ -280,8 +332,47 @@ export async function getProjectMembers(projectId: string) {
 		});
 
 		const users = members?.map((member) => member.user);
-		return users
+		return users;
 	} catch (e) {
 		throw new Error("Failed to fetch project owner");
 	}
+}
+
+export async function createProjectRole(
+	projectId: string,
+	roleData: ProjectRoleCreateData,
+) {
+	return db.$transaction(async (tx) => {
+		const project = await tx.project.findUnique({
+			where: { id: projectId },
+		});
+		if (!project) {
+			throw new Error("Project not found");
+		}
+
+		const role = await tx.role.create({
+			data: {
+				name: roleData.name,
+				outerColor: roleData.outerColor,
+				innerColor: roleData.innerColor,
+				project: { connect: { id: projectId } },
+				requiredSkills: roleData.requiredSkillIds
+					? {
+							connect: roleData.requiredSkillIds.map((id) => ({
+								id,
+							})),
+						}
+					: undefined,
+				optionalSkills: roleData.optionalSkillIds
+					? {
+							connect: roleData.optionalSkillIds.map((id) => ({
+								id,
+							})),
+						}
+					: undefined,
+			},
+		});
+
+		return role;
+	});
 }

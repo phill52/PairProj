@@ -96,10 +96,10 @@ export default function ProjectComponent({
 
 									<div className="mb-3 flex flex-col gap-2">
 										<div>
-											<strong className="text-sm text-gray-700">All Skills:</strong>
+											<strong className="text-sm text-gray-700">Required Skills:</strong>
 											<div className="mt-1 flex flex-wrap gap-2">
-												{role.skills.length > 0 ? (
-													role.skills.map((skill: any) => (
+												{role.requiredSkills.length > 0 ? (
+													role.requiredSkills.map((skill: any) => (
 														<Badge
 															text={skill.name}
 															key={skill.id}
@@ -109,26 +109,24 @@ export default function ProjectComponent({
 														/>
 													))
 												) : (
-													<span className="text-sm text-gray-500">No skills listed</span>
+													<span className="text-sm text-gray-500">None</span>
 												)}
 											</div>
 										</div>
 
 										<div>
-											<strong className="text-sm text-gray-700">Required Skills:</strong>
+											<strong className="text-sm text-gray-700">Optional Skills:</strong>
 											<div className="mt-1 flex flex-wrap gap-2">
-												{role.skills.filter((skill: any) => skill.isRequired).length > 0 ? (
-													role.skills
-														.filter((skill: any) => skill.isRequired)
-														.map((skill: any) => (
-															<Badge
-																text={skill.name}
-																key={skill.id}
-																innerColor={skill.innerColor}
-																outerColor={skill.outerColor}
-																className={(skill.name || "").toLowerCase().includes("vs") || (skill.name || "").toLowerCase().includes("visual") ? "ring-2 ring-yellow-400" : ""}
-															/>
-														))
+												{role.optionalSkills.length > 0 ? (
+													role.optionalSkills.map((skill: any) => (
+														<Badge
+															text={skill.name}
+															key={skill.id}
+															innerColor={skill.innerColor}
+															outerColor={skill.outerColor}
+															className={(skill.name || "").toLowerCase().includes("vs") || (skill.name || "").toLowerCase().includes("visual") ? "ring-2 ring-yellow-400" : ""}
+														/>
+													))
 												) : (
 													<span className="text-sm text-gray-500">None</span>
 												)}

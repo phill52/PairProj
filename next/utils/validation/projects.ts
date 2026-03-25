@@ -26,5 +26,13 @@ export const SubmitProjectSchema = z.object({
 	githubLink: z.string(),
 	difficulty: z.string(),
 	skills: z.array(z.string()),
-	areasOfInterest: z.array(z.string())
+	areasOfInterest: z.array(z.string()),
+	roles: z.array(z.object({
+		name: z.string(),
+		outerColor: z.string(),
+		innerColor: z.string(),
+		description: z.string().optional(),
+		optionalSkillIds: z.array(z.string()).optional(),
+		requiredSkillIds: z.array(z.string()).optional(),
+	})),
 });

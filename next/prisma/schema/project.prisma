@@ -10,10 +10,27 @@ model Project {
   isLocked          Boolean              @default(false)
   description       String?
   applications      ProjectApplication[]
+  roles             Role[]
 
   @@unique([id])
   @@index([name])
   @@map("projects")
+}
+
+model Role {
+  id         String   @id @default(cuid())
+  name       String
+  outerColor String
+  innerColor String
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  projectId  String
+  createdAt  DateTime @default(now())
+  requiredSkills Skill[] @relation("requiredSkills")
+  optionalSkills Skill[] @relation("optionalSkills")
+
+  @@unique([id])
+  @@index([name])
+  @@map("roles")
 }
 
 model ProjectMembership {
