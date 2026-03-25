@@ -297,3 +297,37 @@ export async function canEditorViewProfile(profileId: string){
 
 }
 
+export interface NewExperienceInput {
+  employer: string;
+  position: string;
+  date: string;
+  description: string;
+}
+
+export async function addExperience(userId: string, data: NewExperienceInput) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new Error("Not authorized to add experience.");
+  }
+
+  if (session.user.id !== userId) {
+    throw new Error("Cannot add experience to another user's profile.");
+  }
+
+  try {
+    const newExp = await db.experience.create({
+      data: {
+        userId,
+        employer: data.employer,
+        position: data.position,
+        date: data.date,
+        description: data.description,
+      },
+    });
+
+    return newExp;
+  } catch (error) {
+    console.error(error);
+    throw new Error("Failed to add experience.");
+  }
+}

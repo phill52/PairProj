@@ -1,5 +1,5 @@
 "use client";
-
+import { useState } from "react"; 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import Image from "next/image";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -7,7 +7,14 @@ import Badge from "@/components/badge";
 import Link from "next/link";
 import { routes } from "@/routes/routes";
 
-export function ViewProfile({ profile }: { profile: any }) {
+interface NewExperienceInput {
+	employer: string;
+	position: string;
+	date: string;
+	description: string;
+ }
+
+export function ViewProfile({ profile, isSelf }: { profile: any, isSelf: boolean; }) {
 	const initials = profile.name
 		?.split(" ")
 		.map((n: string) => n[0])
@@ -16,10 +23,27 @@ export function ViewProfile({ profile }: { profile: any }) {
 
 	const skills = profile.skills ?? [];
 	const education = profile.education ?? [];
-	const experience = profile.experience ?? [];
+	const [experience, setExperience] = useState(profile.experience ?? []);
+	const [newExp, setNewExp] = useState<NewExperienceInput>({
+		employer: "",
+		position: "",
+		date: "",
+		description: "",
+	  });
+	const [showForm, setShowForm] = useState(false);
 	const projectContributions = profile.projectContributions ?? [];
-
-	console.log(profile)
+	  
+	const handleAddExperience = async () => {
+		try {
+		  const createdExp = await addExperience(profile.id, newExp);
+		  setExperience([...experience, createdExp]);
+		  setShowForm(false);
+		  setNewExp({ employer: "", position: "", date: "", description: "" });
+		} catch (err) {
+		  console.error(err);
+		  alert("Failed to add experience");
+		}
+	  };
 
 	return (
 		<div>
@@ -70,6 +94,63 @@ export function ViewProfile({ profile }: { profile: any }) {
 					<div className="flex w-full flex-row">
 						<div className="flex-1 pr-4">
 							<h3 className="mb-2 text-4xl font-bold">Experience</h3>
+							{isSelf && (
+							<div className="mb-4">
+								<button
+								onClick={() => setShowForm(!showForm)}
+								className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+								>
+								{showForm ? "Cancel" : "Add Experience"}
+								</button>
+
+								{showForm && (
+								<div className="mt-4 flex flex-col gap-2">
+									<input
+									type="text"
+									placeholder="Employer"
+									value={newExp.employer}
+									onChange={(e) =>
+										setNewExp({ ...newExp, employer: e.target.value })
+									}
+									className="rounded border p-2"
+									/>
+									<input
+									type="text"
+									placeholder="Position"
+									value={newExp.position}
+									onChange={(e) =>
+										setNewExp({ ...newExp, position: e.target.value })
+									}
+									className="rounded border p-2"
+									/>
+									<input
+									type="text"
+									placeholder="Date"
+									value={newExp.date}
+									onChange={(e) =>
+										setNewExp({ ...newExp, date: e.target.value })
+									}
+									className="rounded border p-2"
+									/>
+									<textarea
+									placeholder="Description"
+									value={newExp.description}
+									onChange={(e) =>
+										setNewExp({ ...newExp, description: e.target.value })
+									}
+									className="rounded border p-2"
+									/>
+									<button
+									onClick={handleAddExperience}
+									className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+									>
+									Save
+									</button>
+								</div>
+								)}
+							</div>
+							)}
+
 							{experience.map((exp: any) => (
 								<div key={exp.id}>
 									<h3 className="text-2xl font-bold">{exp.employer}</h3>

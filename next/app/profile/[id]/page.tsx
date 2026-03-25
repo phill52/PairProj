@@ -3,16 +3,17 @@ import { ViewProfile } from "./../components/profile";
 import { ProfileActions } from "./../components/profileActions";
 import { Suspense } from "react";
 import { getUser } from "@/lib/users"; 
+import { auth } from "@/lib/auth";
 
 interface PageProps {
   params: { id: string };
 }
 
 export default async function Page({ params }: PageProps) {
-  const currentUserId = "user_1";
-  const isSelf = params.id === currentUserId;
+  const session = await auth();
+  const currentUserId = session?.user?.id;
 
-  console.log("Viewing profile:", params.id);
+  const isSelf = currentUserId === params.id;
 
   const profile = await getUser(params.id);
 
@@ -22,7 +23,7 @@ export default async function Page({ params }: PageProps) {
       <div className="w-full rounded-lg p-8">
         <ProfileActions isSelf={isSelf} />
         <Suspense fallback={<p>Loading...</p>}>
-          <ViewProfile profile={profile} />
+          <ViewProfile profile={profile} isSelf={isSelf} />
         </Suspense>
       </div>
     </div>
