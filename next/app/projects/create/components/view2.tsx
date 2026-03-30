@@ -3,6 +3,7 @@ import Autocomplete from "@/components/autocomplete";
 import Badge from "@/components/badge";
 import { Textarea, Input, Button } from "@/components/ui";
 
+import { SubmitProject } from "@/types/projects";
 import { SkillTable, RoleTable } from "@/types/profile-items";
 import { SubmitProjectDataAction } from "../create-project";
 

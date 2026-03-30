@@ -1,3 +1,4 @@
+import { SubmitProject } from "@/types/projects";
 import Badge from "@/components/badge";
 import { Button } from "@/components/ui/button";
 import { SubmitProjectDataAction } from "../create-project";
