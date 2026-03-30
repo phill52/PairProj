@@ -66,6 +66,8 @@ export async function createProject(submitProject: SubmitProject) {
 				name: validatedData.name,
 				description: validatedData.description,
 				owner_profile_id: userId,
+				skill_level: validatedData.skill_level ?? null,
+				github_repository: validatedData.github_repository ?? null,
 			})
 			.returning({ id: project.id });
 

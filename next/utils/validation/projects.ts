@@ -23,4 +23,6 @@ export const SubmitProjectSchema = z.object({
 	description: z.string(),
 	areasOfInterest: z.array(AreaSchema),
 	roles: z.record(z.string(), RoleInfoSchema),
+	skill_level: z.string().nullable().optional(),
+	github_repository: z.string().nullable().optional(),
 });

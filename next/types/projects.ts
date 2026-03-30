@@ -1,9 +1,16 @@
-import { InferSelectModel } from "drizzle-orm";
-import { project } from "@/db/schema";
-
 import { AreaTable, RoleTable, SkillTable } from "./profile-items";
 
-export type Project = InferSelectModel<typeof project>;
+export interface Project {
+	id: string;
+	created_at?: string;
+	name?: string | null;
+	description?: string | null;
+	owner_profile_id?: string | null;
+	skill_level?: string | null;
+	github_repository?: string | null;
+	is_locked?: boolean | null;
+	profile_picture?: string | null;
+}
 
 export interface RoleInfo {
 	description: string | null;
@@ -17,6 +24,9 @@ export interface SubmitProject {
 	roles: {
 		[roleName: string]: RoleInfo;
 	};
+
+	skill_level?: string | null;
+	github_repository?: string | null;
 }
 
 export interface CreateProjectProps {
