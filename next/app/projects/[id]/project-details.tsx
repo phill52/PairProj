@@ -15,7 +15,7 @@ import Link from "next/link";
 import { routes } from "@/routes/routes";
 
 export default function ProjectComponent({
-	project,
+	project
 }: {
 	project: ProjectProps & any;
 }) {
@@ -26,15 +26,15 @@ export default function ProjectComponent({
 				<p className="text-gray-600">{project.description}</p>
 
 				<div className="mt-4 flex flex-col gap-2">
-					{project.skill_level && (
+					{project.difficulty && (
 						<div className="font-semibold">
-							Skill Level: <strong>{project.skill_level}</strong>
+							Difficulty: <strong>{project.difficulty}</strong>
 						</div>
 					)}
-					{project.github_repository && (
+					{project.githubLink && (
 						<div>
 							<a
-								href={project.github_repository}
+								href={project.githubLink}
 								target="_blank"
 								rel="noopener noreferrer"
 								className="text-blue-600 hover:underline"
@@ -52,10 +52,10 @@ export default function ProjectComponent({
 							<div className="flex items-center gap-3">
 								<Avatar className="h-10 w-10">
 									<AvatarImage src={project.owner.profilePicture || undefined} alt={project.owner.username} />
-									<AvatarFallback className="text-sm">{project.owner.username?.[0]}</AvatarFallback>
+									<AvatarFallback className="text-sm">{project.owner.name?.[0]}</AvatarFallback>
 								</Avatar>
 								<div>
-									<div className="text-sm font-semibold">{project.owner.username}</div>
+									<div className="text-sm font-semibold">{project.owner.name}</div>
 									<div className="text-xs text-gray-500">Project Owner</div>
 								</div>
 							</div>
@@ -96,10 +96,10 @@ export default function ProjectComponent({
 
 									<div className="mb-3 flex flex-col gap-2">
 										<div>
-											<strong className="text-sm text-gray-700">All Skills:</strong>
+											<strong className="text-sm text-gray-700">Required Skills:</strong>
 											<div className="mt-1 flex flex-wrap gap-2">
-												{role.skills.length > 0 ? (
-													role.skills.map((skill: any) => (
+												{role.requiredSkills.length > 0 ? (
+													role.requiredSkills.map((skill: any) => (
 														<Badge
 															text={skill.name}
 															key={skill.id}
@@ -109,26 +109,24 @@ export default function ProjectComponent({
 														/>
 													))
 												) : (
-													<span className="text-sm text-gray-500">No skills listed</span>
+													<span className="text-sm text-gray-500">None</span>
 												)}
 											</div>
 										</div>
 
 										<div>
-											<strong className="text-sm text-gray-700">Required Skills:</strong>
+											<strong className="text-sm text-gray-700">Optional Skills:</strong>
 											<div className="mt-1 flex flex-wrap gap-2">
-												{role.skills.filter((skill: any) => skill.isRequired).length > 0 ? (
-													role.skills
-														.filter((skill: any) => skill.isRequired)
-														.map((skill: any) => (
-															<Badge
-																text={skill.name}
-																key={skill.id}
-																innerColor={skill.innerColor}
-																outerColor={skill.outerColor}
-																className={(skill.name || "").toLowerCase().includes("vs") || (skill.name || "").toLowerCase().includes("visual") ? "ring-2 ring-yellow-400" : ""}
-															/>
-														))
+												{role.optionalSkills.length > 0 ? (
+													role.optionalSkills.map((skill: any) => (
+														<Badge
+															text={skill.name}
+															key={skill.id}
+															innerColor={skill.innerColor}
+															outerColor={skill.outerColor}
+															className={(skill.name || "").toLowerCase().includes("vs") || (skill.name || "").toLowerCase().includes("visual") ? "ring-2 ring-yellow-400" : ""}
+														/>
+													))
 												) : (
 													<span className="text-sm text-gray-500">None</span>
 												)}
