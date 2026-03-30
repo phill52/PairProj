@@ -41,5 +41,8 @@ export const SubmitProjectSchema = z.object({
 	roles: z.record(z.string(), RoleInfoSchema),
 	skill_level: z.string().nullable().optional(),
 	github_repository: z.string().nullable().optional(),
+<<<<<<< HEAD
+>>>>>>> 05a448d (Improved page & updated to work with new database)
+=======
 >>>>>>> 05a448d (Improved page & updated to work with new database)
 });
