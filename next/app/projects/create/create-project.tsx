@@ -6,9 +6,25 @@ import View1 from "./components/view1";
 import View2 from "./components/view2";
 import View3 from "./components/view3";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
-import { SubmitProject, CreateProjectProps } from "@/types/projects";
+import { CreateProjectProps } from "@/types/projects";
 import { SkillTable } from "@/types";
+
+type RoleInfoLocal = {
+	description: string | null;
+	skills: SkillTable[];
+	requiredSkills: SkillTable[];
+};
+
+export type SubmitProject = {
+	name: string;
+	description: string;
+	areasOfInterest: string[];
+	roles: Record<string, RoleInfoLocal>;
+	difficulty: string;
+	githubLink: string;
+};
 
 export type SubmitProjectDataAction =
 	| { type: "SET_NAME"; payload: string }
@@ -26,7 +42,9 @@ export type SubmitProjectDataAction =
 	| {
 			type: "SET_ROLE_DESCRIPTION";
 			payload: { roleName: string; description: string };
-	  };
+	  }
+	| { type: "SET_SKILL_LEVEL"; payload: string }
+	| { type: "SET_GITHUB"; payload: string };
 
 export default function CreateProject({
 	pageData,
@@ -35,6 +53,55 @@ export default function CreateProject({
 }) {
 	const [stage, setStage] = useState(0);
 	const totalStages = 3;
+	const [submitting, setSubmitting] = useState(false);
+
+	const buildPayload = (state: SubmitProject, pageData: CreateProjectProps) => {
+		const areas = (state.areasOfInterest || [])
+			.map((name) => pageData.areasOfInterest.find((a) => a.name === name)?.id)
+			.filter((id): id is string => Boolean(id));
+
+
+		const findSkillIdByName = (name: string) =>
+			pageData.skills.find((s) => s.name === name)?.id;
+
+		const allSkillIds = new Set<string>();
+
+		const roles = Object.entries(state.roles || {}).map(([roleName, info]) => {
+
+			const roleRef = pageData.roles.find((r) => r.name === roleName);
+			const outerColor = roleRef?.outerColor ?? (roleRef as any)?.outer_color ?? "#D9D9D9";
+			const innerColor = roleRef?.innerColor ?? (roleRef as any)?.inner_color ?? "#000000";
+
+			const optionalSkillIds = (info.skills || [])
+				.map((s: any) => s.id ?? findSkillIdByName(s.name))
+				.filter((id: string | undefined): id is string => Boolean(id));
+			const requiredSkillIds = (info.requiredSkills || [])
+				.map((s: any) => s.id ?? findSkillIdByName(s.name))
+				.filter((id: string | undefined): id is string => Boolean(id));
+
+			optionalSkillIds.forEach((id) => allSkillIds.add(id));
+			requiredSkillIds.forEach((id) => allSkillIds.add(id));
+
+			return {
+				name: roleName,
+				outerColor,
+				innerColor,
+				description: info.description || undefined,
+				optionalSkillIds: optionalSkillIds.length ? optionalSkillIds : undefined,
+				requiredSkillIds: requiredSkillIds.length ? requiredSkillIds : undefined,
+			};
+		});
+
+		return {
+			name: state.name,
+			description: state.description,
+			githubLink: state.githubLink,
+			difficulty: state.difficulty,
+			skills: Array.from(allSkillIds),
+			areasOfInterest: areas,
+			roles,
+		};
+	};
 
 	const submitProjectStateReducer = (
 		state: SubmitProject,
@@ -45,27 +112,14 @@ export default function CreateProject({
 				return { ...state, name: action.payload };
 			case "SET_DESCRIPTION":
 				return { ...state, description: action.payload };
-			case "TOGGLE_AREA":
-				const area = pageData.areasOfInterest.find(
-					(a) => a.name === action.payload,
-				);
-				if (!area) return state;
-				const areaIndex = state.areasOfInterest.findIndex(
-					(a) => a.name === area.name,
-				);
-				if (areaIndex === -1) {
-					return {
-						...state,
-						areasOfInterest: [...state.areasOfInterest, area],
-					};
-				} else {
-					return {
-						...state,
-						areasOfInterest: state.areasOfInterest.filter(
-							(a) => a.name !== area.name,
-						),
-					};
+			case "TOGGLE_AREA": {
+				const areaName = action.payload;
+				const exists = state.areasOfInterest.includes(areaName);
+				if (!exists) {
+					return { ...state, areasOfInterest: [...state.areasOfInterest, areaName] };
 				}
+				return { ...state, areasOfInterest: state.areasOfInterest.filter((a) => a !== areaName) };
+			}
 			case "TOGGLE_ROLE":
 				const role = action.payload;
 				if (state.roles[role]) {
@@ -144,6 +198,10 @@ export default function CreateProject({
 						},
 					},
 				};
+			case "SET_SKILL_LEVEL":
+				return { ...state, difficulty: action.payload };
+			case "SET_GITHUB":
+				return { ...state, githubLink: action.payload };
 			default:
 				return state;
 		}
@@ -161,6 +219,8 @@ export default function CreateProject({
 		description: "",
 		areasOfInterest: [],
 		roles: {},
+		difficulty: "",
+		githubLink: "",
 	};
 
 	const [state, dispatch] = useReducer(
@@ -170,29 +230,69 @@ export default function CreateProject({
 
 	return (
 		<div className="flex h-screen flex-col items-center justify-center overflow-scroll bg-light-grey">
-			<Card className=" h-[85%] w-[80%] overflow-scroll">
-				<div className="mt-4 flex justify-center">
-					{Array.from({ length: totalStages }, (_, i) => (
-						<Dot key={i} index={i} />
-					))}
-				</div>
-				{stage === 0 && (
-					<View1
-						State={state}
-						OnUpdate={dispatch}
-						areas={pageData.areasOfInterest}
-					/>
-				)}
-				{stage === 1 && (
-					<View2
-						State={state}
-						OnUpdate={dispatch}
-						roles={pageData.roles}
-						skills={pageData.skills}
-					/>
-				)}
-				{stage === 2 && <View3 State={state} />}
-			</Card>
+			<Card className="relative h-[85%] w-[80%]">
+				<div className="h-full overflow-auto p-6 pb-28">
+					<div className="mt-4 flex justify-center">
+						{Array.from({ length: totalStages }, (_, i) => (
+							<Dot key={i} index={i} />
+						))}
+					</div>
+					{stage === 0 && (
+						<View1
+							State={state}
+							OnUpdate={dispatch}
+							areas={pageData.areasOfInterest}
+						/>
+						)}
+						{stage === 1 && (
+							<View2
+								State={state}
+								OnUpdate={dispatch}
+								roles={pageData.roles}
+								skills={pageData.skills}
+							/>
+						)}
+						{stage === 2 && <View3 State={state} OnUpdate={dispatch} />}
+					</div>
+
+					<div className="absolute bottom-0 left-0 right-0 flex items-center justify-between border-t px-6 py-4 bg-white dark:bg-slate-950">
+						{stage > 0 ? (
+							<Button size="lg" variant="ghost" onClick={() => setStage(Math.max(0, stage - 1))}>
+								Back
+							</Button>
+						) : (
+							<div />
+						)}
+
+						<div>
+							{stage < totalStages - 1 && (
+								<Button size="lg" variant="secondary" onClick={() => setStage(stage + 1)}>
+									Next
+								</Button>
+							)}
+							{stage === totalStages - 1 && (
+								<Button size="lg" variant="secondary" disabled={submitting} onClick={async () => {
+									try {
+										setSubmitting(true);
+										const payload = buildPayload(state, pageData);
+										await fetch('/api/projects', {
+											method: 'POST',
+											headers: { 'Content-Type': 'application/json' },
+											body: JSON.stringify(payload),
+										});
+										console.log('Submitted project payload', payload);
+									} catch (e) {
+										console.error('Submit failed', e);
+									} finally {
+										setSubmitting(false);
+									}
+								}}>
+									{submitting ? 'Submitting...' : 'Finish'}
+								</Button>
+							)}
+						</div>
+					</div>
+				</Card>
 		</div>
 	);
 }
