@@ -23,6 +23,7 @@ export const AreaSchema = z.object({
 export const SubmitProjectSchema = z.object({
 	name: z.string(),
 	description: z.string(),
+<<<<<<< HEAD
 	githubLink: z.string(),
 	difficulty: z.string(),
 	skills: z.array(z.string()),
@@ -35,4 +36,10 @@ export const SubmitProjectSchema = z.object({
 		optionalSkillIds: z.array(z.string()).optional(),
 		requiredSkillIds: z.array(z.string()).optional(),
 	})),
+=======
+	areasOfInterest: z.array(AreaSchema),
+	roles: z.record(z.string(), RoleInfoSchema),
+	skill_level: z.string().nullable().optional(),
+	github_repository: z.string().nullable().optional(),
+>>>>>>> 05a448d (Improved page & updated to work with new database)
 });

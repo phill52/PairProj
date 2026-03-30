@@ -115,11 +115,11 @@ export default function CreateProject({
 			case "TOGGLE_AREA": {
 				const areaName = action.payload;
 
-				const areaExists = pageData.areasOfInterest.some(
+				const areaExistsOnServer = pageData.areasOfInterest.some(
 					(a) => a.name === areaName,
 				);
 
-				const finalAreaName = areaExists ? areaName : areaName;
+				const finalAreaName = areaExistsOnServer ? areaName : areaName;
 
 				const exists = state.areasOfInterest.includes(finalAreaName);
 
