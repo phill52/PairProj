@@ -114,11 +114,28 @@ export default function CreateProject({
 				return { ...state, description: action.payload };
 			case "TOGGLE_AREA": {
 				const areaName = action.payload;
-				const exists = state.areasOfInterest.includes(areaName);
+
+				const areaExists = pageData.areasOfInterest.some(
+					(a) => a.name === areaName,
+				);
+
+				const finalAreaName = areaExists ? areaName : areaName;
+
+				const exists = state.areasOfInterest.includes(finalAreaName);
+
 				if (!exists) {
-					return { ...state, areasOfInterest: [...state.areasOfInterest, areaName] };
+					return {
+						...state,
+						areasOfInterest: [...state.areasOfInterest, finalAreaName],
+					};
 				}
-				return { ...state, areasOfInterest: state.areasOfInterest.filter((a) => a !== areaName) };
+
+				return {
+					...state,
+					areasOfInterest: state.areasOfInterest.filter(
+						(a) => a !== finalAreaName,
+					),
+				};
 			}
 			case "TOGGLE_ROLE":
 				const role = action.payload;
