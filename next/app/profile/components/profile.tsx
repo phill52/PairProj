@@ -7,12 +7,19 @@ import Badge from "@/components/badge";
 import Link from "next/link";
 import { routes } from "@/routes/routes";
 
+//TODO: zod validation for experience and education forms
 interface NewExperienceInput {
 	employer: string;
 	position: string;
 	date: string;
 	description: string;
  }
+ interface NewEducationInput {
+	school: string;
+	level: string;
+	date: string;
+	description: string;
+}
 
 export function ViewProfile({ profile, isSelf }: { profile: any, isSelf: boolean; }) {
 	const initials = profile.name
@@ -22,7 +29,6 @@ export function ViewProfile({ profile, isSelf }: { profile: any, isSelf: boolean
 		.toUpperCase();
 
 	const skills = profile.skills ?? [];
-	const education = profile.education ?? [];
 	const [experience, setExperience] = useState(profile.experience ?? []);
 	const [newExp, setNewExp] = useState<NewExperienceInput>({
 		employer: "",
@@ -30,20 +36,82 @@ export function ViewProfile({ profile, isSelf }: { profile: any, isSelf: boolean
 		date: "",
 		description: "",
 	  });
+	const [newEdu, setNewEdu] = useState<NewEducationInput>({
+		school: "",
+		level: "",
+		date: "",
+		description: ""
+	});
 	const [showForm, setShowForm] = useState(false);
 	const projectContributions = profile.projectContributions ?? [];
-	  
+	const [showEduForm, setShowEduForm] = useState(false);
+	const [educationState, setEducation] = useState(profile.education ?? []);
+	
 	const handleAddExperience = async () => {
 		try {
-		  const createdExp = await addExperience(profile.id, newExp);
-		  setExperience([...experience, createdExp]);
+		  const res = await fetch("/api/experience", {
+			method: "POST",
+			headers: {
+			  "Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+			  userId: profile.id,
+			  ...newExp,
+			}),
+		  });
+	  
+		  if (!res.ok) {
+			const err = await res.json();
+			throw new Error(err.error || "Failed to add eexperience");
+		  }
+		  const createdExp = await res.json();
+	
+		  setExperience((prev: any) => [...prev, createdExp]);
+	  
 		  setShowForm(false);
-		  setNewExp({ employer: "", position: "", date: "", description: "" });
-		} catch (err) {
-		  console.error(err);
+		  setNewExp({
+			employer: "",
+			position: "",
+			date: "",
+			description: "",
+		  });
+		} catch (e) {
 		  alert("Failed to add experience");
 		}
-	  };
+	};
+	const handleAddEducation = async () => {
+		try {
+		  const res = await fetch("/api/education", {
+			method: "POST",
+			headers: {
+			  "Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+			  userId: profile.id,
+			  ...newEdu,
+			}),
+		  });
+	  
+		  if (!res.ok) {
+			const err = await res.json();
+			throw new Error(err.error || "Failed to add education");
+		  }
+	  
+		  const createdEdu = await res.json();
+	  
+		  setEducation((prev: any) => [...prev, createdEdu]);
+	  
+		  setShowEduForm(false);
+		  setNewEdu({
+			school: "",
+			level: "",
+			date: "",
+			description: "",
+		  });
+		} catch (e) {
+		  alert("Failed to add education");
+		}
+	};
 
 	return (
 		<div>
@@ -75,14 +143,71 @@ export function ViewProfile({ profile, isSelf }: { profile: any, isSelf: boolean
 						</div>
 
 						<div className="flex w-full flex-col">
-							<h2 className="text-4xl font-bold">Education</h2>
-							{education.map((e: any) => (
-								<div key={e.id}>
-									<h3 className="text-2xl font-bold">{e.school}</h3>
-									<p>{e.level}</p>
-									<p>{e.date}</p>
-									<p>{e.description}</p>
+						<h2 className="text-4xl font-bold">Education</h2>
+							{isSelf && (
+							<div className="mb-4">
+								<button
+								onClick={() => setShowEduForm(!showEduForm)}
+								className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+								>
+								{showEduForm ? "Cancel" : "Add Education"}
+								</button>
+
+								{showEduForm && (
+								<div className="mt-4 flex flex-col gap-2">
+									<input
+									type="text"
+									placeholder="School"
+									value={newEdu.school}
+									onChange={(e) =>
+										setNewEdu({ ...newEdu, school: e.target.value })
+									}
+									className="rounded border p-2"
+									/>
+									<input
+									type="text"
+									placeholder="Level"
+									value={newEdu.level}
+									onChange={(e) =>
+										setNewEdu({ ...newEdu, level: e.target.value })
+									}
+									className="rounded border p-2"
+									/>
+									<input
+									type="text"
+									placeholder="Date"
+									value={newEdu.date}
+									onChange={(e) =>
+										setNewEdu({ ...newEdu, date: e.target.value })
+									}
+									className="rounded border p-2"
+									/>
+									<textarea
+									placeholder="Description"
+									value={newEdu.description}
+									onChange={(e) =>
+										setNewEdu({ ...newEdu, description: e.target.value })
+									}
+									className="rounded border p-2"
+									/>
+									<button
+									onClick={handleAddEducation}
+									className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+									>
+									Save
+									</button>
 								</div>
+								)}
+							</div>
+							)}
+
+							{educationState.map((e: any) => (
+							<div key={e.id}>
+								<h3 className="text-2xl font-bold">{e.school}</h3>
+								<p>{e.level}</p>
+								<p>{e.date}</p>
+								<p>{e.description}</p>
+							</div>
 							))}
 						</div>
 					</div>
@@ -162,7 +287,7 @@ export function ViewProfile({ profile, isSelf }: { profile: any, isSelf: boolean
 						</div>
 
 						<div className="flex-1 pl-4">
-							<h3 className="mb-2 text-4xl font-bold">Past Projects</h3>
+							<h3 className="mb-2 text-4xl font-bold">Projects</h3>
 							{projectContributions.map((m: any) => {
 								const project = m.project;
 								return (

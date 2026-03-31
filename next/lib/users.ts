@@ -7,6 +7,20 @@ import {
 
 import { SubmitProfileZSchema } from "@/utils/validation/user";
 
+//TODO: zod validation for experience and education forms
+export interface NewExperienceInput {
+	employer: string;
+	position: string;
+	date: string;
+	description: string;
+}
+export interface NewEducationInput {
+	school: string;
+	level: string;
+	date: string;
+	description: string;
+}
+
 export async function getUser(id: string) {
 	
 	try {
@@ -297,13 +311,6 @@ export async function canEditorViewProfile(profileId: string){
 
 }
 
-export interface NewExperienceInput {
-  employer: string;
-  position: string;
-  date: string;
-  description: string;
-}
-
 export async function addExperience(userId: string, data: NewExperienceInput) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -327,7 +334,33 @@ export async function addExperience(userId: string, data: NewExperienceInput) {
 
     return newExp;
   } catch (error) {
-    console.error(error);
     throw new Error("Failed to add experience.");
   }
+}
+
+export async function addEducation(userId: string, data: NewEducationInput) {
+	const session = await auth();
+
+	if (!session?.user?.id) {
+		throw new Error("Not authorized to add education.");
+	}
+
+	if (session.user.id !== userId) {
+		throw new Error("Not authorized to add another users education.");
+	}
+
+	try {
+		const newEd = await db.education.create({
+			data: {
+				userId,
+				school: data.school,
+				level: data.level,
+				date: data.date,
+				description: data.description,
+			},
+		});
+		return newEd;
+	} catch (error) {
+		throw new Error("Failed to add education.");
+	}
 }
