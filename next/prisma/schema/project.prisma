@@ -27,6 +27,7 @@ model Role {
   createdAt  DateTime @default(now())
   requiredSkills Skill[] @relation("requiredSkills")
   optionalSkills Skill[] @relation("optionalSkills")
+  applications ProjectApplication[]
 
   @@unique([id])
   @@index([name])
@@ -52,11 +53,13 @@ model ProjectApplication {
   userId    String
   project   Project  @relation(fields: [projectId], references: [id], onDelete: Restrict)
   projectId String
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  roleId    String
   createdAt DateTime @default(now())
   status    String   @default("pending")
   body      String
 
-  @@unique([userId, projectId])
+  @@unique([id])
   @@map("projectApplications")
 }
 

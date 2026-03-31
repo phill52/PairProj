@@ -195,6 +195,7 @@ export async function deleteProject(userId: string, projectId: string) {
 export async function applyToProject(
 	userId: string,
 	projectId: string,
+	roleId: string,
 	body: string,
 ) {
 	return db.$transaction(async (tx) => {
@@ -206,22 +207,36 @@ export async function applyToProject(
 		}
 
 		const existing = await tx.projectApplication.findFirst({
-			where: { projectId, userId },
+			where: { projectId, userId, roleId },
 		});
 		if (existing) {
-			throw new Error("You have already applied to this project.");
+			throw new Error("You have already applied to this role.");
 		}
 
 		const application = await tx.projectApplication.create({
 			data: {
 				project: { connect: { id: projectId } },
 				user: { connect: { id: userId } },
+				role: { connect: { id: roleId } },
 				body,
 			},
 		});
 		return application;
 	});
 }
+
+export async function getRolesAppliedTo(projectId: string, userId: string) {
+	try {
+		const applications = await db.projectApplication.findMany({
+			where: { projectId, userId },
+			include: { role: true },
+		});
+		return applications.map((app) => app.role.id);
+	} catch (e) {
+		throw new Error("Failed to fetch applied roles");
+	}
+}
+
 
 export async function lockProject(userId: string, projectId: string) {
 	return db.$transaction(async (tx) => {
