@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import Image from "next/image";
 import {
 	Card,
 	CardHeader,
@@ -10,6 +11,7 @@ import {
 } from "@/components/ui";
 import { ProjectProps } from "@/types/projects";
 import Badge from "@/components/badge";
+import skillIcons from "@/components/skillIcons";
 import { AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import { routes } from "@/routes/routes";
