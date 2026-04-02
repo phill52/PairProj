@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { applyToProject } from "@/app/actions/projects";
 import {
 	Card,
 	CardHeader,
@@ -46,18 +47,15 @@ export default function ProjectComponent({
 
 	const handleApplySubmit = async () => {
 		if (!selectedRole) return;
+		setError(null);
 		try {
-			const response = await fetch(
-				`/api/projects/${project.id}/roles/${selectedRole.id}/apply`,
-				{
-					method: "POST",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({ body: description }),
-				},
+			const result = await applyToProject(
+				project.id,
+				selectedRole.id,
+				description,
 			);
-			if (!response.ok) {
-				const data = await response.json();
-				throw new Error(data.error || "Failed to submit application");
+			if (!result.success) {
+				throw new Error(result.message || "Failed to submit application");
 			}
 			project.rolesAppliedTo = [...(project.rolesAppliedTo || []), selectedRole.id];
 			handleClose();
