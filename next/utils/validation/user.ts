@@ -32,10 +32,15 @@ export const SubmitProfileZSchema = z.object({
 				.min(1, "Level required")
 				.max(100),
 
-			date: z
+			startDate: z
 				.string()
-				.trim()
-				.min(1, "Date required"),
+				.min(1, "Start date required")
+				.datetime(),
+
+			endDate: z
+				.string()
+				.min(1, "End date required")
+				.datetime(),
 
 			description: z
 				.string()
@@ -56,10 +61,14 @@ export const SubmitProfileZSchema = z.object({
 				.trim()
 				.min(1, "Position required")
 				.max(100),
-			date: z
+			startDate: z
 				.string()
-				.trim()
-				.min(1, "Date required"),
+				.min(1, "Start date required")
+				.datetime(),
+			endDate: z
+				.string()
+				.min(1, "End date required")
+				.datetime(),
 			description: z
 				.string()
 				.trim()

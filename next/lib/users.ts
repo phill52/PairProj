@@ -11,13 +11,15 @@ import { SubmitProfileZSchema } from "@/utils/validation/user";
 export interface NewExperienceInput {
 	employer: string;
 	position: string;
-	date: string;
+	startDate: dateTime,
+	endDate: dateTime,
 	description: string;
 }
 export interface NewEducationInput {
 	school: string;
 	level: string;
-	date: string;
+	startDate: dateTime,
+	endDate: dateTime,
 	description: string;
 }
 
@@ -102,7 +104,8 @@ export async function createProfile(profile: SubmitProfile) {
 					create: education.map((edu) => ({
 						school: edu.school,
 						level: edu.level,
-						date: edu.date,
+						startDate: edu.startDate,
+						endDate: edu.endDate,
 						description: edu.description
 					})),
 				},
@@ -110,7 +113,8 @@ export async function createProfile(profile: SubmitProfile) {
 					create: experience.map((xp) => ({
 						employer: xp.employer,
 						position: xp.position,
-						date: xp.date,
+						startDate: xp.startDate,
+						endDate: xp.endDate,
 						description: xp.description
 					})),
 				},
@@ -168,10 +172,11 @@ export async function updateProfile(profile: SubmitProfile) {
 		  education: {
 			deleteMany: {}, 
 			create: education.map((edu) => ({
-			  school: edu.school,
-			  level: edu.level,
-			  date: edu.date,
-			  description: edu.description
+			  	school: edu.school,
+				level: edu.level,
+				startDate: edu.startDate,
+				endDate: edu.endDate,
+				description: edu.description
 			})),
 		  },
 		  experience: {
@@ -263,14 +268,16 @@ export async function getViewProfileProps(
 		const education = userData.education.map((e) => ({
 			school: e.school,
 			level: e.level,
-			date: e.date,
+			startDate: e.startDate,
+			endDate: e.endDate,
 			description: e.description,
 		}));
 
 		const experience = userData.experience.map((e) => ({
 			employer: e.employer,
 			position: e.position,
-			date: e.date,
+			startDate: e.startDate,
+			endDate: e.endDate,
 			description: e.description,
 		}));
 
@@ -327,7 +334,8 @@ export async function addExperience(userId: string, data: NewExperienceInput) {
         userId,
         employer: data.employer,
         position: data.position,
-        date: data.date,
+        startDate: data.startDate,
+		endDate: data.endDate,
         description: data.description,
       },
     });
@@ -355,7 +363,8 @@ export async function addEducation(userId: string, data: NewEducationInput) {
 				userId,
 				school: data.school,
 				level: data.level,
-				date: data.date,
+				startDate: data.startDate,
+				endDate: data.endDate,
 				description: data.description,
 			},
 		});
