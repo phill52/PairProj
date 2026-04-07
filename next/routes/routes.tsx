@@ -4,7 +4,7 @@ export const routes = registerRoutes({
 	home: "/",
 	login: "/login",
 	users: {
-		profile: "/users/:id",
+		profile: "/profile/:id",
 	},
 	projects: {
 		search: "/projects/search",

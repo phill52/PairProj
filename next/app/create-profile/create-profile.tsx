@@ -33,54 +33,54 @@ export type SubmitProfileDataAction =
 	| { type: "SET_BIO"; payload: string }
 	| { type: "RESET" };
 
-// const pageData: CreateProfileProps = {
-// 	profile: {
-// 		// Will be null by default if user has not created a profile
-// 		username: "Phill52",
-// 		first_name: "Phillip",
-// 		last_name: "Anerine",
-// 		account_type: ["Developer"],
-// 		best_skills: ["React"],
-// 		all_skills: ["React", "TypeScript"],
-// 		areas: ["Frontend"],
-// 		education: [
-// 			{
-// 				school: "Stevens Institute of Technology",
-// 				degree: "Bachelors of Science",
-// 				field: "Computer Science",
-// 				startDate: new Date("2020-08"),
-// 				endDate: new Date("2024-05"),
-// 			},
-// 		],
-// 		experience: [
-// 			{
-// 				company: "Charity Quest",
-// 				description: "I worked on the frontend",
-// 				position: "Software Engineer",
-// 				startDate: new Date("2021-06"),
-// 				endDate: new Date("2021-08"),
-// 			},
-// 		],
-// 		name: "Phill",
-// 		pronouns: "He/Him",
-// 		bio: "I am a software engineer",
-// 	},
-// 	account_types: ["Developer", "Designer", "Product Manager"],
-// 	skills: [
-// 		{ name: "React", innerColor: "#398100", outerColor: "#D9EAA8" },
-// 		{
-// 			name: "TypeScript",
-// 			innerColor: "#007ACC",
-// 			outerColor: "#B3D4FC",
-// 		},
-// 		{ name: "Python", innerColor: "#7B0D00", outerColor: "#E9B0A9" },
-// 	],
-// 	areas: [
-// 		{ name: "Frontend", innerColor: "#398100", outerColor: "#D9EAA8" },
-// 		{ name: "Backend", innerColor: "#007ACC", outerColor: "#B3D4FC" },
-// 		{ name: "DevOps", innerColor: "#7B0D00", outerColor: "#E9B0A9" },
-// 	],
-// };
+const pageData: CreateProfileProps = {
+	profile: {
+		// Will be null by default if user has not created a profile
+		username: "Phill52",
+		first_name: "Phillip",
+		last_name: "Anerine",
+		account_type: ["Developer"],
+		best_skills: ["React"],
+		all_skills: ["React", "TypeScript"],
+		areas: ["Frontend"],
+		education: [
+			{
+				school: "Stevens Institute of Technology",
+				degree: "Bachelors of Science",
+				field: "Computer Science",
+				startDate: new Date("2020-08"),
+				endDate: new Date("2024-05"),
+			},
+		],
+		experience: [
+			{
+				company: "Charity Quest",
+				description: "I worked on the frontend",
+				position: "Software Engineer",
+				startDate: new Date("2021-06"),
+				endDate: new Date("2021-08"),
+			},
+		],
+		name: "Phill",
+		pronouns: "He/Him",
+		bio: "I am a software engineer",
+	},
+	account_types: ["Developer", "Designer", "Product Manager"],
+	skills: [
+		{ name: "React", innerColor: "#398100", outerColor: "#D9EAA8" },
+		{
+			name: "TypeScript",
+			innerColor: "#007ACC",
+			outerColor: "#B3D4FC",
+		},
+		{ name: "Python", innerColor: "#7B0D00", outerColor: "#E9B0A9" },
+	],
+	areas: [
+		{ name: "Frontend", innerColor: "#398100", outerColor: "#D9EAA8" },
+		{ name: "Backend", innerColor: "#007ACC", outerColor: "#B3D4FC" },
+		{ name: "DevOps", innerColor: "#7B0D00", outerColor: "#E9B0A9" },
+	],
+};
 
 export default function CreateProfile({
 	pageData,
@@ -153,7 +153,7 @@ export default function CreateProfile({
 	);
 
 	return (
-		<div className="flex h-screen flex-col items-center justify-center overflow-scroll bg-light-grey">
+		<div className="bg-light-grey flex h-screen flex-col items-center justify-center overflow-scroll">
 			{stage === 0 && <View1 />}
 			{stage === 1 && <View2 handleLetsGo={handleLetsGo} />}
 			{stage >= 2 && (

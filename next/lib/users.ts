@@ -70,7 +70,7 @@ export async function createProfile(profile: SubmitProfile) {
 	}
 	try {
 		const session = await auth();
-		if (!session.user.id) {
+		if (!session?.user.id) {
 			throw new Error("Not authorized to create profile.");
 		}
 
