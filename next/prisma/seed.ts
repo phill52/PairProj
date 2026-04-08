@@ -7,12 +7,33 @@ const prisma = new PrismaClient();
 
 async function main() {
 	// PASTE YOUR ID HERE AS THE FIRST PARAMETER
-	const userId = "cmn6gp65i0000gmjs2yrtu2mb";
+	// const userId = "cmn6gp65i0000gmjs2yrtu2mb";
 
-	await prisma.projectMembership.deleteMany();
-	await prisma.role.deleteMany();
-	await prisma.project.deleteMany();
-	await prisma.skill.deleteMany();
+
+	// test users
+	const users = await Promise.all([
+		prisma.user.create({
+			data: {
+				name: "Justin",
+				email: "justin@example.com",
+				image: "https://wallpapers.com/images/hd/placeholder-profile-icon-8qmjk1094ijhbem9.jpg",
+			},
+		}),
+		prisma.user.create({
+			data: {
+				name: "Jimmy",
+				email: "jimmy@example.com",
+				image: "https://img.freepik.com/premium-vector/man-empty-avatar-casual-business-style-vector-photo-placeholder-social-networks-resumes_885953-434.jpg?semt=ais_incoming&w=740&q=80",
+			},
+		}),
+		prisma.user.create({
+			data: {
+				name: "Yuxi",
+				email: "yuxi@example.com",
+				image: "https://cdn.vectorstock.com/i/500p/44/00/default-avatar-photo-placeholder-icon-grey-vector-38594400.jpg",
+			},
+		}),
+	]);
 
 	const skills = await Promise.all([
 		prisma.skill.create({
@@ -59,7 +80,7 @@ async function main() {
 		}),
 	]);
 
-	const project1 = await createProject(userId, {
+	const project1 = await createProject(users[0].id, {
 		name: "PairProj",
 		githubLink: "https://github.com/phill52/PairProj",
 		difficulty: "Intermediate",
@@ -94,7 +115,7 @@ async function main() {
 		],
 	});
 
-	const project2 = await createProject(userId, {
+	const project2 = await createProject(users[1].id, {
 		name: "myproject",
 		githubLink: "https://github.com/phill52/PairProj",
 		difficulty: "Easy",
