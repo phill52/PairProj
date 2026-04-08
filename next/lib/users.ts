@@ -7,20 +7,24 @@ import {
 
 import { SubmitProfileZSchema } from "@/utils/validation/user";
 
-//TODO: zod validation for experience and education forms
 export interface NewExperienceInput {
 	employer: string;
 	position: string;
-	startDate: dateTime,
-	endDate: dateTime,
+	startDate: string,
+	endDate: string,
 	description: string;
 }
 export interface NewEducationInput {
 	school: string;
 	level: string;
-	startDate: dateTime,
-	endDate: dateTime,
+	startDate: string,
+	endDate: string,
 	description: string;
+}
+
+export interface NewSkillInput {
+	skill: string;
+	skillLevel: string;
 }
 
 export async function getUser(id: string) {
@@ -36,7 +40,11 @@ export async function getUser(id: string) {
 		const profile = await db.user.findUnique({
 			where: { id },
 			include: {
-				skills: true,
+				skills: {
+					include: {
+					  skill: true,
+					},
+				},
 				areasOfInterest: true,
 				projectContributions: true,
 				experience: true,
@@ -182,18 +190,19 @@ export async function updateProfile(profile: SubmitProfile) {
 		  experience: {
 			deleteMany: {}, 
 			create: experience.map((xp) => ({
-			  employer: xp.employer,
-			  position: xp.position,
-			  date: xp.date,
-			  description: xp.description
+				employer: xp.employer,
+				position: xp.position,
+				startDate: xp.startDate,
+				endDate: xp.endDate,
+				description: xp.description
 			})),
 		  },
 		},
 		include: {
-		  areasOfInterest: true,
-		  skills: true,
-		  education: true,
-		  experience: true
+			areasOfInterest: true,
+			skills: true,
+			education: true,
+			experience: true
 		},
 	  });
   
@@ -370,6 +379,50 @@ export async function addEducation(userId: string, data: NewEducationInput) {
 		});
 		return newEd;
 	} catch (error) {
-		throw new Error("Failed to add education.");
+		throw new Error(error);
 	}
 }
+
+export async function addSkill(userId: string, data: NewSkillInput) {
+	const session = await auth();
+  
+	if (!session?.user?.id) {
+	  throw new Error("Not authorized to add skill.");
+	}
+  
+	if (session.user.id !== userId) {
+	  throw new Error("Not authorized to add another user's skill.");
+	}
+  
+	try {
+
+	  let skill = await db.skill.findFirst({
+		where: { name: data.skill },
+	  });
+  
+	  if (!skill) {
+		skill = await db.skill.create({
+		  data: {
+			name: data.skill,
+			outerColor: "#000",
+			innerColor: "#fff",
+		  },
+		});
+	  }
+  
+	  const newSk = await db.skillsOnUsers.create({
+		data: {
+		  userId,
+		  skillId: skill.id,        
+		  skillLevel: data.skillLevel,
+		},
+		include: {
+		  skill: true,             
+		},
+	  });
+  
+	  return newSk;
+	} catch (error) {
+	  throw new Error("Failed to add skill.");
+	}
+  }

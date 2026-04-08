@@ -7,18 +7,25 @@ import Badge from "@/components/badge";
 import Link from "next/link";
 import { routes } from "@/routes/routes";
 
-//TODO: zod validation for experience and education forms
 interface NewExperienceInput {
 	employer: string;
 	position: string;
-	date: string;
+	startDate: string,
+	endDate: string,
 	description: string;
- }
- interface NewEducationInput {
+}
+
+interface NewEducationInput {
 	school: string;
 	level: string;
-	date: string;
+	startDate: string,
+	endDate: string,
 	description: string;
+}
+
+interface NewSkillInput {
+	skill: string;
+	skillLevel: string;
 }
 
 export function ViewProfile({ profile, isSelf }: { profile: any, isSelf: boolean; }) {
@@ -33,20 +40,59 @@ export function ViewProfile({ profile, isSelf }: { profile: any, isSelf: boolean
 	const [newExp, setNewExp] = useState<NewExperienceInput>({
 		employer: "",
 		position: "",
-		date: "",
+		startDate: "",
+		endDate: "",
 		description: "",
 	  });
 	const [newEdu, setNewEdu] = useState<NewEducationInput>({
 		school: "",
 		level: "",
-		date: "",
+		startDate: "",
+		endDate: "",
 		description: ""
 	});
 	const [showForm, setShowForm] = useState(false);
 	const projectContributions = profile.projectContributions ?? [];
 	const [showEduForm, setShowEduForm] = useState(false);
 	const [educationState, setEducation] = useState(profile.education ?? []);
+	const [skillsState, setSkills] = useState(profile.skills ?? []);
+	const [showSkillForm, setShowSkillForm] = useState(false);
+
+	const [newSkill, setNewSkill] = useState({
+		name: "",
+		skillLevel: "",
+	});
 	
+	const handleAddSkill = async () => {
+		try {
+			const res = await fetch("/api/skills", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				userId: profile.id,
+				skill: newSkill.name,
+				skillLevel: newSkill.skillLevel,
+			}),
+			});
+		
+			if (!res.ok) {
+				const err = await res.json();
+				throw new Error(err.error || "Failed to add dskill");
+			}
+		
+			const createdSkill = await res.json();
+		
+			setSkills((prev: any) => [...prev, createdSkill]);
+		
+			setShowSkillForm(false);
+			setNewSkill({ name: "", skillLevel: "" });
+		} catch (e) {
+			alert(e);
+		}
+	};
+
 	const handleAddExperience = async () => {
 		try {
 		  const res = await fetch("/api/experience", {
@@ -55,8 +101,10 @@ export function ViewProfile({ profile, isSelf }: { profile: any, isSelf: boolean
 			  "Content-Type": "application/json",
 			},
 			body: JSON.stringify({
-			  userId: profile.id,
-			  ...newExp,
+				userId: profile.id,
+				...newExp,
+				startDate: new Date(newExp.startDate),
+				endDate: new Date(newExp.endDate),
 			}),
 		  });
 	  
@@ -72,7 +120,8 @@ export function ViewProfile({ profile, isSelf }: { profile: any, isSelf: boolean
 		  setNewExp({
 			employer: "",
 			position: "",
-			date: "",
+			startDate: "",
+			endDate: "",
 			description: "",
 		  });
 		} catch (e) {
@@ -87,9 +136,11 @@ export function ViewProfile({ profile, isSelf }: { profile: any, isSelf: boolean
 			  "Content-Type": "application/json",
 			},
 			body: JSON.stringify({
-			  userId: profile.id,
-			  ...newEdu,
-			}),
+				userId: profile.id,
+				...newEdu,
+				startDate: newEdu.startDate, 
+  				endDate: newEdu.endDate,
+			  }),
 		  });
 	  
 		  if (!res.ok) {
@@ -105,7 +156,8 @@ export function ViewProfile({ profile, isSelf }: { profile: any, isSelf: boolean
 		  setNewEdu({
 			school: "",
 			level: "",
-			date: "",
+			startDate: "",
+			endDate: "",
 			description: "",
 		  });
 		} catch (e) {
@@ -128,17 +180,58 @@ export function ViewProfile({ profile, isSelf }: { profile: any, isSelf: boolean
 						<div className="flex w-full flex-col">
 							<p className="text-4xl font-bold">{profile.name}</p>
 							<p className="text-gray-500">{profile.email}</p>
-
 							<div className="mt-3 text-lg font-bold">Skills</div>
-							<div className="flex flex-wrap gap-2">
-								{skills.map((s: any) => (
-									<Badge
-										key={s.skill.id}
-										text={s.skill.name}
-										innerColor={s.skill.innerColor}
-										outerColor={s.skill.outerColor}
+
+							{isSelf && (
+							<div className="mb-2">
+							<button
+								onClick={() => setShowSkillForm(!showSkillForm)}
+								className="rounded bg-green-600 px-3 py-1 text-white hover:bg-green-700"
+							>
+								{showSkillForm ? "Cancel" : "Add Skill"}
+							</button>
+
+								{showSkillForm && (
+									<div className="mt-2 flex flex-col gap-2">
+									<input
+										type="text"
+										placeholder="Skill (e.g. React)"
+										value={newSkill.name}
+										onChange={(e) =>
+										setNewSkill({ ...newSkill, name: e.target.value })
+										}
+										className="rounded border p-2"
 									/>
-								))}
+									<input
+										type="text"
+										placeholder="Level (e.g. Beginner, Advanced)"
+										value={newSkill.skillLevel}
+										onChange={(e) =>
+										setNewSkill({ ...newSkill, skillLevel: e.target.value })
+										}
+										className="rounded border p-2"
+									/>
+									<button
+										onClick={handleAddSkill}
+										className="rounded bg-blue-600 px-3 py-1 text-white hover:bg-blue-700"
+									>
+										Save
+									</button>
+									</div>
+								)}
+
+							</div>
+							)}
+
+							<div className="flex flex-wrap gap-2">
+							{skillsState.map((s: any) => (
+								<Badge
+									key={s.skillId}
+									text={s.skill?.name}
+									innerColor={s.skill?.innerColor}
+									outerColor={s.skill?.outerColor}
+								/>
+							))}
 							</div>
 						</div>
 
@@ -174,11 +267,20 @@ export function ViewProfile({ profile, isSelf }: { profile: any, isSelf: boolean
 									className="rounded border p-2"
 									/>
 									<input
-									type="text"
-									placeholder="Date"
-									value={newEdu.date}
+									type="date"
+									placeholder="Start Date"
+									value={newEdu.startDate}
 									onChange={(e) =>
-										setNewEdu({ ...newEdu, date: e.target.value })
+										setNewEdu({ ...newEdu, startDate: e.target.value })
+									}
+									className="rounded border p-2"
+									/>
+									<input
+									type="date"
+									placeholder="End Date"
+									value={newEdu.endDate}
+									onChange={(e) =>
+										setNewEdu({ ...newEdu, endDate: e.target.value })
 									}
 									className="rounded border p-2"
 									/>
@@ -205,7 +307,8 @@ export function ViewProfile({ profile, isSelf }: { profile: any, isSelf: boolean
 							<div key={e.id}>
 								<h3 className="text-2xl font-bold">{e.school}</h3>
 								<p>{e.level}</p>
-								<p>{e.date}</p>
+								<p>{e.startDate}</p>
+								<p>{e.endDate}</p>
 								<p>{e.description}</p>
 							</div>
 							))}
@@ -249,11 +352,20 @@ export function ViewProfile({ profile, isSelf }: { profile: any, isSelf: boolean
 									className="rounded border p-2"
 									/>
 									<input
-									type="text"
-									placeholder="Date"
-									value={newExp.date}
+									type="date"
+									placeholder="Start Date"
+									value={newExp.startDate}
 									onChange={(e) =>
-										setNewExp({ ...newExp, date: e.target.value })
+										setNewExp({ ...newExp, startDate: e.target.value })
+									}
+									className="rounded border p-2"
+									/>
+									<input
+									type="date"
+									placeholder="End Date"
+									value={newExp.endDate}
+									onChange={(e) =>
+										setNewExp({ ...newExp, endDate: e.target.value })
 									}
 									className="rounded border p-2"
 									/>
@@ -280,7 +392,8 @@ export function ViewProfile({ profile, isSelf }: { profile: any, isSelf: boolean
 								<div key={exp.id}>
 									<h3 className="text-2xl font-bold">{exp.employer}</h3>
 									<p>{exp.position}</p>
-									<p>{exp.date}</p>
+									<p>{exp.startDate}</p>
+									<p>{exp.endDate}</p>
 									<p>{exp.description}</p>
 								</div>
 							))}
