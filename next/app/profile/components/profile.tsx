@@ -6,6 +6,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import Badge from "@/components/badge";
 import Link from "next/link";
 import { routes } from "@/routes/routes";
+import { addSkill, addExperience, addEducation } from "@/app/actions/users";
 
 interface NewExperienceInput {
 	employer: string;
@@ -14,7 +15,6 @@ interface NewExperienceInput {
 	endDate: string,
 	description: string;
 }
-
 interface NewEducationInput {
 	school: string;
 	level: string;
@@ -22,7 +22,6 @@ interface NewEducationInput {
 	endDate: string,
 	description: string;
 }
-
 interface NewSkillInput {
 	skill: string;
 	skillLevel: string;
@@ -35,8 +34,7 @@ export function ViewProfile({ profile, isSelf }: { profile: any, isSelf: boolean
 		.join("")
 		.toUpperCase();
 
-	const skills = profile.skills ?? [];
-	const [experience, setExperience] = useState(profile.experience ?? []);
+	const experience = profile.experience ?? [];
 	const [newExp, setNewExp] = useState<NewExperienceInput>({
 		employer: "",
 		position: "",
@@ -54,9 +52,10 @@ export function ViewProfile({ profile, isSelf }: { profile: any, isSelf: boolean
 	const [showForm, setShowForm] = useState(false);
 	const projectContributions = profile.projectContributions ?? [];
 	const [showEduForm, setShowEduForm] = useState(false);
-	const [educationState, setEducation] = useState(profile.education ?? []);
-	const [skillsState, setSkills] = useState(profile.skills ?? []);
 	const [showSkillForm, setShowSkillForm] = useState(false);
+
+	const education = profile.education ?? [];
+	const skills = profile.skills ?? [];
 
 	const [newSkill, setNewSkill] = useState({
 		name: "",
@@ -65,92 +64,54 @@ export function ViewProfile({ profile, isSelf }: { profile: any, isSelf: boolean
 	
 	const handleAddSkill = async () => {
 		try {
-			const res = await fetch("/api/skills", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				userId: profile.id,
-				skill: newSkill.name,
-				skillLevel: newSkill.skillLevel,
-			}),
-			});
-		
-			if (!res.ok) {
-				const err = await res.json();
-				throw new Error(err.error || "Failed to add dskill");
-			}
-		
-			const createdSkill = await res.json();
-		
-			setSkills((prev: any) => [...prev, createdSkill]);
-		
-			setShowSkillForm(false);
-			setNewSkill({ name: "", skillLevel: "" });
+		  const formData = new FormData();
+		  formData.append("skill", newSkill.name);
+		  formData.append("skillLevel", newSkill.skillLevel);
+	  
+		  await addSkill(profile.id, formData);
+	  
+		  setShowSkillForm(false);
+		  setNewSkill({ name: "", skillLevel: "" });
 		} catch (e) {
-			alert(e);
+		  alert("Failed to add skill");
 		}
-	};
+	  };
 
-	const handleAddExperience = async () => {
+	  const handleAddExperience = async () => {
 		try {
-		  const res = await fetch("/api/experience", {
-			method: "POST",
-			headers: {
-			  "Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				userId: profile.id,
-				...newExp,
-				startDate: new Date(newExp.startDate),
-				endDate: new Date(newExp.endDate),
-			}),
-		  });
+			const formData = new FormData();
 	  
-		  if (!res.ok) {
-			const err = await res.json();
-			throw new Error(err.error || "Failed to add eexperience");
-		  }
-		  const createdExp = await res.json();
-	
-		  setExperience((prev: any) => [...prev, createdExp]);
-	  
-		  setShowForm(false);
-		  setNewExp({
-			employer: "",
-			position: "",
-			startDate: "",
-			endDate: "",
-			description: "",
-		  });
+			formData.append("employer", newExp.employer);
+			formData.append("position", newExp.position);
+			formData.append("description", newExp.description);
+			formData.append("startDate", newExp.startDate);
+			formData.append("endDate", newExp.endDate);
+		
+			await addExperience(profile.id, formData);
+		
+			setShowForm(false);
+			setNewExp({
+				employer: "",
+				position: "",
+				startDate: "",
+				endDate: "",
+				description: "",
+		  	});
 		} catch (e) {
-		  alert("Failed to add experience");
+			alert("Failed to add experience");
 		}
-	};
+	  };
 	const handleAddEducation = async () => {
 		try {
-		  const res = await fetch("/api/education", {
-			method: "POST",
-			headers: {
-			  "Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				userId: profile.id,
-				...newEdu,
-				startDate: newEdu.startDate, 
-  				endDate: newEdu.endDate,
-			  }),
-		  });
+		  const formData = new FormData();
 	  
-		  if (!res.ok) {
-			const err = await res.json();
-			throw new Error(err.error || "Failed to add education");
-		  }
+		  formData.append("school", newEdu.school);
+		  formData.append("level", newEdu.level);
+		  formData.append("startDate", newEdu.startDate);
+		  formData.append("endDate", newEdu.endDate);
+		  formData.append("description", newEdu.description);
 	  
-		  const createdEdu = await res.json();
-	  
-		  setEducation((prev: any) => [...prev, createdEdu]);
+		  await addEducation(profile.id, formData);
 	  
 		  setShowEduForm(false);
 		  setNewEdu({
@@ -224,13 +185,13 @@ export function ViewProfile({ profile, isSelf }: { profile: any, isSelf: boolean
 							)}
 
 							<div className="flex flex-wrap gap-2">
-							{skillsState.map((s: any) => (
-								<Badge
-									key={s.skillId}
-									text={s.skill?.name}
-									innerColor={s.skill?.innerColor}
-									outerColor={s.skill?.outerColor}
-								/>
+							{skills.map((s: any) => (
+							<Badge
+								key={s.id ?? s.skillId}
+								text={s.skill?.name}
+								innerColor={s.skill?.innerColor}
+								outerColor={s.skill?.outerColor}
+							/>
 							))}
 							</div>
 						</div>
@@ -303,12 +264,12 @@ export function ViewProfile({ profile, isSelf }: { profile: any, isSelf: boolean
 							</div>
 							)}
 
-							{educationState.map((e: any) => (
+							{education.map((e: any) => (
 							<div key={e.id}>
 								<h3 className="text-2xl font-bold">{e.school}</h3>
 								<p>{e.level}</p>
-								<p>{e.startDate}</p>
-								<p>{e.endDate}</p>
+								<p>{new Date(e.startDate).toLocaleDateString()}</p>
+								<p>{e.endDate ? new Date(e.endDate).toLocaleDateString() : "Present"}</p>
 								<p>{e.description}</p>
 							</div>
 							))}
@@ -392,8 +353,8 @@ export function ViewProfile({ profile, isSelf }: { profile: any, isSelf: boolean
 								<div key={exp.id}>
 									<h3 className="text-2xl font-bold">{exp.employer}</h3>
 									<p>{exp.position}</p>
-									<p>{exp.startDate}</p>
-									<p>{exp.endDate}</p>
+									<p>{new Date(exp.startDate).toLocaleDateString()}</p>
+									<p>{exp.endDate ? new Date(exp.endDate).toLocaleDateString() : "Present"}</p>
 									<p>{exp.description}</p>
 								</div>
 							))}

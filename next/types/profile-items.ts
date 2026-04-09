@@ -47,7 +47,6 @@ export interface SubmitProfile {
 
 }
 
-//havent worked below here yet
 export interface ViewProfileProps {
 	username: string;
 	first_name: string;

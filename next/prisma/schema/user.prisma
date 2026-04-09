@@ -79,8 +79,8 @@ model Skill {
   outerColor String
   innerColor String
   projects   Project[]
-  requiredBy Role[]          @relation("requiredSkills")
-  optionalBy Role[]          @relation("optionalSkills")
+  requiredBy RoleRequiredSkill[]
+  optionalBy RoleOptionalSkill[]
 
   @@unique([id])
   @@index([name])
