@@ -7,8 +7,7 @@ const prisma = new PrismaClient();
 
 async function main() {
 	// PASTE YOUR ID HERE AS THE FIRST PARAMETER
-	// const userId = "cmn6gp65i0000gmjs2yrtu2mb";
-
+	const userId = "cmnv82jfj0005gmtgmkfiheue";
 
 	// test users
 	const users = await Promise.all([
@@ -80,7 +79,7 @@ async function main() {
 		}),
 	]);
 
-	const project1 = await createProject(users[0].id, {
+	const project1 = await createProject(userId, {
 		name: "PairProj",
 		githubLink: "https://github.com/phill52/PairProj",
 		difficulty: "Intermediate",
@@ -115,7 +114,7 @@ async function main() {
 		],
 	});
 
-	const project2 = await createProject(users[1].id, {
+	const project2 = await createProject(userId, {
 		name: "myproject",
 		githubLink: "https://github.com/phill52/PairProj",
 		difficulty: "Easy",
@@ -140,6 +139,48 @@ async function main() {
 				requiredSkillIds: [skills[4].id, skills[1].id],
 			},
 		],
+	});
+
+	const project1WithRoles = await prisma.project.findUnique({
+		where: { id: project1.id },
+		include: { roles: true },
+	});
+
+	if (!project1WithRoles) {
+		throw new Error("Project 1 was not found after creation");
+	}
+
+	const frontendRole =
+		project1WithRoles.roles.find(
+			(role) => role.name === "Frontend Developer",
+		) || project1WithRoles.roles[0];
+	const backendRole =
+		project1WithRoles.roles.find(
+			(role) => role.name === "Backend Developer",
+		) || project1WithRoles.roles[1];
+
+	if (!frontendRole || !backendRole) {
+		throw new Error(
+			"Project 1 roles were not found for seeding applications",
+		);
+	}
+
+	await prisma.projectApplication.create({
+		data: {
+			userId: users[0].id,
+			projectId: project1.id,
+			roleId: frontendRole.id,
+			body: "I am interested in helping with the frontend implementation.",
+		},
+	});
+
+	await prisma.projectApplication.create({
+		data: {
+			userId: users[1].id,
+			projectId: project1.id,
+			roleId: backendRole.id,
+			body: "I would like to contribute to backend development.",
+		},
 	});
 
 	// const updated1 = await updateProject(

@@ -13,7 +13,12 @@ export async function getProject(id: string) {
 				skills: true,
 				githubIssues: true,
 				ProjectMembership: true,
-				applications: true,
+				applications: {
+					include: {
+						user: true,
+						role: true,
+					},
+				},
 				roles: {
 					include: {
 						requiredSkills: true,
@@ -315,7 +320,7 @@ export async function getProjectMembers(projectId: string) {
 		const users = members?.map((member) => member.user);
 		return users;
 	} catch (e) {
-		throw new Error("Failed to fetch project owner");
+		throw new Error("Failed to fetch project members");
 	}
 }
 

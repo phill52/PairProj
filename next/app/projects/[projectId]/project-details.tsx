@@ -1,6 +1,5 @@
 "use client";
 import React, { useState } from "react";
-import Image from "next/image";
 import { applyToProject } from "@/app/actions/projects";
 import {
 	Card,
@@ -18,11 +17,9 @@ import {
 } from "@/components/ui";
 import { ProjectProps } from "@/types/projects";
 import Badge from "@/components/badge";
-import skillIcons from "@/components/skillIcons";
 import { AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import { routes } from "@/routes/routes";
-import { set } from "date-fns";
 
 export default function ProjectComponent({
 	project,
@@ -30,9 +27,13 @@ export default function ProjectComponent({
 	project: ProjectProps & any;
 }) {
 	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [isApplicantsModalOpen, setIsApplicantsModalOpen] = useState(false);
 	const [selectedRole, setSelectedRole] = useState<any>(null);
 	const [description, setDescription] = useState("");
 	const [error, setError] = useState<string | null>(null);
+	const applicants = (project.applications || []).filter(
+		(application: any) => application?.user?.id,
+	);
 
 	const handleApplyClick = (role: any) => {
 		setSelectedRole(role);
@@ -72,10 +73,22 @@ export default function ProjectComponent({
 		<>
 			<Card className="mx-auto my-8 max-w-[90%] rounded-lg bg-white shadow-lg">
 				<CardHeader className="border-b p-6 pb-6">
-					<CardTitle className="text-2xl font-bold">
-						{project.name}
-					</CardTitle>
-					<p className="text-gray-600">{project.description}</p>
+					<div className="flex items-start justify-between gap-4">
+						<div>
+							<CardTitle className="text-2xl font-bold">
+								{project.name}
+							</CardTitle>
+							<p className="text-gray-600">{project.description}</p>
+						</div>
+						{project.isOwner ? (
+							<Button
+								variant="outline"
+								onClick={() => setIsApplicantsModalOpen(true)}
+							>
+								View Applicants
+							</Button>
+						) : null}
+					</div>
 
 					<div className="mt-4 flex flex-col gap-2">
 						{project.difficulty && (
@@ -333,7 +346,8 @@ export default function ProjectComponent({
 								Tell us about yourself
 							</label>
 							<Textarea
-								placeholder="Please provide a brief description of yourself and why you're interested in this role."								value={description}
+								placeholder="Please provide a brief description of yourself and why you're interested in this role."
+								value={description}
 								onChange={(e) => setDescription(e.target.value)}
 								className="min-h-[120px]"
 							/>
@@ -348,6 +362,84 @@ export default function ProjectComponent({
 							disabled={!description.trim()}
 						>
 							Apply
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+
+			<Dialog
+				open={isApplicantsModalOpen}
+				onOpenChange={setIsApplicantsModalOpen}
+			>
+				<DialogContent className="max-w-2xl">
+					<DialogHeader>
+						<DialogTitle>Project Applicants</DialogTitle>
+					</DialogHeader>
+					<div className="max-h-[60vh] space-y-3 overflow-y-auto pr-1">
+						{applicants.length === 0 ? (
+							<p className="text-sm text-gray-500">
+								No applicants yet.
+							</p>
+						) : (
+							applicants.map((application: any) => (
+								<div
+									key={application.id}
+									className="rounded-md border border-gray-200 p-3"
+								>
+									<div className="flex items-center justify-between gap-3">
+										<Link
+											href={routes.users.profile({
+												id: application.user.id,
+											})}
+											className="flex items-center gap-2"
+										>
+											<Avatar className="h-8 w-8">
+												<AvatarImage
+													src={
+														application.user.image || undefined
+													}
+													alt={
+														application.user.name ||
+														"Applicant"
+													}
+												/>
+												<AvatarFallback>
+													{(
+														application.user.name ||
+														application.user.email ||
+														"A"
+													)[0]}
+												</AvatarFallback>
+											</Avatar>
+											<div className="text-sm font-medium">
+												{application.user.name ||
+													application.user.email}
+											</div>
+										</Link>
+										<div className="text-right text-xs text-gray-500">
+											<div>
+												Role: {application.role?.name || "Unknown"}
+											</div>
+											<div className="capitalize">
+												Status: {application.status}
+											</div>
+										</div>
+									</div>
+									{application.body ? (
+										<p className="mt-2 text-sm text-gray-700">
+											{application.body}
+										</p>
+									) : null}
+								</div>
+							))
+						)}
+					</div>
+					<DialogFooter>
+						<Button
+							variant="outline"
+							onClick={() => setIsApplicantsModalOpen(false)}
+						>
+							Close
 						</Button>
 					</DialogFooter>
 				</DialogContent>
