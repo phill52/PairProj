@@ -8,14 +8,16 @@ export type ExperienceTable = Prisma.ExperienceGetPayload<{}>;
 export type EducationItem = {
 	school: string;
 	level: string;
-	date: string;
+	startDate: dateTime;
+	endDate: dateTime;
 	description: string;
 };
 
 export type ExperienceItem = {
 	employer: string;
 	position: string;
-	date: string;
+	startDate: dateTime;
+	endDate: dateTime;
 	description: string
 };
 
@@ -45,7 +47,6 @@ export interface SubmitProfile {
 
 }
 
-//havent worked below here yet
 export interface ViewProfileProps {
 	username: string;
 	first_name: string;

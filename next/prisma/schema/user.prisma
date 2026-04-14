@@ -79,8 +79,8 @@ model Skill {
   outerColor String
   innerColor String
   projects   Project[]
-  requiredBy Role[]          @relation("requiredSkills")
-  optionalBy Role[]          @relation("optionalSkills")
+  requiredBy RoleRequiredSkill[]
+  optionalBy RoleOptionalSkill[]
 
   @@unique([id])
   @@index([name])
@@ -103,7 +103,8 @@ model Education {
   level       String
   users       User   @relation(fields: [userId], references: [id], onDelete: Restrict)
   userId      String
-  date        String
+  startDate   DateTime
+  endDate     DateTime
   description String
 
   @@unique([id])
@@ -117,7 +118,8 @@ model Experience {
   position    String
   users       User   @relation(fields: [userId], references: [id], onDelete: Restrict)
   userId      String
-  date        String
+  startDate   DateTime
+  endDate     DateTime
   description String
 
   @@unique([id])

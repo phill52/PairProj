@@ -72,7 +72,7 @@ const SampleInput: NavBarProps = {
 			},
 		},
 	],
-	projects: ["Workwind", "ProgPair"],
+	projects: ["Workwind", "PairProj"],
 };
 
 const InitialsFromName = (name: string) => {
@@ -122,7 +122,7 @@ const Sidebar = () => {
 			<div className="sidebar absolute inset-y-0 left-0 flex min-h-screen w-full -translate-x-full transform flex-col items-center space-y-1 bg-white text-white transition duration-200 ease-in-out dark:bg-gray-800 lg:relative lg:translate-x-0">
 				<div className="flex flex-col justify-center py-3">
 					<h1 className="self-center text-2xl font-bold uppercase text-black">
-						ProgPair
+						PairProj
 					</h1>
 				</div>
 				<Divider />
