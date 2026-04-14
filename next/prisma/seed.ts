@@ -7,26 +7,41 @@ const prisma = new PrismaClient();
 
 async function main() {
 	// PASTE YOUR ID HERE AS THE FIRST PARAMETER
-	const userId = "cmnv82jfj0005gmtgmkfiheue";
+	const userId = "cmnygx92z0005gmp878lniwcz";
 
 	// test users
 	const users = await Promise.all([
-		prisma.user.create({
-			data: {
+		prisma.user.upsert({
+			where: { email: "justin@example.com" },
+			update: {
+				name: "Justin",
+				image: "https://wallpapers.com/images/hd/placeholder-profile-icon-8qmjk1094ijhbem9.jpg",
+			},
+			create: {
 				name: "Justin",
 				email: "justin@example.com",
 				image: "https://wallpapers.com/images/hd/placeholder-profile-icon-8qmjk1094ijhbem9.jpg",
 			},
 		}),
-		prisma.user.create({
-			data: {
+		prisma.user.upsert({
+			where: { email: "jimmy@example.com" },
+			update: {
+				name: "Jimmy",
+				image: "https://img.freepik.com/premium-vector/man-empty-avatar-casual-business-style-vector-photo-placeholder-social-networks-resumes_885953-434.jpg?semt=ais_incoming&w=740&q=80",
+			},
+			create: {
 				name: "Jimmy",
 				email: "jimmy@example.com",
 				image: "https://img.freepik.com/premium-vector/man-empty-avatar-casual-business-style-vector-photo-placeholder-social-networks-resumes_885953-434.jpg?semt=ais_incoming&w=740&q=80",
 			},
 		}),
-		prisma.user.create({
-			data: {
+		prisma.user.upsert({
+			where: { email: "yuxi@example.com" },
+			update: {
+				name: "Yuxi",
+				image: "https://cdn.vectorstock.com/i/500p/44/00/default-avatar-photo-placeholder-icon-grey-vector-38594400.jpg",
+			},
+			create: {
 				name: "Yuxi",
 				email: "yuxi@example.com",
 				image: "https://cdn.vectorstock.com/i/500p/44/00/default-avatar-photo-placeholder-icon-grey-vector-38594400.jpg",

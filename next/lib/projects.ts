@@ -4,6 +4,45 @@ import { SubmitProject, ProjectRoleCreateData } from "@/types/projects";
 import { SubmitProjectSchema } from "@/utils/validation/projects.ts";
 import { z } from "zod";
 
+const OWNER_ROLE_NAME = "owner";
+const OWNER_ROLE_COLORS = {
+	outerColor: "#000000",
+	innerColor: "#ffffff",
+};
+
+function buildRoleCreateData(
+	role: Pick<
+		ProjectRoleCreateData,
+		| "name"
+		| "outerColor"
+		| "innerColor"
+		| "requiredSkillIds"
+		| "optionalSkillIds"
+	>,
+) {
+	return {
+		name: role.name,
+		outerColor: role.outerColor,
+		innerColor: role.innerColor,
+		requiredSkills:
+			role.requiredSkillIds && role.requiredSkillIds.length > 0
+				? {
+						create: role.requiredSkillIds.map((id) => ({
+							skill: { connect: { id } },
+						})),
+					}
+				: undefined,
+		optionalSkills:
+			role.optionalSkillIds && role.optionalSkillIds.length > 0
+				? {
+						create: role.optionalSkillIds.map((id) => ({
+							skill: { connect: { id } },
+						})),
+					}
+				: undefined,
+	};
+}
+
 export async function getProject(id: string) {
 	try {
 		const project = await db.project.findUnique({
@@ -20,9 +59,16 @@ export async function getProject(id: string) {
 					},
 				},
 				roles: {
+					where: {
+						name: { not: OWNER_ROLE_NAME },
+					},
 					include: {
-						requiredSkills: true,
-						optionalSkills: true,
+						requiredSkills: {
+							include: { skill: true },
+						},
+						optionalSkills: {
+							include: { skill: true },
+						},
 					},
 				},
 			},
@@ -30,7 +76,19 @@ export async function getProject(id: string) {
 		if (!project) {
 			throw new Error("Project Not Found");
 		}
-		return project;
+
+		return {
+			...project,
+			roles: project.roles.map((role) => ({
+				...role,
+				requiredSkills: role.requiredSkills.map(
+					(required) => required.skill,
+				),
+				optionalSkills: role.optionalSkills.map(
+					(optional) => optional.skill,
+				),
+			})),
+		};
 	} catch (e) {
 		throw new Error(`Failed to fetch project: ${e}`);
 	}
@@ -66,118 +124,124 @@ export async function createProject(
 			areasOfInterest,
 			roles,
 		} = validatedProject;
+		const requestedRoles = (roles ?? []).filter(
+			(role) => role.name.trim().toLowerCase() !== OWNER_ROLE_NAME,
+		);
 
-		return await db.project.create({
-			data: {
-				name: name,
-				description: description,
-				githubLink: githubLink,
-				difficulty: difficulty,
-				skills: {
-					connect: skills.map((id) => ({ id })),
-				},
-				areasOfInterest: {
-					connect: areasOfInterest.map((id) => ({ id })),
-				},
-				roles: {
-					create: (roles ?? []).map((role) => ({
-						name: role.name,
-						outerColor: role.outerColor,
-						innerColor: role.innerColor,
-						requiredSkills: role.requiredSkillIds
-							? {
-									connect: role.requiredSkillIds.map(
-										(id) => ({ id }),
-									),
-								}
-							: undefined,
-						optionalSkills: role.optionalSkillIds
-							? {
-									connect: role.optionalSkillIds.map(
-										(id) => ({ id }),
-									),
-								}
-							: undefined,
-					})),
-				},
-				ProjectMembership: {
-					create: {
-						userId: userId,
-						dateJoined: new Date().toISOString(),
-						role: "owner",
+		return await db.$transaction(async (tx) => {
+			const project = await tx.project.create({
+				data: {
+					name,
+					description,
+					githubLink,
+					difficulty,
+					skills: {
+						connect: skills.map((id) => ({ id })),
+					},
+					areasOfInterest: {
+						connect: areasOfInterest.map((id) => ({ id })),
 					},
 				},
-			},
+			});
+
+			const ownerRole = await tx.role.create({
+				data: {
+					name: OWNER_ROLE_NAME,
+					outerColor: OWNER_ROLE_COLORS.outerColor,
+					innerColor: OWNER_ROLE_COLORS.innerColor,
+					project: { connect: { id: project.id } },
+				},
+			});
+
+			await tx.projectMembership.create({
+				data: {
+					userId,
+					projectId: project.id,
+					roleId: ownerRole.id,
+					dateJoined: new Date().toISOString(),
+				},
+			});
+
+			for (const role of requestedRoles) {
+				await tx.role.create({
+					data: {
+						...buildRoleCreateData(role),
+						project: { connect: { id: project.id } },
+					},
+				});
+			}
+
+			return project;
 		});
 	} catch (e) {
 		throw new Error("Failed to create project");
 	}
 }
 
-export async function updateProject(
-	userId: string,
-	projectId: string,
-	name: string,
-	githubLink: string,
-	difficulty: string,
-	description: string,
-	skills: string[],
-	areasOfInterest: string[],
-	roles: ProjectRoleCreateData[] = [],
-) {
-	return db.$transaction(async (tx) => {
-		const membership = await getMembershipStatus(tx, projectId, userId);
+// export async function updateProject(
+// 	userId: string,
+// 	projectId: string,
+// 	name: string,
+// 	githubLink: string,
+// 	difficulty: string,
+// 	description: string,
+// 	skills: string[],
+// 	areasOfInterest: string[],
+// 	roles: ProjectRoleCreateData[] = [],
+// ) {
+// 	return db.$transaction(async (tx) => {
+// 		const membership = await getMembershipStatus(tx, projectId, userId);
 
-		if (!membership) {
-			throw new Error("You are not authorized to update this project.");
-		}
+// 		if (!membership) {
+// 			throw new Error("You are not authorized to update this project.");
+// 		}
 
-		const updated = await tx.project.update({
-			where: { id: projectId },
-			data: {
-				name,
-				githubLink,
-				difficulty,
-				description,
-				skills: {
-					set: skills.map((id) => ({ id })),
-				},
-				areasOfInterest: {
-					set: areasOfInterest.map((id) => ({ id })),
-				},
-				roles: {
-					deleteMany: {},
-					create: roles.map((role) => ({
-						name: role.name,
-						outerColor: role.outerColor,
-						innerColor: role.innerColor,
-						requiredSkills: role.requiredSkillIds
-							? {
-									connect: role.requiredSkillIds.map(
-										(id) => ({ id }),
-									),
-								}
-							: undefined,
-						optionalSkills: role.optionalSkillIds
-							? {
-									connect: role.optionalSkillIds.map(
-										(id) => ({ id }),
-									),
-								}
-							: undefined,
-					})),
-				},
-			},
-			include: {
-				areasOfInterest: true,
-				skills: true,
-				roles: true,
-				githubIssues: true,
-			},
-		});
-		return updated;
-	});
-}
+// 		const updated = await tx.project.update({
+// 			where: { id: projectId },
+// 			data: {
+// 				name,
+// 				githubLink,
+// 				difficulty,
+// 				description,
+// 				skills: {
+// 					set: skills.map((id) => ({ id })),
+// 				},
+// 				areasOfInterest: {
+// 					set: areasOfInterest.map((id) => ({ id })),
+// 				},
+// 				roles: {
+// 					deleteMany: {},
+// 					create: roles.map((role) => ({
+// 						name: role.name,
+// 						outerColor: role.outerColor,
+// 						innerColor: role.innerColor,
+// 						requiredSkills: role.requiredSkillIds
+// 							? {
+// 									connect: role.requiredSkillIds.map(
+// 										(id) => ({ id }),
+// 									),
+// 								}
+// 							: undefined,
+// 						optionalSkills: role.optionalSkillIds
+// 							? {
+// 									connect: role.optionalSkillIds.map(
+// 										(id) => ({ id }),
+// 									),
+// 								}
+// 							: undefined,
+// 					})),
+// 				},
+// 			},
+// 			include: {
+// 				areasOfInterest: true,
+// 				skills: true,
+// 				roles: true,
+// 				githubIssues: true,
+// 			},
+// 		});
+// 		return updated;
+// 	});
+// }
 
 export async function deleteProject(userId: string, projectId: string) {
 	return db.$transaction(async (tx) => {
@@ -298,7 +362,10 @@ export async function checkMatchingSkills(projectId: string, userId: string) {
 export async function getProjectOwner(projectId: string) {
 	try {
 		const owner = await db.projectMembership.findFirst({
-			where: { projectId, role: "owner" },
+			where: {
+				projectId,
+				role: { is: { name: OWNER_ROLE_NAME } },
+			},
 			include: { user: true },
 		});
 		if (!owner) {
@@ -313,12 +380,22 @@ export async function getProjectOwner(projectId: string) {
 export async function getProjectMembers(projectId: string) {
 	try {
 		const members = await db.projectMembership.findMany({
-			where: { projectId, role: { not: "owner" } },
-			include: { user: true },
+			where: {
+				projectId,
+				role: { isNot: { name: OWNER_ROLE_NAME } },
+			},
+			include: { user: true, role: true },
 		});
 
-		const users = members?.map((member) => member.user);
-		return users;
+		return members.map((member) => ({
+			...member.user,
+			projectMembership: {
+				id: member.id,
+				projectId: member.projectId,
+				dateJoined: member.dateJoined,
+				role: member.role,
+			},
+		}));
 	} catch (e) {
 		throw new Error("Failed to fetch project members");
 	}
@@ -336,26 +413,14 @@ export async function createProjectRole(
 			throw new Error("Project not found");
 		}
 
+		if (roleData.name.trim().toLowerCase() === OWNER_ROLE_NAME) {
+			throw new Error("Cannot create owner role.");
+		}
+
 		const role = await tx.role.create({
 			data: {
-				name: roleData.name,
-				outerColor: roleData.outerColor,
-				innerColor: roleData.innerColor,
+				...buildRoleCreateData(roleData),
 				project: { connect: { id: projectId } },
-				requiredSkills: roleData.requiredSkillIds
-					? {
-							connect: roleData.requiredSkillIds.map((id) => ({
-								id,
-							})),
-						}
-					: undefined,
-				optionalSkills: roleData.optionalSkillIds
-					? {
-							connect: roleData.optionalSkillIds.map((id) => ({
-								id,
-							})),
-						}
-					: undefined,
 			},
 		});
 

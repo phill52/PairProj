@@ -44,3 +44,144 @@ export async function applyToProject(
 		return { success: true };
 	});
 }
+
+async function isProjectOwner(tx: any, projectId: string, userId: string) {
+	return tx.projectMembership.findFirst({
+		where: {
+			projectId,
+			userId,
+			role: { is: { name: "owner" } },
+		},
+	});
+}
+
+export async function acceptProjectApplicant(applicationId: string) {
+	const session = await auth();
+	if (!session) {
+		throw new Error("Not authenticated");
+	}
+
+	const ownerUserId = session.user.id;
+
+	return db.$transaction(async (tx) => {
+		const application = await tx.projectApplication.findUnique({
+			where: { id: applicationId },
+		});
+
+		if (!application) {
+			return { success: false, message: "Application not found." };
+		}
+
+		const ownerMembership = await isProjectOwner(
+			tx,
+			application.projectId,
+			ownerUserId,
+		);
+
+		if (!ownerMembership) {
+			return {
+				success: false,
+				message: "You are not authorized to review applicants.",
+			};
+		}
+
+		if (application.status === "accepted") {
+			return {
+				success: false,
+				message: "This application has already been accepted.",
+			};
+		}
+
+		if (application.status === "denied") {
+			return {
+				success: false,
+				message: "This application has already been denied.",
+			};
+		}
+
+		const existingMembership = await tx.projectMembership.findFirst({
+			where: {
+				projectId: application.projectId,
+				userId: application.userId,
+			},
+		});
+
+		if (existingMembership) {
+			return {
+				success: false,
+				message: "This user is already a member of the project.",
+			};
+		}
+
+		await tx.projectMembership.create({
+			data: {
+				projectId: application.projectId,
+				userId: application.userId,
+				roleId: application.roleId,
+				dateJoined: new Date().toISOString(),
+			},
+		});
+
+		await tx.projectApplication.update({
+			where: { id: application.id },
+			data: { status: "accepted" },
+		});
+
+		revalidatePath(`/projects/${application.projectId}`);
+		return { success: true };
+	});
+}
+
+export async function denyProjectApplicant(applicationId: string) {
+	const session = await auth();
+	if (!session) {
+		throw new Error("Not authenticated");
+	}
+
+	const ownerUserId = session.user.id;
+
+	return db.$transaction(async (tx) => {
+		const application = await tx.projectApplication.findUnique({
+			where: { id: applicationId },
+		});
+
+		if (!application) {
+			return { success: false, message: "Application not found." };
+		}
+
+		const ownerMembership = await isProjectOwner(
+			tx,
+			application.projectId,
+			ownerUserId,
+		);
+
+		if (!ownerMembership) {
+			return {
+				success: false,
+				message: "You are not authorized to review applicants.",
+			};
+		}
+
+		if (application.status === "accepted") {
+			return {
+				success: false,
+				message: "Accepted applications cannot be denied.",
+			};
+		}
+
+		if (application.status === "denied") {
+			return {
+				success: false,
+				message: "This application has already been denied.",
+			};
+		}
+
+		await tx.projectApplication.update({
+			where: { id: application.id },
+			data: { status: "denied" },
+		});
+
+		revalidatePath(`/projects/${application.projectId}`);
+		return { success: true };
+	});
+}

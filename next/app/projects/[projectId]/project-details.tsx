@@ -1,6 +1,10 @@
 "use client";
 import React, { useState } from "react";
-import { applyToProject } from "@/app/actions/projects";
+import {
+	applyToProject,
+	acceptProjectApplicant,
+	denyProjectApplicant,
+} from "@/app/actions/projects";
 import {
 	Card,
 	CardHeader,
@@ -29,10 +33,31 @@ export default function ProjectComponent({
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [isApplicantsModalOpen, setIsApplicantsModalOpen] = useState(false);
 	const [selectedRole, setSelectedRole] = useState<any>(null);
+	const [selectedApplicantsRole, setSelectedApplicantsRole] =
+		useState<any>(null);
 	const [description, setDescription] = useState("");
 	const [error, setError] = useState<string | null>(null);
-	const applicants = (project.applications || []).filter(
+	const [applications, setApplications] = useState<any[]>(
+		project.applications || [],
+	);
+	const [applicantActionError, setApplicantActionError] = useState<
+		string | null
+	>(null);
+	const [processingApplicationId, setProcessingApplicationId] = useState<
+		string | null
+	>(null);
+	const projectApplicants = applications.filter(
 		(application: any) => application?.user?.id,
+	);
+	const visibleRoles = (project.roles || []).filter(
+		(role: any) => (role?.name || "").trim().toLowerCase() !== "owner",
+	);
+	const roleApplicants = projectApplicants.filter(
+		(application: any) =>
+			application?.role?.id &&
+			application?.status === "pending" &&
+			selectedApplicantsRole?.id &&
+			application.role.id === selectedApplicantsRole.id,
 	);
 
 	const handleApplyClick = (role: any) => {
@@ -48,6 +73,58 @@ export default function ProjectComponent({
 		setError(null);
 	};
 
+	const handleViewApplicantsClick = (role: any) => {
+		setSelectedApplicantsRole(role);
+		setIsApplicantsModalOpen(true);
+	};
+
+	const handleCloseApplicantsModal = () => {
+		setSelectedApplicantsRole(null);
+		setIsApplicantsModalOpen(false);
+		setApplicantActionError(null);
+	};
+
+	const handleApplicantDecision = async (
+		applicationId: string,
+		decision: "accept" | "deny",
+	) => {
+		setApplicantActionError(null);
+		setProcessingApplicationId(applicationId);
+		try {
+			const result =
+				decision === "accept"
+					? await acceptProjectApplicant(applicationId)
+					: await denyProjectApplicant(applicationId);
+
+			if (!result.success) {
+				throw new Error(
+					result.message ||
+						`Failed to ${decision === "accept" ? "accept" : "deny"} applicant.`,
+				);
+			}
+
+			setApplications((prev) =>
+				prev.map((application) =>
+					application.id === applicationId
+						? {
+								...application,
+								status:
+									decision === "accept"
+										? "accepted"
+										: "denied",
+							}
+						: application,
+				),
+			);
+		} catch (actionError) {
+			if (actionError instanceof Error) {
+				setApplicantActionError(actionError.message);
+			}
+		} finally {
+			setProcessingApplicationId(null);
+		}
+	};
+
 	const handleApplySubmit = async () => {
 		if (!selectedRole) return;
 		setError(null);
@@ -58,9 +135,14 @@ export default function ProjectComponent({
 				description,
 			);
 			if (!result.success) {
-				throw new Error(result.message || "Failed to submit application");
+				throw new Error(
+					result.message || "Failed to submit application",
+				);
 			}
-			project.rolesAppliedTo = [...(project.rolesAppliedTo || []), selectedRole.id];
+			project.rolesAppliedTo = [
+				...(project.rolesAppliedTo || []),
+				selectedRole.id,
+			];
 			handleClose();
 		} catch (error) {
 			if (error instanceof Error) {
@@ -78,16 +160,10 @@ export default function ProjectComponent({
 							<CardTitle className="text-2xl font-bold">
 								{project.name}
 							</CardTitle>
-							<p className="text-gray-600">{project.description}</p>
+							<p className="text-gray-600">
+								{project.description}
+							</p>
 						</div>
-						{project.isOwner ? (
-							<Button
-								variant="outline"
-								onClick={() => setIsApplicantsModalOpen(true)}
-							>
-								View Applicants
-							</Button>
-						) : null}
 					</div>
 
 					<div className="mt-4 flex flex-col gap-2">
@@ -123,13 +199,15 @@ export default function ProjectComponent({
 									<Avatar className="h-10 w-10">
 										<AvatarImage
 											src={
-												project.owner.profilePicture ||
-												undefined
+												project.owner.image || undefined
 											}
-											alt={project.owner.username}
+											alt={
+												project.owner.name ||
+												"Project Owner"
+											}
 										/>
 										<AvatarFallback className="text-sm">
-											{project.owner.name?.[0]}
+											{project.owner.name?.[0] || "O"}
 										</AvatarFallback>
 									</Avatar>
 									<div>
@@ -148,23 +226,37 @@ export default function ProjectComponent({
 							<div className="ml-4 flex items-center gap-2">
 								{project.members.slice(0, 5).map((m: any) => (
 									<Link
-										key={m.id}
 										href={routes.users.profile({
 											id: m.id,
 										})}
 									>
-										<Avatar className="h-8 w-8">
-											<AvatarImage
-												src={
-													m.profilePicture ||
-													undefined
-												}
-												alt={m.username}
-											/>
-											<AvatarFallback className="text-sm">
-												{m.username?.[0]}
-											</AvatarFallback>
-										</Avatar>
+										<div className="flex items-center gap-3">
+											<Avatar className="h-10 w-10">
+												<AvatarImage
+													src={
+														m.image ||
+														undefined
+													}
+													alt={
+														m.name ||
+														"Project Owner"
+													}
+												/>
+												<AvatarFallback className="text-sm">
+													{m.name?.[0] ||
+														"O"}
+												</AvatarFallback>
+											</Avatar>
+											<div>
+												<div className="text-sm font-semibold">
+													{m.name}
+												</div>
+												<div className="text-xs text-gray-500">
+													{m.projectMembership?.role?.name ||
+														"Member"}
+												</div>
+											</div>
+										</div>
 									</Link>
 								))}
 								{project.members.length > 5 && (
@@ -178,13 +270,13 @@ export default function ProjectComponent({
 				</CardHeader>
 
 				<CardContent className="p-6">
-					{project.roles && project.roles.length > 0 ? (
+					{visibleRoles.length > 0 ? (
 						<section className="mb-6">
 							<h2 className="mb-4 text-xl font-semibold">
 								Looking for Help
 							</h2>
 							<div className="grid gap-4">
-								{project.roles.map((role: any) => (
+								{visibleRoles.map((role: any) => (
 									<div
 										key={role.id}
 										className="rounded-lg border border-gray-200 p-4"
@@ -197,15 +289,29 @@ export default function ProjectComponent({
 													{role.name}
 												</Link>
 											</h3>
-											{!project.rolesAppliedTo?.includes(role.id) ? (
-											<Button
-												onClick={() =>
-													handleApplyClick(role)
-												}
-											>
-												Apply
-											</Button>) : (
-												<span className="text-green-600 font-medium">
+											{project.isOwner ? (
+												<Button
+													variant="outline"
+													onClick={() =>
+														handleViewApplicantsClick(
+															role,
+														)
+													}
+												>
+													View Applicants
+												</Button>
+											) : !project.rolesAppliedTo?.includes(
+													role.id,
+											  ) ? (
+												<Button
+													onClick={() =>
+														handleApplyClick(role)
+													}
+												>
+													Apply
+												</Button>
+											) : (
+												<span className="font-medium text-green-600">
 													Applied!
 												</span>
 											)}
@@ -369,19 +475,32 @@ export default function ProjectComponent({
 
 			<Dialog
 				open={isApplicantsModalOpen}
-				onOpenChange={setIsApplicantsModalOpen}
+				onOpenChange={(open) => {
+					if (!open) {
+						handleCloseApplicantsModal();
+						return;
+					}
+					setIsApplicantsModalOpen(true);
+				}}
 			>
 				<DialogContent className="max-w-2xl">
 					<DialogHeader>
-						<DialogTitle>Project Applicants</DialogTitle>
+						<DialogTitle>
+							Applicants for {selectedApplicantsRole?.name}
+						</DialogTitle>
 					</DialogHeader>
 					<div className="max-h-[60vh] space-y-3 overflow-y-auto pr-1">
-						{applicants.length === 0 ? (
+						{applicantActionError ? (
+							<p className="text-sm text-red-500">
+								{applicantActionError}
+							</p>
+						) : null}
+						{roleApplicants.length === 0 ? (
 							<p className="text-sm text-gray-500">
-								No applicants yet.
+								No applicants yet for this role.
 							</p>
 						) : (
-							applicants.map((application: any) => (
+							roleApplicants.map((application: any) => (
 								<div
 									key={application.id}
 									className="rounded-md border border-gray-200 p-3"
@@ -396,7 +515,8 @@ export default function ProjectComponent({
 											<Avatar className="h-8 w-8">
 												<AvatarImage
 													src={
-														application.user.image || undefined
+														application.user
+															.image || undefined
 													}
 													alt={
 														application.user.name ||
@@ -404,11 +524,13 @@ export default function ProjectComponent({
 													}
 												/>
 												<AvatarFallback>
-													{(
-														application.user.name ||
-														application.user.email ||
-														"A"
-													)[0]}
+													{
+														(application.user
+															.name ||
+															application.user
+																.email ||
+															"A")[0]
+													}
 												</AvatarFallback>
 											</Avatar>
 											<div className="text-sm font-medium">
@@ -418,7 +540,9 @@ export default function ProjectComponent({
 										</Link>
 										<div className="text-right text-xs text-gray-500">
 											<div>
-												Role: {application.role?.name || "Unknown"}
+												Role:{" "}
+												{application.role?.name ||
+													"Unknown"}
 											</div>
 											<div className="capitalize">
 												Status: {application.status}
@@ -430,6 +554,39 @@ export default function ProjectComponent({
 											{application.body}
 										</p>
 									) : null}
+									<div className="mt-3 flex justify-end gap-2">
+										<Button
+											size="sm"
+											onClick={() =>
+												handleApplicantDecision(
+													application.id,
+													"accept",
+												)
+											}
+											disabled={
+												processingApplicationId ===
+												application.id
+											}
+										>
+											Accept
+										</Button>
+										<Button
+											size="sm"
+											variant="destructive"
+											onClick={() =>
+												handleApplicantDecision(
+													application.id,
+													"deny",
+												)
+											}
+											disabled={
+												processingApplicationId ===
+												application.id
+											}
+										>
+											Deny
+										</Button>
+									</div>
 								</div>
 							))
 						)}
@@ -437,7 +594,7 @@ export default function ProjectComponent({
 					<DialogFooter>
 						<Button
 							variant="outline"
-							onClick={() => setIsApplicantsModalOpen(false)}
+							onClick={handleCloseApplicantsModal}
 						>
 							Close
 						</Button>
