@@ -7,6 +7,26 @@ import {
 
 import { SubmitProfileZSchema } from "@/utils/validation/user";
 
+export interface NewExperienceInput {
+	employer: string;
+	position: string;
+	startDate: string,
+	endDate: string,
+	description: string;
+}
+export interface NewEducationInput {
+	school: string;
+	level: string;
+	startDate: string,
+	endDate: string,
+	description: string;
+}
+
+export interface NewSkillInput {
+	skill: string;
+	skillLevel: string;
+}
+
 export async function getUser(id: string) {
 	
 	try {
@@ -20,11 +40,16 @@ export async function getUser(id: string) {
 		const profile = await db.user.findUnique({
 			where: { id },
 			include: {
-				skills: true,
+				skills: {
+					include: {
+					  skill: true,
+					},
+				},
 				areasOfInterest: true,
 				projectContributions: true,
 				experience: true,
-				sessions: true
+				sessions: true, 
+				education: true,
 			},
 		});
 		if (!profile) {
@@ -71,7 +96,6 @@ export async function createProfile(profile: SubmitProfile) {
 
 		const newProfile = await db.user.create({
 			data: {
-				id: session.user.id, 
 				name,
 				email,
 				image,
@@ -80,15 +104,16 @@ export async function createProfile(profile: SubmitProfile) {
 				},
 				skills: {
 					create: skills.map((skl) => ({
-						skillId: skl.skillId,
-						skillLevel: skl.skillLevel
+					  skill: { connect: { id: skl.skillId } },
+					  skillLevel: skl.skillLevel,
 					})),
 				},
 				education: {
 					create: education.map((edu) => ({
 						school: edu.school,
 						level: edu.level,
-						date: edu.date,
+						startDate: edu.startDate,
+						endDate: edu.endDate,
 						description: edu.description
 					})),
 				},
@@ -96,7 +121,8 @@ export async function createProfile(profile: SubmitProfile) {
 					create: experience.map((xp) => ({
 						employer: xp.employer,
 						position: xp.position,
-						date: xp.date,
+						startDate: xp.startDate,
+						endDate: xp.endDate,
 						description: xp.description
 					})),
 				},
@@ -154,27 +180,29 @@ export async function updateProfile(profile: SubmitProfile) {
 		  education: {
 			deleteMany: {}, 
 			create: education.map((edu) => ({
-			  school: edu.school,
-			  level: edu.level,
-			  date: edu.date,
-			  description: edu.description
+			  	school: edu.school,
+				level: edu.level,
+				startDate: edu.startDate,
+				endDate: edu.endDate,
+				description: edu.description
 			})),
 		  },
 		  experience: {
 			deleteMany: {}, 
 			create: experience.map((xp) => ({
-			  employer: xp.employer,
-			  position: xp.position,
-			  date: xp.date,
-			  description: xp.description
+				employer: xp.employer,
+				position: xp.position,
+				startDate: xp.startDate,
+				endDate: xp.endDate,
+				description: xp.description
 			})),
 		  },
 		},
 		include: {
-		  areasOfInterest: true,
-		  skills: true,
-		  education: true,
-		  experience: true
+			areasOfInterest: true,
+			skills: true,
+			education: true,
+			experience: true
 		},
 	  });
   
@@ -249,14 +277,16 @@ export async function getViewProfileProps(
 		const education = userData.education.map((e) => ({
 			school: e.school,
 			level: e.level,
-			date: e.date,
+			startDate: e.startDate,
+			endDate: e.endDate,
 			description: e.description,
 		}));
 
 		const experience = userData.experience.map((e) => ({
 			employer: e.employer,
 			position: e.position,
-			date: e.date,
+			startDate: e.startDate,
+			endDate: e.endDate,
 			description: e.description,
 		}));
 
@@ -296,4 +326,5 @@ export async function canEditorViewProfile(profileId: string){
 	return session.user.id === profileId;
 
 }
+
 
