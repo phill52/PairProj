@@ -59,7 +59,6 @@
 // 		throw new Error("User not found");
 // 	}
 
-<<<<<<< HEAD
 // 	await db.transaction(async (db) => {
 // 		const [insertedProject] = await db
 // 			.insert(project)
@@ -69,19 +68,6 @@
 // 				owner_profile_id: userId,
 // 			})
 // 			.returning({ id: project.id });
-=======
-	await db.transaction(async (db) => {
-		const [insertedProject] = await db
-			.insert(project)
-			.values({
-				name: validatedData.name,
-				description: validatedData.description,
-				owner_profile_id: userId,
-				skill_level: validatedData.skill_level ?? null,
-				github_repository: validatedData.github_repository ?? null,
-			})
-			.returning({ id: project.id });
->>>>>>> 05a448d83f1e96b9a585e901b973678fde91feca
 
 // 		for (const [roleName, roleInfo] of Object.entries(
 // 			validatedData.roles,
