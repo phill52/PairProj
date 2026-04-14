@@ -1,10 +1,30 @@
-"use client";
-import { useState, Dispatch, SetStateAction } from "react";
 import FilterBar from "./components/filter-bar";
 import ProjectCard from "./components/project-card";
 import { FiltersProvider } from "./FiltersContext";
+import { getProjects } from "@/app/actions/projects";
 
-export default function Page() {
+export default async function Page({
+	searchParams,
+}: {
+	searchParams?: {
+		skills?: string;
+		difficulty?: string;
+		query?: string;
+	};
+}) {
+	const skills = searchParams?.skills
+		? searchParams.skills.split(",")
+		: undefined;
+
+	const difficulty = searchParams?.difficulty || undefined;
+	const query = searchParams?.query || undefined;
+
+	const projects = await getProjects({
+		skills,
+		difficulty,
+		query,
+	});
+
 	return (
 		<FiltersProvider>
 			<div
@@ -14,8 +34,9 @@ export default function Page() {
 				<div className="w-full max-w-7xl px-4 pt-4 lg:px-8">
 					<FilterBar />
 				</div>
-				<div className="">
-					<ProjectCard />
+
+				<div>
+					<ProjectCard projects={projects} />
 				</div>
 			</div>
 		</FiltersProvider>

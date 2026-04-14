@@ -44,3 +44,41 @@ export async function applyToProject(
 		return { success: true };
 	});
 }
+
+export async function getProjects(filters: {
+	skills?: string[];
+	difficulty?: string;
+	query?: string;
+}) {
+	const where: any = {};
+
+	if (filters.difficulty) {
+		where.difficulty = filters.difficulty;
+	}
+
+	if (filters.query) {
+		where.name = {
+			contains: filters.query,
+		};
+	}
+
+	if (filters.skills && filters.skills.length > 0) {
+		where.skills = {
+			some: {
+				name: {
+					in: filters.skills,
+				},
+			},
+		};
+	}
+
+	return db.project.findMany({
+		where,
+		include: {
+			skills: true,
+			areasOfInterest: true,
+			ProjectMembership: true,
+			applications: true,
+		},
+	});
+}
