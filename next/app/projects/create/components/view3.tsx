@@ -111,21 +111,18 @@ const View3: React.FC<Props> = ({ State, OnUpdate }) => {
 			))}
 
 			<div className="flex items-center space-x-4 mt-6">
-						{OnUpdate && (
-							<Button variant="destructive" onClick={() => {
-								OnUpdate({ type: "SET_NAME", payload: "" });
-								OnUpdate({ type: "SET_DESCRIPTION", payload: "" });
-								OnUpdate({ type: "SET_SKILL_LEVEL", payload: "" });
-								OnUpdate({ type: "SET_GITHUB", payload: "" });
-								(State.areasOfInterest || []).forEach((a: any) => OnUpdate({ type: "TOGGLE_AREA", payload: a }));
-								Object.keys(State.roles || {}).forEach((r) => OnUpdate({ type: "TOGGLE_ROLE", payload: r }));
-							}}>
-								Clear All
-							</Button>
-						)}
-				<Button variant="secondary" onClick={handleSubmit}>
-					Submit
-				</Button>
+				{OnUpdate && (
+					<Button variant="destructive" onClick={() => {
+						OnUpdate({ type: "SET_NAME", payload: "" });
+						OnUpdate({ type: "SET_DESCRIPTION", payload: "" });
+						OnUpdate({ type: "SET_SKILL_LEVEL", payload: "" });
+						OnUpdate({ type: "SET_GITHUB", payload: "" });
+						(State.areasOfInterest || []).forEach((a: any) => OnUpdate({ type: "TOGGLE_AREA", payload: a }));
+						Object.keys(State.roles || {}).forEach((r) => OnUpdate({ type: "TOGGLE_ROLE", payload: r }));
+					}}>
+						Clear All
+					</Button>
+				)}
 			</div>
 		</div>
 	);

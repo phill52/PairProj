@@ -1,6 +1,7 @@
 "use client";
 
 import { useReducer, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import View1 from "./components/view1";
 import View2 from "./components/view2";
@@ -48,12 +49,16 @@ export type SubmitProjectDataAction =
 
 export default function CreateProject({
 	pageData,
+	createProjectAction,
 }: {
 	pageData: CreateProjectProps;
+	createProjectAction?: (data: any) => Promise<any>;
 }) {
 	const [stage, setStage] = useState(0);
 	const totalStages = 3;
 	const [submitting, setSubmitting] = useState(false);
+	const [error, setError] = useState<string | null>(null);
+	const router = useRouter();
 
 	const buildPayload = (state: SubmitProject, pageData: CreateProjectProps) => {
 		const areas = (state.areasOfInterest || [])
@@ -273,13 +278,16 @@ export default function CreateProject({
 					</div>
 
 					<div className="absolute bottom-0 left-0 right-0 flex items-center justify-between border-t px-6 py-4 bg-white dark:bg-slate-950">
-						{stage > 0 ? (
-							<Button size="lg" variant="ghost" onClick={() => setStage(Math.max(0, stage - 1))}>
-								Back
-							</Button>
-						) : (
-							<div />
-						)}
+						<div className="flex items-center">
+							{stage > 0 ? (
+								<Button size="lg" variant="ghost" onClick={() => setStage(Math.max(0, stage - 1))}>
+									Back
+								</Button>
+							) : (
+								<div />
+							)}
+							{error && <p className="ml-4 text-sm text-red-600">{error}</p>}
+						</div>
 
 						<div>
 							{stage < totalStages - 1 && (
@@ -289,20 +297,32 @@ export default function CreateProject({
 							)}
 							{stage === totalStages - 1 && (
 								<Button size="lg" variant="secondary" disabled={submitting} onClick={async () => {
-									try {
-										setSubmitting(true);
-										const payload = buildPayload(state, pageData);
-										await fetch('/api/projects', {
-											method: 'POST',
-											headers: { 'Content-Type': 'application/json' },
-											body: JSON.stringify(payload),
-										});
-										console.log('Submitted project payload', payload);
-									} catch (e) {
-										console.error('Submit failed', e);
-									} finally {
-										setSubmitting(false);
-									}
+										try {
+											setSubmitting(true);
+											setError(null);
+											const payload = buildPayload(state, pageData);
+
+											// Client-side validation: require at least one role
+											if (!payload.roles || payload.roles.length === 0) {
+												setError("Please add at least one role to the project.");
+												setSubmitting(false);
+												return;
+											}
+
+											if (!createProjectAction) {
+												throw new Error('No server action provided');
+											}
+											const created = await createProjectAction(payload);
+											console.log('Submitted project payload', payload, created);
+											if (created && (created as any).id) {
+												router.push(`/projects/${(created as any).id}`);
+											}
+										} catch (e) {
+											console.error('Submit failed', e);
+											setError('Failed to submit project.');
+										} finally {
+											setSubmitting(false);
+										}
 								}}>
 									{submitting ? 'Submitting...' : 'Finish'}
 								</Button>

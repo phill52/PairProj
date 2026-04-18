@@ -62,6 +62,17 @@ export async function createProject(
 			roles,
 		} = validatedProject;
 
+		const existing = await db.project.findFirst({
+			where: {
+				name: name,
+				ProjectMembership: { some: { userId: userId, role: "owner" } },
+			},
+		});
+
+		if (existing) {
+			return existing;
+		}
+
 		return await db.project.create({
 			data: {
 				name: name,

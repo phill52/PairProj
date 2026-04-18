@@ -1,11 +1,8 @@
-// "use server";
+"use server";
 
 // import { eq } from "drizzle-orm";
 // import { revalidatePath } from "next/cache";
 // import { z } from "zod";
-
-// import { auth } from "@/lib/auth";
-// import { db } from "@/db";
 // import {
 // 	areas_of_interest,
 // 	project,
@@ -23,6 +20,52 @@
 // 	SubmitProject,
 // 	ProjectProps,
 // } from "@/types/projects";
+
+import { auth } from "@/lib/auth";
+import db from "@/lib/prisma";
+import { SubmitProject } from "@/types/projects";
+import { createProject as createProjectLib } from "@/lib/projects";
+
+export async function getCreateProjectProps() {
+    
+	async function safeFindMany<T>(finder: () => Promise<T[]>, name: string) {
+		try {
+			return await finder();
+		} catch (e) {
+			// eslint-disable-next-line no-console
+			console.warn(`getCreateProjectProps: failed to load ${name}`, e);
+			return [] as T[];
+		}
+	}
+
+	const [roles, skills, areasOfInterest] = await Promise.all([
+		safeFindMany(() => db.role.findMany({ select: { id: true, name: true, outerColor: true, innerColor: true } }), "roles"),
+		safeFindMany(() => db.skill.findMany({ select: { id: true, name: true, outerColor: true, innerColor: true } }), "skills"),
+		safeFindMany(() => db.areaOfInterest.findMany({ select: { id: true, name: true, outerColor: true, innerColor: true } }), "areasOfInterest"),
+	]);
+
+	return { roles, skills, areasOfInterest };
+}
+
+export async function createProject(submitProject: SubmitProject) {
+	let session;
+	try {
+		session = await auth();
+	} catch (e) {
+		// eslint-disable-next-line no-console
+		console.error("auth() failed in createProject:", e);
+		throw new Error(
+			"Authentication unavailable — ensure your database has the required Auth tables/columns. Run `npx prisma migrate dev` to apply migrations."
+		);
+	}
+
+	if (!session) {
+		throw new Error("Not authenticated");
+	}
+
+	const userId = session.user.id;
+	return await createProjectLib(userId, submitProject);
+}
 
 // export async function getProject(projectId: string): Promise<ProjectProps> {
 // 	const result = await db.query.project.findFirst({
