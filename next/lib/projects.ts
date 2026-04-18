@@ -128,6 +128,17 @@ export async function createProject(
 			(role) => role.name.trim().toLowerCase() !== OWNER_ROLE_NAME,
 		);
 
+		const existing = await db.project.findFirst({
+			where: {
+				name: name,
+				ProjectMembership: { some: { userId: userId, role: "owner" } },
+			},
+		});
+
+		if (existing) {
+			return existing;
+		}
+
 		return await db.$transaction(async (tx) => {
 			const project = await tx.project.create({
 				data: {
@@ -140,6 +151,33 @@ export async function createProject(
 					},
 					areasOfInterest: {
 						connect: areasOfInterest.map((id) => ({ id })),
+				},
+				roles: {
+					create: (roles ?? []).map((role) => ({
+						name: role.name,
+						outerColor: role.outerColor,
+						innerColor: role.innerColor,
+						requiredSkills: role.requiredSkillIds
+							? {
+									connect: role.requiredSkillIds.map(
+										(id) => ({ id }),
+									),
+								}
+							: undefined,
+						optionalSkills: role.optionalSkillIds
+							? {
+									connect: role.optionalSkillIds.map(
+										(id) => ({ id }),
+									),
+								}
+							: undefined,
+					})),
+				},
+				ProjectMembership: {
+					create: {
+						userId: userId,
+						dateJoined: new Date().toISOString(),
+						role: "owner",
 					},
 				},
 			});

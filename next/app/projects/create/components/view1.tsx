@@ -5,13 +5,14 @@ import { Input, Textarea, Button } from "@/components/ui";
 
 import { SubmitProjectDataAction } from "../create-project";
 import { AreaTable } from "@/types/profile-items";
+import { SubmitProject } from "@/types/projects";
 
 export default function View1({
 	State,
 	OnUpdate,
 	areas,
 }: {
-	State: any;
+	State: SubmitProject;
 	OnUpdate: React.Dispatch<SubmitProjectDataAction>;
 	areas: AreaTable[];
 }) {
@@ -42,7 +43,7 @@ export default function View1({
 
 			<h3 className="mt-4">Skill Level</h3>
 			<select
-				value={(State as any).difficulty || ""}
+				value={State.difficulty || ""}
 				onChange={(e) =>
 					OnUpdate({ type: "SET_SKILL_LEVEL", payload: e.target.value })
 				}
@@ -58,7 +59,7 @@ export default function View1({
 			<Input
 				type="text"
 				placeholder="https://github.com/owner/repo"
-				defaultValue={(State as any).githubLink || ""}
+				defaultValue={State.githubLink || ""}
 				onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
 					OnUpdate({ type: "SET_GITHUB", payload: e.target.value })
 				}
@@ -97,7 +98,7 @@ export default function View1({
 			</div>
 
 			<div className="mt-2 flex flex-wrap space-x-2">
-				{((State.areasOfInterest as any[]) || []).map((area: string) => (
+				{(State.areasOfInterest || []).map((area: string) => (
 					<Badge
 						key={area}
 						innerColor="#000000"
