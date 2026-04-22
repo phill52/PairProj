@@ -330,32 +330,96 @@ export async function getApplicationStatus(projectId: string, userId: string) {
 	}
 }
 
-export async function checkMatchingSkills(projectId: string, userId: string) {
+export async function getRelevantProjects(userId: string) {
 	return db.$transaction(async (tx) => {
-		const project = await tx.project.findUnique({
-			where: { id: projectId },
-			include: { skills: true },
-		});
-
 		const user = await tx.user.findUnique({
 			where: { id: userId },
-			include: { skills: { include: { skill: true } } },
+			include: {
+				skills: {
+					select: {
+						skillId: true,
+					},
+				},
+			},
 		});
-
-		if (!project) {
-			throw new Error(`Project with ID ${projectId} does not exist`);
-		}
 
 		if (!user) {
 			throw new Error(`User with ID ${userId} does not exist`);
 		}
 
-		const projectSkillIds = new Set(project.skills.map((s) => s.id));
-		const matchingSkills = user.skills.filter((s) =>
-			projectSkillIds.has(s.skill.id),
-		);
+		const userSkillIds = user.skills.map((skill) => skill.skillId);
 
-		return matchingSkills.map((s) => s.skill.name);
+		if (userSkillIds.length === 0) {
+			return [];
+		}
+
+		const projects = await tx.project.findMany({
+			where: {
+				ProjectMembership: {
+					none: {
+						userId,
+					},
+				},
+				roles: {
+					some: {
+						name: { not: OWNER_ROLE_NAME },
+						requiredSkills: {
+							some: {
+								skillId: { in: userSkillIds },
+							},
+						},
+					},
+				},
+			},
+			select: {
+				id: true,
+				name: true,
+				description: true,
+				githubLink: true,
+				difficulty: true,
+				isLocked: true,
+				roles: {
+					where: {
+						name: { not: OWNER_ROLE_NAME },
+						requiredSkills: {
+							some: {
+								skillId: { in: userSkillIds },
+							},
+						},
+					},
+					select: {
+						id: true,
+						name: true,
+						outerColor: true,
+						innerColor: true,
+						requiredSkills: {
+							where: {
+								skillId: { in: userSkillIds },
+							},
+							select: {
+								skill: {
+									select: {
+										id: true,
+										name: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		});
+
+		return projects.map((project) => ({
+			...project,
+			roles: project.roles.map((role) => ({
+				id: role.id,
+				name: role.name,
+				outerColor: role.outerColor,
+				innerColor: role.innerColor,
+				matchingSkills: role.requiredSkills.map((required) => required.skill),
+			})),
+		}));
 	});
 }
 

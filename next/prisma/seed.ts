@@ -1,15 +1,47 @@
 import { PrismaClient } from "../app/generated/prisma/client";
 import { getUser } from "@/lib/users";
-import { createProject, getProject, updateProject } from "@/lib/projects";
+import { createProject } from "@/lib/projects";
 import db from "@/lib/prisma";
 
 const prisma = new PrismaClient();
 
 async function main() {
-	// PASTE YOUR ID HERE AS THE FIRST PARAMETER
-	const userId = "cmnygx92z0005gmp878lniwcz";
+	// PASTE YOUR ID HERE FROM FROM AUTH USER
+	const userId = "cmoaimlbv000bgmzgjx5pb9t4";
 
-	// test users
+	const seedOwner = await prisma.user.findUnique({
+		where: { id: userId },
+	});
+
+	if (!seedOwner) {
+		throw new Error(
+			`Seed owner with ID ${userId} was not found. Aborting cleanup.`,
+		);
+	}
+
+	await prisma.$transaction(async (tx) => {
+		await tx.roleRequiredSkill.deleteMany();
+		await tx.roleOptionalSkill.deleteMany();
+		await tx.projectApplication.deleteMany();
+		await tx.projectMembership.deleteMany();
+		await tx.label.deleteMany();
+		await tx.issue.deleteMany();
+		await tx.role.deleteMany();
+		await tx.project.deleteMany();
+
+		await tx.skillsOnUsers.deleteMany();
+		await tx.education.deleteMany();
+		await tx.experience.deleteMany();
+
+		await tx.areaOfInterest.deleteMany();
+		await tx.skill.deleteMany();
+
+		await tx.verificationToken.deleteMany();
+		await tx.account.deleteMany({ where: { userId: { not: userId } } });
+		await tx.session.deleteMany({ where: { userId: { not: userId } } });
+		await tx.user.deleteMany({ where: { id: { not: userId } } });
+	});
+
 	const users = await Promise.all([
 		prisma.user.upsert({
 			where: { email: "justin@example.com" },
@@ -48,6 +80,8 @@ async function main() {
 			},
 		}),
 	]);
+
+	const justin = users[0];
 
 	const skills = await Promise.all([
 		prisma.skill.create({
@@ -92,7 +126,31 @@ async function main() {
 				outerColor: "#239120",
 			},
 		}),
+		prisma.skill.create({
+			data: {
+				name: "Python",
+				innerColor: "#FFD43B",
+				outerColor: "#3776AB",
+			},
+		}),
 	]);
+
+	const seedUser = await prisma.user.findUnique({
+		where: { id: userId },
+	});
+
+	if (!seedUser) {
+		throw new Error(`User with ID ${userId} was not found`);
+	}
+
+	await prisma.skillsOnUsers.createMany({
+		data: [
+			{ userId, skillId: skills[0].id, skillLevel: "Advanced" },
+			{ userId, skillId: skills[1].id, skillLevel: "Advanced" },
+			{ userId, skillId: skills[6].id, skillLevel: "Advanced" },
+		],
+		skipDuplicates: true,
+	});
 
 	const project1 = await createProject(userId, {
 		name: "PairProj",
@@ -152,6 +210,44 @@ async function main() {
 				description: "aaaaaaaaaaa",
 				optionalSkillIds: [],
 				requiredSkillIds: [skills[4].id, skills[1].id],
+			},
+		],
+	});
+
+	await createProject(justin.id, {
+		name: "React Dashboard",
+		githubLink: "https://github.com/phill52/PairProj",
+		difficulty: "Intermediate",
+		description: "React skill test.",
+		skills: [skills[0].id],
+		areasOfInterest: [],
+		roles: [
+			{
+				name: "React Developer",
+				outerColor: "#0EA5E9",
+				innerColor: "#FFFFFF",
+				description: "react",
+				optionalSkillIds: [],
+				requiredSkillIds: [skills[0].id, skills[1].id],
+			},
+		],
+	});
+
+	await createProject(justin.id, {
+		name: "Python API",
+		githubLink: "https://github.com/phill52/PairProj",
+		difficulty: "Intermediate",
+		description: "Python skill test.",
+		skills: [skills[6].id],
+		areasOfInterest: [],
+		roles: [
+			{
+				name: "Python Developer",
+				outerColor: "#F59E0B",
+				innerColor: "#1F2937",
+				description: "python",
+				optionalSkillIds: [],
+				requiredSkillIds: [skills[6].id],
 			},
 		],
 	});
