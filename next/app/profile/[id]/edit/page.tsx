@@ -1,8 +1,8 @@
-import { EditProfile } from "./../components/editProfile";
+import { EditProfile } from "./../../components/editProfile";
 import { Suspense } from "react";
 import { getUser } from "@/lib/users"; 
 import { auth } from "@/lib/auth";
-import { ProfileActions } from "./../components/profileActions";
+import { ProfileActions } from "./../../components/profileActions";
 
 interface PageProps {
   params: { id: string };
