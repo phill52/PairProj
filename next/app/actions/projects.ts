@@ -1,151 +1,187 @@
-// "use server";
+"use server";
+import { auth } from "@/lib/auth";
+import db from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
 
-// import { eq } from "drizzle-orm";
-// import { revalidatePath } from "next/cache";
-// import { z } from "zod";
+export async function applyToProject(
+	projectId: string,
+	roleId: string,
+	body: string,
+) {
+	const session = await auth();
+	if (!session) {
+		throw new Error("Not authenticated");
+	}
+	const userId = session.user.id;
+	return db.$transaction(async (tx) => {
+		const membership = await tx.projectMembership.findFirst({
+			where: { projectId, userId },
+		});
+		if (membership) {
+			return {
+				success: false,
+				message: "You are already a member of this project.",
+			};
+		}
+		const existing = await tx.projectApplication.findFirst({
+			where: { projectId, userId, roleId },
+		});
+		if (existing) {
+			return {
+				success: false,
+				message: "You have already applied to this role.",
+			};
+		}
+		const application = await tx.projectApplication.create({
+			data: {
+				project: { connect: { id: projectId } },
+				user: { connect: { id: userId } },
+				role: { connect: { id: roleId } },
+				body,
+			},
+		});
+		revalidatePath(`/projects/${projectId}`);
+		return { success: true };
+	});
+}
 
-// import { auth } from "@/lib/auth";
-// import { db } from "@/db";
-// import {
-// 	areas_of_interest,
-// 	project,
-// 	skill,
-// 	role,
-// 	users,
-// 	project_role_relationship,
-// 	project_role_skill_relationship,
-// } from "@/db/schema";
-// import { SubmitProjectSchema } from "@/utils/validation/projects";
-// import { routes } from "@/routes/routes";
+async function isProjectOwner(tx: any, projectId: string, userId: string) {
+	return tx.projectMembership.findFirst({
+		where: {
+			projectId,
+			userId,
+			role: { is: { name: "owner" } },
+		},
+	});
+}
 
-// import {
-// 	CreateProjectProps,
-// 	SubmitProject,
-// 	ProjectProps,
-// } from "@/types/projects";
+export async function acceptProjectApplicant(applicationId: string) {
+	const session = await auth();
+	if (!session) {
+		throw new Error("Not authenticated");
+	}
 
-// export async function getProject(projectId: string): Promise<ProjectProps> {
-// 	const result = await db.query.project.findFirst({
-// 		where: eq(project.id, projectId),
-// 		with: {
-// 			roles: {
-// 				with: {
-// 					role: true,
-// 					skills: {
-// 						with: {
-// 							skill: true,
-// 						},
-// 					},
-// 				},
-// 			},
-// 		},
-// 	});
+	const ownerUserId = session.user.id;
 
-// 	if (!result) {
-// 		throw new Error("Project not found");
-// 	}
+	return db.$transaction(async (tx) => {
+		const application = await tx.projectApplication.findUnique({
+			where: { id: applicationId },
+		});
 
-// 	const transformedResult: ProjectProps = {
-// 		...result,
-// 		roles: result.roles.map((projectRole) => ({
-// 			id: projectRole.role.id,
-// 			name: projectRole.role.name,
-// 			skills: projectRole.skills.map((skillRelation) => ({
-// 				id: skillRelation.skill.id,
-// 				name: skillRelation.skill.name,
-// 				innerColor: skillRelation.skill.inner_color,
-// 				outerColor: skillRelation.skill.outer_color,
-// 				isRequired: skillRelation.is_required,
-// 			})),
-// 		})),
-// 	};
+		if (!application) {
+			return { success: false, message: "Application not found." };
+		}
 
-// 	return transformedResult;
-// }
+		const ownerMembership = await isProjectOwner(
+			tx,
+			application.projectId,
+			ownerUserId,
+		);
 
-// export async function getCreateProjectProps(): Promise<CreateProjectProps> {
-// 	const roles = await db.select().from(role);
-// 	const skills = await db.select().from(skill);
-// 	const areasOfInterest = await db.select().from(areas_of_interest);
-// 	return { roles, skills, areasOfInterest };
-// }
+		if (!ownerMembership) {
+			return {
+				success: false,
+				message: "You are not authorized to review applicants.",
+			};
+		}
 
-// export async function createProject(submitProject: SubmitProject) {
-// 	let validatedData: z.infer<typeof SubmitProjectSchema>;
-// 	try {
-// 		validatedData = SubmitProjectSchema.parse(submitProject);
-// 	} catch (error) {
-// 		if (error instanceof z.ZodError) {
-// 			throw new Error(
-// 				JSON.stringify(
-// 					error.errors.map((err) => ({
-// 						path: err.path.join("."),
-// 						message: err.message,
-// 					})),
-// 				),
-// 			);
-// 		}
-// 		console.error("Unexpected error during validation:", error);
-// 		throw new Error("An unexpected error occurred during validation");
-// 	}
+		if (application.status === "accepted") {
+			return {
+				success: false,
+				message: "This application has already been accepted.",
+			};
+		}
 
-// 	const session = await auth();
-// 	if (!session) {
-// 		throw new Error("Not authenticated");
-// 	}
+		if (application.status === "denied") {
+			return {
+				success: false,
+				message: "This application has already been denied.",
+			};
+		}
 
-// 	const userId = session.user.id;
-// 	const user = await db
-// 		.select({ id: users.id })
-// 		.from(users)
-// 		.where(eq(users.id, userId));
-// 	if (!user) {
-// 		throw new Error("User not found");
-// 	}
+		const existingMembership = await tx.projectMembership.findFirst({
+			where: {
+				projectId: application.projectId,
+				userId: application.userId,
+			},
+		});
 
-// 	await db.transaction(async (db) => {
-// 		const [insertedProject] = await db
-// 			.insert(project)
-// 			.values({
-// 				name: validatedData.name,
-// 				description: validatedData.description,
-// 				owner_profile_id: userId,
-// 			})
-// 			.returning({ id: project.id });
+		if (existingMembership) {
+			return {
+				success: false,
+				message: "This user is already a member of the project.",
+			};
+		}
 
+		await tx.projectMembership.create({
+			data: {
+				projectId: application.projectId,
+				userId: application.userId,
+				roleId: application.roleId,
+				dateJoined: new Date().toISOString(),
+			},
+		});
 
-// 		for (const [roleName, roleInfo] of Object.entries(
-// 			validatedData.roles,
-// 		)) {
-// 			const foundRole = await db.query.role.findFirst({
-// 				where: eq(role.name, roleName),
-// 			});
+		await tx.projectApplication.update({
+			where: { id: application.id },
+			data: { status: "accepted" },
+		});
 
-// 			if (!foundRole) {
-// 				throw new Error(`Role ${roleName} not found`);
-// 			}
+		revalidatePath(`/projects/${application.projectId}`);
+		return { success: true };
+	});
+}
 
-// 			const [insertedProjectRole] = await db
-// 				.insert(project_role_relationship)
-// 				.values({
-// 					project_id: insertedProject.id,
-// 					role_id: foundRole.id,
-// 				})
-// 				.returning({ id: project_role_relationship.id });
+export async function denyProjectApplicant(applicationId: string) {
+	const session = await auth();
+	if (!session) {
+		throw new Error("Not authenticated");
+	}
 
-// 			const allSkills = [...roleInfo.skills, ...roleInfo.requiredSkills];
-// 			await db.insert(project_role_skill_relationship).values(
-// 				allSkills.map((skillInfo) => ({
-// 					project_role_id: insertedProjectRole.id,
-// 					skill_id: skillInfo.id,
-// 					is_required: roleInfo.requiredSkills.some(
-// 						(s) => s.name === skillInfo.name,
-// 					),
-// 				})),
-// 			);
-// 		}
-// 	});
+	const ownerUserId = session.user.id;
 
-// 	await revalidatePath(routes.projects.search());
-// 	return { success: true };
-// }
+	return db.$transaction(async (tx) => {
+		const application = await tx.projectApplication.findUnique({
+			where: { id: applicationId },
+		});
+
+		if (!application) {
+			return { success: false, message: "Application not found." };
+		}
+
+		const ownerMembership = await isProjectOwner(
+			tx,
+			application.projectId,
+			ownerUserId,
+		);
+
+		if (!ownerMembership) {
+			return {
+				success: false,
+				message: "You are not authorized to review applicants.",
+			};
+		}
+
+		if (application.status === "accepted") {
+			return {
+				success: false,
+				message: "Accepted applications cannot be denied.",
+			};
+		}
+
+		if (application.status === "denied") {
+			return {
+				success: false,
+				message: "This application has already been denied.",
+			};
+		}
+
+		await tx.projectApplication.update({
+			where: { id: application.id },
+			data: { status: "denied" },
+		});
+
+		revalidatePath(`/projects/${application.projectId}`);
+		return { success: true };
+	});
+}

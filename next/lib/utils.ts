@@ -12,7 +12,11 @@ export function getMembershipStatus(
 ) {
 	try {
 		return tx.projectMembership.findFirst({
-			where: { projectId, userId, role: "owner" },
+			where: {
+				projectId,
+				userId,
+				role: { is: { name: "owner" } },
+			},
 		});
 	} catch (e) {
 		throw new Error("Failed to fetch membership status");
