@@ -2,17 +2,17 @@
 
 import Link from "next/link";
 
-export function ProfileActions({ isSelf }: { isSelf: boolean }) {
+export function ProfileActions({ isSelf, userId }: { isSelf: boolean; userId: string; }) {
 	return (
 		<div className="mb-6 flex justify-end gap-3">
 			{isSelf ? (
 				<>
-					<Link
-						href="/profile/edit"
-						className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-					>
-						Edit Profile
-					</Link>
+					<Link 
+						href={`/profile/${userId}/edit`}
+            			className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+          			>
+            		Edit Profile
+          			</Link>
 
 					<Link
 						href="/settings"

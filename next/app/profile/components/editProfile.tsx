@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { updateProfile } from "@/app/actions/users";
+import { useRouter } from "next/navigation";
 
 interface ExperienceInput {
   id?: string;
@@ -30,6 +31,7 @@ interface SkillInput {
 }
 
 export function EditProfile({ profile }: { profile: any }) {
+  const router = useRouter();
   const initials = profile.name
     ?.split(" ")
     .map((n: string) => n[0])
@@ -155,6 +157,8 @@ export function EditProfile({ profile }: { profile: any }) {
         })),
       });
       setSuccess(true);
+      router.push(`/profile/${profile.id}`);
+      
     } catch (e: any) {
       setError(e.message ?? "Failed to save profile");
     } finally {

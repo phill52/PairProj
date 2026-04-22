@@ -7,6 +7,7 @@ import { z } from "zod";
 import {
 	SubmitProfile
 } from "@/types/profile-items"
+import { SubmitProfileZSchema } from "@/utils/validation/user";
 
 
 export async function updateProfile(profile: SubmitProfile) {
@@ -24,6 +25,7 @@ export async function updateProfile(profile: SubmitProfile) {
 				),
 			);
 		}
+    console.log(error)
 		throw new Error("An unexpected error occurred during validation");
 	}
   
@@ -55,10 +57,10 @@ export async function updateProfile(profile: SubmitProfile) {
 		  education: {
 			deleteMany: {}, 
 			create: education.map((edu) => ({
-			  	school: edu.school,
+			  school: edu.school,
 				level: edu.level,
-				startDate: edu.startDate,
-				endDate: edu.endDate,
+				startDate: new Date(edu.startDate),
+        endDate: edu.endDate ? new Date(edu.endDate) : null,
 				description: edu.description
 			})),
 		  },
@@ -67,8 +69,8 @@ export async function updateProfile(profile: SubmitProfile) {
 			create: experience.map((xp) => ({
 				employer: xp.employer,
 				position: xp.position,
-				startDate: xp.startDate,
-				endDate: xp.endDate,
+				startDate: new Date(xp.startDate),
+        endDate: xp.endDate ? new Date(xp.endDate) : null,
 				description: xp.description
 			})),
 		  },

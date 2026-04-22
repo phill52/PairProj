@@ -2,7 +2,6 @@ import { EditProfile } from "./../../components/editProfile";
 import { Suspense } from "react";
 import { getUser } from "@/lib/users"; 
 import { auth } from "@/lib/auth";
-import { ProfileActions } from "./../../components/profileActions";
 
 interface PageProps {
   params: { id: string };
@@ -27,7 +26,6 @@ export default async function Page({ params }: PageProps) {
     )}
     {(!isSelf) && (
         <div className="w-full rounded-lg p-8">
-          <ProfileActions isSelf={isSelf} />
           <Suspense fallback={<p>Loading...</p>}>
             <ViewProfile profile={profile} isSelf={isSelf} />
           </Suspense>
