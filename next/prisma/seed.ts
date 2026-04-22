@@ -1,13 +1,18 @@
+import "dotenv/config";
 import { PrismaClient } from "../app/generated/prisma/client";
-import { getUser } from "@/lib/users";
 import { createProject } from "@/lib/projects";
 import db from "@/lib/prisma";
 
 const prisma = new PrismaClient();
 
 async function main() {
-	// PASTE YOUR ID HERE FROM FROM AUTH USER
-	const userId = "cmoaimlbv000bgmzgjx5pb9t4";
+	const userId = process.env.SEED_USER_ID;
+
+	if (!userId) {
+		throw new Error(
+			"Missing seed user id. Set SEED_USER_ID in your environment.",
+		);
+	}
 
 	const seedOwner = await prisma.user.findUnique({
 		where: { id: userId },
