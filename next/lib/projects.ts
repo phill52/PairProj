@@ -401,6 +401,8 @@ export async function getRelevantProjects(userId: string) {
 									select: {
 										id: true,
 										name: true,
+										outerColor: true,
+										innerColor: true,
 									},
 								},
 							},

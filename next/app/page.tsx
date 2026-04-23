@@ -6,6 +6,7 @@ import Link from "next/link";
 import { getUser } from "@/lib/users";
 import { routes } from "@/routes/routes";
 import { getRelevantProjects } from "@/lib/projects";
+import Badge from "@/components/badge";
 
 export default async function Home() {
 	const session = await auth();
@@ -14,7 +15,6 @@ export default async function Home() {
 	const projectContributions = profile?.projectContributions || [];
 
 	const relevantProjects = await getRelevantProjects(currentUser?.id || "");
-	
 
 	return (
 		// Use a flex row instead of flex column
@@ -35,7 +35,7 @@ export default async function Home() {
 							return (
 								<div
 									key={project.id}
-									className="mb-4 w-full rounded-lg border border-black p-6"
+									className="mb-4 w-full rounded-lg border border-black bg-white p-6"
 								>
 									<Link
 										href={routes.projects.project({
@@ -48,7 +48,7 @@ export default async function Home() {
 												{project.name}
 											</h3>
 											<p>{project.description}</p>
-											<p className="mt-2 text-sm font-medium text-slate-700">
+											<p className="mt-2 text-base font-medium text-slate-700">
 												Role: {m.role?.name ?? "Member"}
 											</p>
 										</div>
@@ -57,7 +57,7 @@ export default async function Home() {
 							);
 						})}
 					</div>
-					<br/>
+					<br />
 					<div className="w-full max-w-4xl">
 						<h3 className="mb-2 text-4xl font-bold">
 							Relevant Projects
@@ -66,7 +66,7 @@ export default async function Home() {
 							return (
 								<div
 									key={project.id}
-									className="mb-4 w-full rounded-lg border border-black p-6"
+									className="mb-4 w-full rounded-lg border border-black bg-white p-6"
 								>
 									<Link
 										href={routes.projects.project({
@@ -79,14 +79,61 @@ export default async function Home() {
 												{project.name}
 											</h3>
 											<p>{project.description}</p>
-											<div className="mt-2 text-sm text-slate-700">
-												<p className="font-medium">Role Matches:</p>
-												<ul className="list-disc pl-5">
-													{project.roles.map((role) => (
-														<li key={role.id}>
-															<span className="font-medium">{role.name}</span>: {role.matchingSkills.map((skill) => skill.name).join(", ")}
-														</li>
-													))}
+											<div className="mt-2 text-base text-slate-700">
+												<p className="text-base font-medium">
+													Role Matches:
+												</p>
+												<ul className="list-disc pl-5 text-base">
+													{project.roles.map(
+														(role) => (
+															<li key={role.id}>
+																<span className="font-medium">
+																	{role.name}
+																</span>
+																:{" "}
+																{role.matchingSkills.map(
+																	(
+																		skill: any,
+																	) => (
+																		<Badge
+																			text={
+																				skill.name
+																			}
+																			key={
+																				skill.id
+																			}
+																			innerColor={
+																				skill.innerColor
+																			}
+																			outerColor={
+																				skill.outerColor
+																			}
+																			className={
+																				(
+																					skill.name ||
+																					""
+																				)
+																					.toLowerCase()
+																					.includes(
+																						"vs",
+																					) ||
+																				(
+																					skill.name ||
+																					""
+																				)
+																					.toLowerCase()
+																					.includes(
+																						"visual",
+																					)
+																					? "ring-2 ring-yellow-400"
+																					: ""
+																			}
+																		/>
+																	),
+																)}
+															</li>
+														),
+													)}
 												</ul>
 											</div>
 										</div>
