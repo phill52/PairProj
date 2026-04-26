@@ -90,11 +90,13 @@ export default function ProjectCard({ projects }: ProjectCardProps) {
 							<p>{project.applications.length} applications</p>
 						</div>
 
-						{project.isLocked && (
-							<p className="text-red-500 font-semibold">
-								Closed
-							</p>
-						)}
+						<p
+							className={`font-semibold ${
+								project.isLocked ? "text-red-500" : "text-green-600"
+							}`}
+						>
+							{project.isLocked ? "Closed" : "Open"}
+						</p>
 					</CardContent>
 
 					<CardFooter className="justify-end">

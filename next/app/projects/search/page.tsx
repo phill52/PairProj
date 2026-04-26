@@ -10,6 +10,8 @@ export default async function Page({
 		skills?: string;
 		difficulty?: string;
 		query?: string;
+		status?: string;
+		team?: string;
 	};
 }) {
 	const skills = searchParams?.skills
@@ -18,11 +20,15 @@ export default async function Page({
 
 	const difficulty = searchParams?.difficulty || undefined;
 	const query = searchParams?.query || undefined;
+	const status = searchParams?.status || undefined;
+	const team = searchParams?.team || undefined;
 
 	const projects = await getProjects({
 		skills,
 		difficulty,
 		query,
+		status,
+		team,
 	});
 
 	return (
