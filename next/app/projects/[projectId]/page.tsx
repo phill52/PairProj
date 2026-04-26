@@ -19,7 +19,8 @@ async function ProjectDetailsPage({ params }: { params: { projectId: string } })
 	const owner = await getProjectOwner(params.projectId);
 	const members = await getProjectMembers(params.projectId);
 	const rolesAppliedTo = currentUserId ? await getRolesAppliedTo(params.projectId, currentUserId) : [];
-	const props = { ...project, owner, members, rolesAppliedTo };
+	const isOwner = Boolean(currentUserId && owner?.id === currentUserId);
+	const props = { ...project, owner, members, rolesAppliedTo, isOwner };
 	return <ProjectDetails project={props} />;
 }
 
@@ -31,7 +32,6 @@ export default function Page({ params }: { params: { projectId: string } }) {
 				<Suspense fallback={<p>Loading...</p>}>
 					<ProjectDetailsPage params={params} />
 				</Suspense>
-				{/* <p>project</p> */}
 			</div>
 		</div>
 	);

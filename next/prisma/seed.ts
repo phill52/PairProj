@@ -7,27 +7,41 @@ const prisma = new PrismaClient();
 
 async function main() {
 	// PASTE YOUR ID HERE AS THE FIRST PARAMETER
-	// const userId = "cmn6gp65i0000gmjs2yrtu2mb";
-
+	const userId = "cmnygx92z0005gmp878lniwcz";
 
 	// test users
 	const users = await Promise.all([
-		prisma.user.create({
-			data: {
+		prisma.user.upsert({
+			where: { email: "justin@example.com" },
+			update: {
+				name: "Justin",
+				image: "https://wallpapers.com/images/hd/placeholder-profile-icon-8qmjk1094ijhbem9.jpg",
+			},
+			create: {
 				name: "Justin",
 				email: "justin@example.com",
 				image: "https://wallpapers.com/images/hd/placeholder-profile-icon-8qmjk1094ijhbem9.jpg",
 			},
 		}),
-		prisma.user.create({
-			data: {
+		prisma.user.upsert({
+			where: { email: "jimmy@example.com" },
+			update: {
+				name: "Jimmy",
+				image: "https://img.freepik.com/premium-vector/man-empty-avatar-casual-business-style-vector-photo-placeholder-social-networks-resumes_885953-434.jpg?semt=ais_incoming&w=740&q=80",
+			},
+			create: {
 				name: "Jimmy",
 				email: "jimmy@example.com",
 				image: "https://img.freepik.com/premium-vector/man-empty-avatar-casual-business-style-vector-photo-placeholder-social-networks-resumes_885953-434.jpg?semt=ais_incoming&w=740&q=80",
 			},
 		}),
-		prisma.user.create({
-			data: {
+		prisma.user.upsert({
+			where: { email: "yuxi@example.com" },
+			update: {
+				name: "Yuxi",
+				image: "https://cdn.vectorstock.com/i/500p/44/00/default-avatar-photo-placeholder-icon-grey-vector-38594400.jpg",
+			},
+			create: {
 				name: "Yuxi",
 				email: "yuxi@example.com",
 				image: "https://cdn.vectorstock.com/i/500p/44/00/default-avatar-photo-placeholder-icon-grey-vector-38594400.jpg",
@@ -80,7 +94,7 @@ async function main() {
 		}),
 	]);
 
-	const project1 = await createProject(users[0].id, {
+	const project1 = await createProject(userId, {
 		name: "PairProj",
 		githubLink: "https://github.com/phill52/PairProj",
 		difficulty: "Intermediate",
@@ -115,7 +129,7 @@ async function main() {
 		],
 	});
 
-	const project2 = await createProject(users[1].id, {
+	const project2 = await createProject(userId, {
 		name: "myproject",
 		githubLink: "https://github.com/phill52/PairProj",
 		difficulty: "Beginner",
@@ -140,6 +154,48 @@ async function main() {
 				requiredSkillIds: [skills[4].id, skills[1].id],
 			},
 		],
+	});
+
+	const project1WithRoles = await prisma.project.findUnique({
+		where: { id: project1.id },
+		include: { roles: true },
+	});
+
+	if (!project1WithRoles) {
+		throw new Error("Project 1 was not found after creation");
+	}
+
+	const frontendRole =
+		project1WithRoles.roles.find(
+			(role) => role.name === "Frontend Developer",
+		) || project1WithRoles.roles[0];
+	const backendRole =
+		project1WithRoles.roles.find(
+			(role) => role.name === "Backend Developer",
+		) || project1WithRoles.roles[1];
+
+	if (!frontendRole || !backendRole) {
+		throw new Error(
+			"Project 1 roles were not found for seeding applications",
+		);
+	}
+
+	await prisma.projectApplication.create({
+		data: {
+			userId: users[0].id,
+			projectId: project1.id,
+			roleId: frontendRole.id,
+			body: "I am interested in helping with the frontend implementation.",
+		},
+	});
+
+	await prisma.projectApplication.create({
+		data: {
+			userId: users[1].id,
+			projectId: project1.id,
+			roleId: backendRole.id,
+			body: "I would like to contribute to backend development.",
+		},
 	});
 
 	// const updated1 = await updateProject(
