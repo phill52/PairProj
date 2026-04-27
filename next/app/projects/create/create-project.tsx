@@ -1,6 +1,7 @@
 "use client";
 
 import { useReducer, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import View1 from "./components/view1";
 import View2 from "./components/view2";
@@ -48,12 +49,16 @@ export type SubmitProjectDataAction =
 
 export default function CreateProject({
 	pageData,
+	createProjectAction,
 }: {
 	pageData: CreateProjectProps;
+	createProjectAction?: (data: any) => Promise<any>;
 }) {
 	const [stage, setStage] = useState(0);
 	const totalStages = 3;
 	const [submitting, setSubmitting] = useState(false);
+	const [error, setError] = useState<string | null>(null);
+	const router = useRouter();
 
 	const buildPayload = (state: SubmitProject, pageData: CreateProjectProps) => {
 		const areas = (state.areasOfInterest || [])
@@ -224,6 +229,12 @@ export default function CreateProject({
 		}
 	};
 
+		const normalizeLink = (link: string) => {
+	 		if (!link) return "";
+	 		if (/^https?:\/\//i.test(link)) return link;
+	 		return `https://${link}`;
+	 	};
+
 	const Dot = ({ index }: { index: number }) => (
 		<span
 			className={`mx-2 h-4 w-4 cursor-pointer rounded-full ${stage === index ? "bg-[#353535] hover:bg-black" : "bg-[#D9D9D9] hover:bg-[#8c8c8c]"} duration-100 ease-in-out`}
@@ -273,13 +284,16 @@ export default function CreateProject({
 					</div>
 
 					<div className="absolute bottom-0 left-0 right-0 flex items-center justify-between border-t px-6 py-4 bg-white dark:bg-slate-950">
-						{stage > 0 ? (
-							<Button size="lg" variant="ghost" onClick={() => setStage(Math.max(0, stage - 1))}>
-								Back
-							</Button>
-						) : (
-							<div />
-						)}
+						<div className="flex items-center">
+							{stage > 0 ? (
+								<Button size="lg" variant="ghost" onClick={() => setStage(Math.max(0, stage - 1))}>
+									Back
+								</Button>
+							) : (
+								<div />
+							)}
+							{error && <p className="ml-4 text-sm text-red-600">{error}</p>}
+						</div>
 
 						<div>
 							{stage < totalStages - 1 && (
@@ -291,15 +305,45 @@ export default function CreateProject({
 								<Button size="lg" variant="secondary" disabled={submitting} onClick={async () => {
 									try {
 										setSubmitting(true);
-										const payload = buildPayload(state, pageData);
-										await fetch('/api/projects', {
-											method: 'POST',
-											headers: { 'Content-Type': 'application/json' },
-											body: JSON.stringify(payload),
-										});
-										console.log('Submitted project payload', payload);
+										setError(null);
+										const payload: any = buildPayload(state, pageData);
+
+										
+										if (!payload.name || !payload.name.trim()) {
+											setError("Please provide a project name.");
+											setSubmitting(false);
+											return;
+										}
+
+									
+										if (!payload.roles || payload.roles.length === 0) {
+											setError("Please add at least one role to the project.");
+											setSubmitting(false);
+											return;
+										}
+
+										if (payload.githubLink && payload.githubLink.trim() !== "") {
+											const normalized = normalizeLink(payload.githubLink.trim());
+											try {
+												new URL(normalized);
+												payload.githubLink = normalized;
+											} catch (err) {
+												setError("Please provide a valid repository URL.");
+												setSubmitting(false);
+												return;
+											}
+										}
+
+										if (!createProjectAction) {
+											throw new Error('No server action provided');
+										}
+										const created = await createProjectAction(payload);
+										if (created && (created as any).id) {
+											router.push(`/projects/${(created as any).id}`);
+										}
 									} catch (e) {
-										console.error('Submit failed', e);
+										if (process.env.NODE_ENV !== 'production') console.error('Submit failed', e);
+										setError('Failed to submit project.');
 									} finally {
 										setSubmitting(false);
 									}

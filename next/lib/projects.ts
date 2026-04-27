@@ -128,6 +128,17 @@ export async function createProject(
 			(role) => role.name.trim().toLowerCase() !== OWNER_ROLE_NAME,
 		);
 
+		const existing = await db.project.findFirst({
+			where: {
+				name: name,
+				ProjectMembership: { some: { userId: userId, role: { name: OWNER_ROLE_NAME, }, } },
+			},
+		});
+
+		if (existing) {
+			return existing;
+		}
+
 		return await db.$transaction(async (tx) => {
 			const project = await tx.project.create({
 				data: {
@@ -141,8 +152,12 @@ export async function createProject(
 					areasOfInterest: {
 						connect: areasOfInterest.map((id) => ({ id })),
 					},
-				},
-			});
+					roles: {
+						create: (roles ?? []).map((role) => ({
+							...buildRoleCreateData(role),
+						})),
+					},
+				}});
 
 			const ownerRole = await tx.role.create({
 				data: {
@@ -155,12 +170,21 @@ export async function createProject(
 
 			await tx.projectMembership.create({
 				data: {
-					userId,
-					projectId: project.id,
-					roleId: ownerRole.id,
+					user: {
+						connect: { id: userId },
+					},
+					project: {
+						connect: { id: project.id },
+					},
+					role: {
+						connect: { id: ownerRole.id },
+					},
 					dateJoined: new Date().toISOString(),
 				},
 			});
+
+			
+
 
 			for (const role of requestedRoles) {
 				await tx.role.create({
@@ -425,18 +449,54 @@ export async function getRelevantProjects(userId: string) {
 	});
 }
 
-export async function getProjectOwner(projectId: string) {
+/* export async function getProjectOwner(projectId: string) {
 	try {
 		const owner = await db.projectMembership.findFirst({
 			where: {
 				projectId,
-				role: { is: { name: OWNER_ROLE_NAME } },
+				role: { id: { name: OWNER_ROLE_NAME } },
 			},
 			include: { user: true },
 		});
 		if (!owner) {
 			throw new Error("Project owner not found");
 		}
+		return owner.user;
+	} catch (e) {
+		throw new Error("Failed to fetch project owner");
+	}
+} */
+
+export async function getProjectOwner(projectId: string) {
+	try {
+		const ownerRole = await db.role.findFirst({
+			where: {
+				name: OWNER_ROLE_NAME,
+				projectId,
+			},
+			select: {
+				id: true,
+			},
+		});
+
+		if (!ownerRole) {
+			throw new Error("Owner role not found");
+		}
+
+		const owner = await db.projectMembership.findFirst({
+			where: {
+				projectId,
+				roleId: ownerRole.id,
+			},
+			include: {
+				user: true,
+			},
+		});
+
+		if (!owner) {
+			throw new Error("Project owner not found");
+		}
+
 		return owner.user;
 	} catch (e) {
 		throw new Error("Failed to fetch project owner");
@@ -448,9 +508,16 @@ export async function getProjectMembers(projectId: string) {
 		const members = await db.projectMembership.findMany({
 			where: {
 				projectId,
-				role: { isNot: { name: OWNER_ROLE_NAME } },
+				role: {
+					name: {
+						not: OWNER_ROLE_NAME,
+					},
+				},
 			},
-			include: { user: true, role: true },
+			include: {
+				user: true,
+				role: true,
+			},
 		});
 
 		return members.map((member) => ({
@@ -463,6 +530,7 @@ export async function getProjectMembers(projectId: string) {
 			},
 		}));
 	} catch (e) {
+		console.error(e);
 		throw new Error("Failed to fetch project members");
 	}
 }

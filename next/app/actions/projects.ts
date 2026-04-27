@@ -2,6 +2,9 @@
 import { auth } from "@/lib/auth";
 import db from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { SubmitProject } from "@/types/projects";
+import { createProject as createProjectLib } from "@/lib/projects";
+
 
 export async function applyToProject(
 	projectId: string,
@@ -54,6 +57,23 @@ async function isProjectOwner(tx: any, projectId: string, userId: string) {
 		},
 	});
 }
+
+// import { eq } from "drizzle-orm";
+// import { revalidatePath } from "next/cache";
+// import { z } from "zod";
+// import {
+// 	areas_of_interest,
+// 	project,
+// 	skill,
+// 	role,
+// 	users,
+// 	project_role_relationship,
+// 	project_role_skill_relationship,
+// } from "@/db/schema";
+// import { SubmitProjectSchema } from "@/utils/validation/projects";
+// import { routes } from "@/routes/routes";
+
+
 
 export async function acceptProjectApplicant(applicationId: string) {
 	const session = await auth();
@@ -185,3 +205,58 @@ export async function denyProjectApplicant(applicationId: string) {
 		return { success: true };
 	});
 }
+
+
+export async function getCreateProjectProps() {
+    
+	async function safeFindMany<T>(finder: () => Promise<T[]>, name: string) {
+		try {
+			return await finder();
+		} catch (e) {
+			// eslint-disable-next-line no-console
+			console.warn(`getCreateProjectProps: failed to load ${name}`, e);
+			return [] as T[];
+		}
+	}
+
+	const [roles, skills, areasOfInterest] = await Promise.all([
+		safeFindMany(() => db.role.findMany({ select: { id: true, name: true, outerColor: true, innerColor: true } }), "roles"),
+		safeFindMany(() => db.skill.findMany({ select: { id: true, name: true, outerColor: true, innerColor: true } }), "skills"),
+		safeFindMany(() => db.areaOfInterest.findMany({ select: { id: true, name: true, outerColor: true, innerColor: true } }), "areasOfInterest"),
+	]);
+
+	return { roles, skills, areasOfInterest };
+}
+
+export async function createProject(submitProject: SubmitProject) {
+	let session;
+	try {
+		session = await auth();
+	} catch (e) {
+		
+	}
+
+	if (!session) {
+		throw new Error("Not authenticated");
+	}
+
+	const userId = session.user.id;
+	return await createProjectLib(userId, submitProject);
+}
+
+// export async function getProject(projectId: string): Promise<ProjectProps> {
+// 	const result = await db.query.project.findFirst({
+// 		where: eq(project.id, projectId),
+// 		with: {
+// 			roles: {
+// 				with: {
+// 					role: true,
+// 					skills: {
+// 						with: {
+// 							skill: true,
+// 						},
+// 					},
+// 				},
+// 			},
+// 		},
+// 	});
