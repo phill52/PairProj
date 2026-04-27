@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { SubmitProject } from "@/types/projects";
 import { createProject as createProjectLib } from "@/lib/projects";
 
+
 export async function applyToProject(
 	projectId: string,
 	roleId: string,
