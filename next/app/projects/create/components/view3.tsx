@@ -30,7 +30,12 @@ const View3: React.FC<Props> = ({ State, OnUpdate }) => {
 			<div className="mb-6">
 				<strong>Repository:</strong>{" "}
 				{State.githubLink ? (
-					<a href={State.githubLink} className="text-blue-600 hover:underline" target="_blank" rel="noreferrer">
+					<a
+						href={/^https?:\/\//i.test(State.githubLink) ? State.githubLink : `https://${State.githubLink}`}
+						className="text-blue-600 hover:underline"
+						target="_blank"
+						rel="noreferrer"
+					>
 						{State.githubLink}
 					</a>
 				) : (
@@ -48,12 +53,8 @@ const View3: React.FC<Props> = ({ State, OnUpdate }) => {
 									innerColor="#000000"
 									outerColor="#D9D9D9"
 									text={area}
+									onClick={OnUpdate ? () => OnUpdate({ type: "TOGGLE_AREA", payload: area }) : undefined}
 								/>
-								{OnUpdate && (
-									<Button aria-label={`Remove ${area}`} variant="ghost" size="icon" onClick={() => OnUpdate({ type: "TOGGLE_AREA", payload: area })}>
-										<span className="text-sm">×</span>
-									</Button>
-								)}
 							</div>
 						))}
 					</div>
@@ -77,12 +78,8 @@ const View3: React.FC<Props> = ({ State, OnUpdate }) => {
 												innerColor={(skill as any).inner_color ?? (skill as any).innerColor}
 												outerColor={(skill as any).outer_color ?? (skill as any).outerColor}
 												text={(skill as any).name}
+												onClick={OnUpdate ? () => OnUpdate({ type: "TOGGLE_SKILL_FOR_ROLE", payload: { roleName, skill, isRequired: false } }) : undefined}
 											/>
-											{OnUpdate && (
-												<Button aria-label={`Remove ${ (skill as any).name }`} variant="ghost" size="icon" onClick={() => OnUpdate({ type: "TOGGLE_SKILL_FOR_ROLE", payload: { roleName, skill, isRequired: false } })}>
-													<span className="text-sm">×</span>
-												</Button>
-											)}
 										</div>
 									))}
 						</div>
@@ -97,12 +94,8 @@ const View3: React.FC<Props> = ({ State, OnUpdate }) => {
 										innerColor={(skill as any).inner_color ?? (skill as any).innerColor}
 										outerColor={(skill as any).outer_color ?? (skill as any).outerColor}
 										text={(skill as any).name}
+										onClick={OnUpdate ? () => OnUpdate({ type: "TOGGLE_SKILL_FOR_ROLE", payload: { roleName, skill, isRequired: false } }) : undefined}
 									/>
-									{OnUpdate && (
-										<Button aria-label={`Remove ${ (skill as any).name }`} variant="ghost" size="icon" onClick={() => OnUpdate({ type: "TOGGLE_SKILL_FOR_ROLE", payload: { roleName, skill, isRequired: false } })}>
-											<span className="text-sm">×</span>
-										</Button>
-									)}
 								</div>
 							))}
 						</div>

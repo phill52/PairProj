@@ -233,11 +233,7 @@ export async function createProject(submitProject: SubmitProject) {
 	try {
 		session = await auth();
 	} catch (e) {
-		// eslint-disable-next-line no-console
-		console.error("auth() failed in createProject:", e);
-		throw new Error(
-			"Authentication unavailable — ensure your database has the required Auth tables/columns. Run `npx prisma migrate dev` to apply migrations."
-		);
+		
 	}
 
 	if (!session) {

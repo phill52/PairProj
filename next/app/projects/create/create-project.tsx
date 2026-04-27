@@ -229,6 +229,12 @@ export default function CreateProject({
 		}
 	};
 
+		const normalizeLink = (link: string) => {
+	 		if (!link) return "";
+	 		if (/^https?:\/\//i.test(link)) return link;
+	 		return `https://${link}`;
+	 	};
+
 	const Dot = ({ index }: { index: number }) => (
 		<span
 			className={`mx-2 h-4 w-4 cursor-pointer rounded-full ${stage === index ? "bg-[#353535] hover:bg-black" : "bg-[#D9D9D9] hover:bg-[#8c8c8c]"} duration-100 ease-in-out`}
@@ -297,32 +303,50 @@ export default function CreateProject({
 							)}
 							{stage === totalStages - 1 && (
 								<Button size="lg" variant="secondary" disabled={submitting} onClick={async () => {
-										try {
-											setSubmitting(true);
-											setError(null);
-											const payload = buildPayload(state, pageData);
+									try {
+										setSubmitting(true);
+										setError(null);
+										const payload: any = buildPayload(state, pageData);
 
-											// Client-side validation: require at least one role
-											if (!payload.roles || payload.roles.length === 0) {
-												setError("Please add at least one role to the project.");
+										
+										if (!payload.name || !payload.name.trim()) {
+											setError("Please provide a project name.");
+											setSubmitting(false);
+											return;
+										}
+
+									
+										if (!payload.roles || payload.roles.length === 0) {
+											setError("Please add at least one role to the project.");
+											setSubmitting(false);
+											return;
+										}
+
+										if (payload.githubLink && payload.githubLink.trim() !== "") {
+											const normalized = normalizeLink(payload.githubLink.trim());
+											try {
+												new URL(normalized);
+												payload.githubLink = normalized;
+											} catch (err) {
+												setError("Please provide a valid repository URL.");
 												setSubmitting(false);
 												return;
 											}
-
-											if (!createProjectAction) {
-												throw new Error('No server action provided');
-											}
-											const created = await createProjectAction(payload);
-											console.log('Submitted project payload', payload, created);
-											if (created && (created as any).id) {
-												router.push(`/projects/${(created as any).id}`);
-											}
-										} catch (e) {
-											console.error('Submit failed', e);
-											setError('Failed to submit project.');
-										} finally {
-											setSubmitting(false);
 										}
+
+										if (!createProjectAction) {
+											throw new Error('No server action provided');
+										}
+										const created = await createProjectAction(payload);
+										if (created && (created as any).id) {
+											router.push(`/projects/${(created as any).id}`);
+										}
+									} catch (e) {
+										if (process.env.NODE_ENV !== 'production') console.error('Submit failed', e);
+										setError('Failed to submit project.');
+									} finally {
+										setSubmitting(false);
+									}
 								}}>
 									{submitting ? 'Submitting...' : 'Finish'}
 								</Button>
