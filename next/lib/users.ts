@@ -47,10 +47,16 @@ export async function getUser(id: string) {
 				},
 				areasOfInterest: true,
 				projectContributions: {
-                    include: {
-                        project: true,
-                    },
-                },
+					include: {
+						project: true,
+						role: {
+							select: {
+								id: true,
+								name: true,
+							},
+						},
+					},
+				},
 				experience: true,
 				sessions: true, 
 				education: true,
