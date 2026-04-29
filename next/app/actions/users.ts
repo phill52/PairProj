@@ -25,7 +25,6 @@ export async function updateProfile(profile: SubmitProfile) {
 				),
 			);
 		}
-    console.log(error)
 		throw new Error("An unexpected error occurred during validation");
 	}
   
@@ -173,7 +172,6 @@ export async function addExperience(userId: string, formData: FormData) {
     revalidatePath(`/profile/${userId}`);
     return newExp;
   } catch (error) {
-      console.log(error)
       throw new Error("Failed to add experience");
   }
 }
