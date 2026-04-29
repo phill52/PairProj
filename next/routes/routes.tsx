@@ -9,5 +9,6 @@ export const routes = registerRoutes({
 	projects: {
 		search: "/projects/search",
 		project: "/projects/:id",
+		create: "/projects/create",
 	},
 });
