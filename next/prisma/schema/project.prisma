@@ -18,16 +18,17 @@ model Project {
 }
 
 model Role {
-  id         String   @id @default(cuid())
-  name       String
-  outerColor String
-  innerColor String
-  project    Project  @relation(fields: [projectId], references: [id], onDelete: Restrict)
-  projectId  String
-  createdAt  DateTime @default(now())
+  id             String               @id @default(cuid())
+  name           String
+  outerColor     String
+  innerColor     String
+  project        Project              @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  projectId      String
+  createdAt      DateTime             @default(now())
   requiredSkills RoleRequiredSkill[]
   optionalSkills RoleOptionalSkill[]
   applications ProjectApplication[]
+  memberships    ProjectMembership[]
 
   @@unique([id])
   @@index([name])
@@ -40,7 +41,8 @@ model ProjectMembership {
   userId     String
   project    Project @relation(fields: [projectId], references: [id], onDelete: Restrict)
   projectId  String
-  role       String
+  role       Role    @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  roleId     String
   dateJoined String
 
   @@unique([id])

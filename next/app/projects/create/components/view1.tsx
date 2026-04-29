@@ -1,21 +1,21 @@
+import React, { useState } from "react";
 import Autocomplete from "@/components/autocomplete";
 import Badge from "@/components/badge";
-import { Input } from "@/components/ui";
-import { Textarea } from "@/components/ui";
+import { Input, Textarea, Button } from "@/components/ui";
 
-import { SubmitProject } from "@/types/projects.ts";
-import { SubmitProjectDataAction } from "../create-project.tsx";
-import { AreaTable } from "@/types/profile-items.ts";
+import { SubmitProjectDataAction } from "../create-project";
+import { AreaTable } from "@/types/profile-items";
 
 export default function View1({
 	State,
 	OnUpdate,
 	areas,
 }: {
-	State: SubmitProject;
+	State: any;
 	OnUpdate: React.Dispatch<SubmitProjectDataAction>;
 	areas: AreaTable[];
 }) {
+	const [customArea, setCustomArea] = useState("");
 	return (
 		<div className="flex flex-col p-4 lg:px-40">
 			<h3>Project Name</h3>
@@ -30,18 +30,41 @@ export default function View1({
 					})
 				}
 			/>
-			<h3>Project Description</h3>
+
+			<h3 className="mt-4">Project Description</h3>
 			<Textarea
 				placeholder="Project Description"
 				defaultValue={State.description}
 				onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-					OnUpdate({
-						type: "SET_NAME",
-						payload: e.target.value,
-					})
+					OnUpdate({ type: "SET_DESCRIPTION", payload: e.target.value })
 				}
 			/>
-			<h3>Areas of Interest</h3>
+
+			<h3 className="mt-4">Skill Level</h3>
+			<select
+				value={(State as any).difficulty || ""}
+				onChange={(e) =>
+					OnUpdate({ type: "SET_SKILL_LEVEL", payload: e.target.value })
+				}
+				className="mb-4 w-full rounded border px-2 py-1"
+			>
+				<option value="">Select skill level (optional)</option>
+				<option value="Beginner">Beginner</option>
+				<option value="Intermediate">Intermediate</option>
+				<option value="Advanced">Advanced</option>
+			</select>
+
+			<h3>GitHub Repository</h3>
+			<Input
+				type="text"
+				placeholder="https://github.com/owner/repo"
+				defaultValue={(State as any).githubLink || ""}
+				onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+					OnUpdate({ type: "SET_GITHUB", payload: e.target.value })
+				}
+			/>
+
+			<h3 className="mt-4">Areas of Interest</h3>
 			<Autocomplete
 				options={areas.map((area) => area.name)}
 				onSelect={(area) =>
@@ -51,17 +74,39 @@ export default function View1({
 					})
 				}
 			/>
+
+			<div className="mt-2 flex items-center space-x-2">
+				<Input
+					className="w-full"
+					type="text"
+					placeholder="Add custom area"
+					value={customArea}
+					onChange={(e) => setCustomArea(e.target.value)}
+				/>
+				<Button
+					variant="ghost"
+					onClick={() => {
+						if (customArea.trim()) {
+							OnUpdate({ type: "TOGGLE_AREA", payload: customArea.trim() });
+							setCustomArea("");
+						}
+					}}
+				>
+					Add
+				</Button>
+			</div>
+
 			<div className="mt-2 flex flex-wrap space-x-2">
-				{State.areasOfInterest.map((area) => (
+				{((State.areasOfInterest as any[]) || []).map((area: string) => (
 					<Badge
-						innerColor={area.inner_color}
-						outerColor={area.outer_color}
-						key={area.name}
-						text={area.name}
+						key={area}
+						innerColor="#000000"
+						outerColor="#D9D9D9"
+						text={area}
 						onClick={() =>
 							OnUpdate({
 								type: "TOGGLE_AREA",
-								payload: area.name,
+								payload: area,
 							})
 						}
 					/>
