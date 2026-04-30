@@ -1,66 +1,72 @@
 import React, { useState } from "react";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
 import { SubmitProfileDataAction } from "../create-profile";
-import { RoleTable } from "@/types";
 
 export function View3({
-	AccountTypes,
-	ExistingTypes,
 	OnUpdate,
+	onContinue,
 }: {
-	AccountTypes: RoleTable[];
-	ExistingTypes: RoleTable[];
 	OnUpdate: React.Dispatch<SubmitProfileDataAction>;
+	onContinue: () => void;
 }) {
-	// Create a state to keep track of checked items
-	const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
+	const [imageFile, setImageFile] = useState<File | null>(null);
+	const [preview, setPreview] = useState<string | null>(null);
 
-	// const toggleCheckbox = (type: string) => {
-	// 	setCheckedItems((prevCheckedItems) => {
-	// 		const newCheckedItems = new Set(prevCheckedItems);
-	// 		if (newCheckedItems.has(type)) {
-	// 			newCheckedItems.delete(type);
-	// 		} else {
-	// 			newCheckedItems.add(type);
-	// 		}
-	// 		return newCheckedItems;
-	// 	});
-	// };
-
-	const toggleCheckbox = (type: RoleTable) => {
-		// OnUpdate({
-		// 	type: "SET_ACCOUNT_TYPE",
-		// 	payload: ExistingTypes.includes(type)
-		// 		? ExistingTypes.filter((t) => t !== type)
-		// 		: [...ExistingTypes, type],
-		// });
-		OnUpdate({
-			type: "SET_ROLES",
-			payload: ExistingTypes.includes(type)
-				? ExistingTypes.filter((t) => t !== type)
-				: [...ExistingTypes, type],
-		});
+	const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0];
+		if (file) {
+			const reader = new FileReader();
+			reader.onload = (event) => {
+				setPreview(event.target?.result as string);
+			};
+			reader.readAsDataURL(file);
+			setImageFile(file);
+		}
 	};
 
-	const hasRole = (role: RoleTable) =>
-		ExistingTypes.find((r) => r.name === role.name) !== undefined;
+	const handleContinue = () => {
+		if (imageFile) {
+			const reader = new FileReader();
+			reader.onload = (e) => {
+				const base64 = e.target?.result as string;
+				OnUpdate({ type: "SET_IMAGE", payload: base64 });
+				onContinue();
+			};
+			reader.readAsDataURL(imageFile);
+		} else {
+			OnUpdate({ type: "SET_IMAGE", payload: "" });
+			onContinue();
+		}
+	};
 
 	return (
 		<div className="flex flex-col p-4 lg:px-40">
-			<h1 className="mb-4 text-4xl font-semibold">Are you a</h1>
-			<div className="space-y-2">
-				{AccountTypes.map((type) => (
-					<label
-						key={type.name}
-						className="flex items-center space-x-3"
-					>
-						<Checkbox
-							checked={hasRole(type)}
-							onClick={() => toggleCheckbox(type)}
+			<h1 className="mb-4 text-4xl font-semibold">Upload Profile Picture?</h1>
+			<div className="space-y-4">
+				<Input
+					type="file"
+					accept="image/*"
+					onChange={handleImageChange}
+					className="w-full"
+				/>
+				{preview && (
+					<div className="relative w-32 h-32">
+						<Image
+							src={preview}
+							alt="Preview"
+							fill
+							className="object-cover rounded"
 						/>
-						<span className="text-gray-600">{type.name}</span>
-					</label>
-				))}
+					</div>
+				)}
+				<Button
+					onClick={handleContinue}
+					className="mt-4 bg-blue-600 hover:bg-blue-700"
+				>
+					Continue
+				</Button>
 			</div>
 		</div>
 	);

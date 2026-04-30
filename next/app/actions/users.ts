@@ -3,6 +3,12 @@
 import { auth } from "@/lib/auth";
 import db from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { createProfile as createProfileInLibrary } from "@/lib/users";
+import type { SubmitProfile } from "@/types/profile-items";
+
+export async function createProfile(profile: SubmitProfile) {
+	return createProfileInLibrary(profile);
+}
 
 export async function addSkill(userId: string, formData: FormData) {
   const session = await auth();
