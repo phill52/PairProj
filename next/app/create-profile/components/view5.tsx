@@ -13,6 +13,11 @@ export default function View5({
 	ExistingExperience: ExperienceItem[];
 	OnUpdate: React.Dispatch<SubmitProfileDataAction>;
 }) {
+	const toDate = (value: Date | string | null | undefined): Date | null => {
+		if (!value) return null;
+		return value instanceof Date ? value : new Date(value);
+	};
+
 	const updateEducation = (
 		index: number,
 		key: keyof EducationItem,
@@ -38,8 +43,8 @@ export default function View5({
 				...ExistingEducation,
 				{
 					school: "",
-					degree: "",
-					field: "",
+					level: "",
+					description: "",
 					startDate: new Date(),
 					endDate: new Date(),
 				},
@@ -76,7 +81,7 @@ export default function View5({
 			payload: [
 				...ExistingExperience,
 				{
-					company: "",
+					employer: "",
 					position: "",
 					description: "",
 					startDate: new Date(),
@@ -108,25 +113,25 @@ export default function View5({
 						/>
 						<input
 							className="w-full rounded border border-gray-300 p-2"
-							placeholder="Degree"
-							value={item.degree}
+							placeholder="Level"
+							value={item.level}
 							onChange={(e) =>
-								updateEducation(index, "degree", e.target.value)
+								updateEducation(index, "level", e.target.value)
 							}
 						/>
 						<input
 							className="w-full rounded border border-gray-300 p-2"
 							placeholder="Field of study"
-							value={item.field}
+							value={item.description}
 							onChange={(e) =>
-								updateEducation(index, "field", e.target.value)
+								updateEducation(index, "description", e.target.value)
 							}
 						/>
 
 						<div className="flex flex-col justify-start">
 							<MonthPickerWithRange
-								startDate={ExistingEducation[index].startDate}
-								endDate={ExistingEducation[index].endDate}
+								startDate={toDate(ExistingEducation[index].startDate)}
+								endDate={toDate(ExistingEducation[index].endDate)}
 								onStartDateChange={(startDate) => {
 									if (startDate) {
 										updateEducation(
@@ -187,12 +192,12 @@ export default function View5({
 					<div key={index} className="space-y-2">
 						<input
 							className="w-full rounded border border-gray-300 p-2"
-							placeholder="Company"
-							value={item.company}
+							placeholder="Employer"
+							value={item.employer}
 							onChange={(e) =>
 								updateExperience(
 									index,
-									"company",
+									"employer",
 									e.target.value,
 								)
 							}
@@ -222,8 +227,8 @@ export default function View5({
 							}
 						/>
 						<MonthPickerWithRange
-							startDate={item.startDate}
-							endDate={item.endDate}
+								startDate={toDate(item.startDate)}
+								endDate={toDate(item.endDate)}
 							onStartDateChange={(startDate) => {
 								if (startDate) {
 									updateExperience(

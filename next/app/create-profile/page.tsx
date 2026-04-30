@@ -17,7 +17,8 @@ async function getCreateProfileProps() {
 				{
 					school: "Stevens Institute of Technology",
 					level: "Bachelors of Science",
-					date: "2020-08 - 2024-05",
+					startDate: "2020-08",
+					endDate: "2024-05",
 					description: "Computer Science",
 				},
 			],
@@ -25,7 +26,8 @@ async function getCreateProfileProps() {
 				{
 					employer: "Charity Quest",
 					position: "Software Engineer",
-					date: "2021-06 - 2021-08",
+					startDate: "2021-06",
+					endDate: "2021-08",
 					description: "I worked on the frontend",
 				},
 			],

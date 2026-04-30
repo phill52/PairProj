@@ -12,7 +12,6 @@ import type {
 	EducationItem,
 	ExperienceItem,
 	CreateProfileProps,
-	RoleTable,
 	SkillTable,
 	AreaTable,
 } from "../../types/profile-items";
@@ -20,66 +19,59 @@ import View5 from "./components/view5";
 import View6 from "./components/view6";
 
 export type SubmitProfileDataAction =
-	| { type: "SET_ROLES"; payload: RoleTable[] }
 	| { type: "SET_BEST_SKILLS"; payload: SkillTable[] }
 	| { type: "SET_ALL_SKILLS"; payload: SkillTable[] }
 	| { type: "SET_AREAS"; payload: AreaTable[] }
 	| { type: "SET_EDUCATION"; payload: EducationItem[] }
 	| { type: "SET_EXPERIENCE"; payload: ExperienceItem[] }
-	| { type: "SET_USERNAME"; payload: string }
-	| { type: "SET_FIRSTNAME"; payload: string }
-	| { type: "SET_LASTNAME"; payload: string }
-	| { type: "SET_PRONOUNS"; payload: string }
-	| { type: "SET_BIO"; payload: string }
+	| { type: "SET_NAME"; payload: string }
+	| { type: "SET_EMAIL"; payload: string }
+	| { type: "SET_IMAGE"; payload: string }
 	| { type: "RESET" };
 
 const pageData: CreateProfileProps = {
 	profile: {
-		// Will be null by default if user has not created a profile
-		username: "Phill52",
-		first_name: "Phillip",
-		last_name: "Anerine",
-		account_type: ["Developer"],
-		best_skills: ["React"],
-		all_skills: ["React", "TypeScript"],
-		areas: ["Frontend"],
-		education: [
-			{
-				school: "Stevens Institute of Technology",
-				degree: "Bachelors of Science",
-				field: "Computer Science",
-				startDate: new Date("2020-08"),
-				endDate: new Date("2024-05"),
-			},
-		],
-		experience: [
-			{
-				company: "Charity Quest",
-				description: "I worked on the frontend",
-				position: "Software Engineer",
-				startDate: new Date("2021-06"),
-				endDate: new Date("2021-08"),
-			},
-		],
-		name: "Phill",
-		pronouns: "He/Him",
-		bio: "I am a software engineer",
-	},
-	account_types: ["Developer", "Designer", "Product Manager"],
-	skills: [
-		{ name: "React", innerColor: "#398100", outerColor: "#D9EAA8" },
-		{
-			name: "TypeScript",
-			innerColor: "#007ACC",
-			outerColor: "#B3D4FC",
+			name: "Phill",
+			email: "phill@example.com",
+			image: null,
+			areasOfInterest: ["Frontend"],
+			skills: [
+				{ skillId: "react", skillLevel: "Advanced" },
+				{ skillId: "typescript", skillLevel: "Intermediate" },
+			],
+			education: [
+				{
+					school: "Stevens Institute of Technology",
+					level: "Bachelors of Science",
+					startDate: "2020-08",
+					endDate: "2024-05",
+					description: "Computer Science",
+				},
+			],
+			experience: [
+				{
+					employer: "Charity Quest",
+					position: "Software Engineer",
+					startDate: "2021-06",
+					endDate: "2021-08",
+					description: "I worked on the frontend",
+				},
+			],
 		},
-		{ name: "Python", innerColor: "#7B0D00", outerColor: "#E9B0A9" },
-	],
-	areas: [
-		{ name: "Frontend", innerColor: "#398100", outerColor: "#D9EAA8" },
-		{ name: "Backend", innerColor: "#007ACC", outerColor: "#B3D4FC" },
-		{ name: "DevOps", innerColor: "#7B0D00", outerColor: "#E9B0A9" },
-	],
+		skills: [
+			{ name: "React", innerColor: "#398100", outerColor: "#D9EAA8" },
+			{
+				name: "TypeScript",
+				innerColor: "#007ACC",
+				outerColor: "#B3D4FC",
+			},
+			{ name: "Python", innerColor: "#7B0D00", outerColor: "#E9B0A9" },
+		],
+		areas: [
+			{ name: "Frontend", innerColor: "#398100", outerColor: "#D9EAA8" },
+			{ name: "Backend", innerColor: "#007ACC", outerColor: "#B3D4FC" },
+			{ name: "DevOps", innerColor: "#7B0D00", outerColor: "#E9B0A9" },
+		],
 };
 
 export default function CreateProfile({
@@ -96,41 +88,29 @@ export default function CreateProfile({
 		action: SubmitProfileDataAction,
 	): SubmitProfile => {
 		switch (action.type) {
-			case "SET_ROLES":
-				return { ...state, account_type: action.payload };
-			case "SET_BEST_SKILLS":
-				return { ...state, best_skills: action.payload };
 			case "SET_ALL_SKILLS":
-				return { ...state, all_skills: action.payload };
+				return { ...state, skills: action.payload };
 			case "SET_AREAS":
-				return { ...state, areas: action.payload };
+				return { ...state, areasOfInterest: action.payload };
 			case "SET_EDUCATION":
 				return { ...state, education: action.payload };
 			case "SET_EXPERIENCE":
 				return { ...state, experience: action.payload };
-			case "SET_USERNAME":
-				return { ...state, username: action.payload };
-			case "SET_FIRSTNAME":
-				return { ...state, first_name: action.payload };
-			case "SET_LASTNAME":
-				return { ...state, last_name: action.payload };
-			case "SET_PRONOUNS":
-				return { ...state, pronouns: action.payload };
-			case "SET_BIO":
-				return { ...state, bio: action.payload };
+			case "SET_NAME":
+				return { ...state, name: action.payload };
+			case "SET_EMAIL":
+				return { ...state, email: action.payload };
+			case "SET_IMAGE":
+				return { ...state, image: action.payload };
 			case "RESET":
 				return {
-					username: "",
-					first_name: "",
-					last_name: "",
-					account_type: [],
-					best_skills: [],
-					all_skills: [],
-					areas: [],
+					name: "",
+					image: "",
+					email: "",
+					skills: [],
+					areasOfInterest: [],
 					education: [],
 					experience: [],
-					pronouns: "",
-					bio: "",
 				};
 			default:
 				return state;
@@ -166,9 +146,8 @@ export default function CreateProfile({
 					<div className="bg-primary flex flex-col justify-center">
 						{stage === 2 && (
 							<View3
-								AccountTypes={pageData.roles}
-								ExistingTypes={state.account_type}
 								OnUpdate={dispatch}
+								onContinue={() => setStage(3)}
 							/>
 						)}
 						{stage === 3 && (
