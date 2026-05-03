@@ -10,19 +10,15 @@ async function CreateProfilePage() {
 	// const props = await getCreateProjectProps();
 	return <CreateProject pageData={props} />;
 } */
+import { getCreateProjectProps, createProject } from "@/app/actions/projects";
 import { CreateProjectProps } from "@/types/projects";
 
+export default async function Page() {
+  const props = await getCreateProjectProps();
 
-const fallbackProps: CreateProjectProps = {
-	roles: [],
-	skills: [],
-	areasOfInterest: [],
-};
-
-export default function Page() {
-	return (
-		<Suspense fallback={<p>Loading...</p>}>
-			<CreateProject pageData={fallbackProps} />
-		</Suspense>
-	);
+  return (
+    <Suspense fallback={<p>Loading...</p>}>
+      <CreateProject pageData={props as CreateProjectProps} createProjectAction={createProject} />
+    </Suspense>
+  );
 }

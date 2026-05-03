@@ -21,7 +21,7 @@ export default async function Page({ params }: PageProps) {
     <div className="flex" style={{ backgroundColor: "#F0F4F7" }}>
       <Sidebar />
       <div className="w-full rounded-lg p-8">
-        <ProfileActions isSelf={isSelf} />
+        <ProfileActions isSelf={isSelf} userId={currentUserId} />
         <Suspense fallback={<p>Loading...</p>}>
           <ViewProfile profile={profile} isSelf={isSelf} />
         </Suspense>

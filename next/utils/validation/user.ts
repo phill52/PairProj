@@ -33,14 +33,10 @@ export const SubmitProfileZSchema = z.object({
 				.max(100),
 
 			startDate: z
-				.string()
-				.min(1, "Start date required")
-				.datetime(),
+				.coerce.date(),
 
 			endDate: z
-				.string()
-				.min(1, "End date required")
-				.datetime(),
+				.coerce.date(),
 
 			description: z
 				.string()
@@ -62,13 +58,9 @@ export const SubmitProfileZSchema = z.object({
 				.min(1, "Position required")
 				.max(100),
 			startDate: z
-				.string()
-				.min(1, "Start date required")
-				.datetime(),
+				.coerce.date(),
 			endDate: z
-				.string()
-				.min(1, "End date required")
-				.datetime(),
+				.coerce.date(),
 			description: z
 				.string()
 				.trim()

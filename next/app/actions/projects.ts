@@ -2,6 +2,9 @@
 import { auth } from "@/lib/auth";
 import db from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { SubmitProject } from "@/types/projects";
+import { createProject as createProjectLib } from "@/lib/projects";
+
 
 export async function applyToProject(
 	projectId: string,
@@ -54,6 +57,23 @@ async function isProjectOwner(tx: any, projectId: string, userId: string) {
 		},
 	});
 }
+
+// import { eq } from "drizzle-orm";
+// import { revalidatePath } from "next/cache";
+// import { z } from "zod";
+// import {
+// 	areas_of_interest,
+// 	project,
+// 	skill,
+// 	role,
+// 	users,
+// 	project_role_relationship,
+// 	project_role_skill_relationship,
+// } from "@/db/schema";
+// import { SubmitProjectSchema } from "@/utils/validation/projects";
+// import { routes } from "@/routes/routes";
+
+
 
 export async function acceptProjectApplicant(applicationId: string) {
 	const session = await auth();
