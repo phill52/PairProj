@@ -373,13 +373,6 @@ export function ViewProfile({ profile, isSelf }: { profile: any, isSelf: boolean
 											href={routes.projects.project({ id: project.id })}
 											className="group flex cursor-pointer flex-row"
 										>
-											<Image
-												src={project.profile_picture}
-												alt={project.name}
-												width={100}
-												height={100}
-												className="mr-2 h-[7rem] w-[7rem] rounded-full object-cover"
-											/>
 											<div>
 												<h3 className="text-2xl font-bold group-hover:underline">
 													{project.name}
