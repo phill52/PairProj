@@ -144,83 +144,83 @@ export async function createProfile(profile: SubmitProfile) {
 	}
 }
 
-export async function updateProfile(profile: SubmitProfile) {
-	let validatedProfile: z.infer<typeof SubmitProfileZSchema>;
-	try {
-	  validatedProfile = SubmitProfileZSchema.parse(profile);
-	} catch (error) {
-		if (error instanceof z.ZodError) {
-			throw new Error(
-				JSON.stringify(
-					error.errors.map((err) => ({
-						path: err.path.join("."),
-						message: err.message
-					})),
-				),
-			);
-		}
-		throw new Error("An unexpected error occurred during validation");
-	}
+// export async function updateProfile(profile: SubmitProfile) {
+// 	let validatedProfile: z.infer<typeof SubmitProfileZSchema>;
+// 	try {
+// 	  validatedProfile = SubmitProfileZSchema.parse(profile);
+// 	} catch (error) {
+// 		if (error instanceof z.ZodError) {
+// 			throw new Error(
+// 				JSON.stringify(
+// 					error.errors.map((err) => ({
+// 						path: err.path.join("."),
+// 						message: err.message
+// 					})),
+// 				),
+// 			);
+// 		}
+// 		throw new Error("An unexpected error occurred during validation");
+// 	}
   
-	const session = await auth();
-	if (!session?.user?.id) {
-	  throw new Error("Not authorized to update profile.");
-	}
+// 	const session = await auth();
+// 	if (!session?.user?.id) {
+// 	  throw new Error("Not authorized to update profile.");
+// 	}
   
-	const { name, email, image, areasOfInterest, skills, education, experience } =
-	  validatedProfile;
+// 	const { name, email, image, areasOfInterest, skills, education, experience } =
+// 	  validatedProfile;
   
-	try {
-	  const updatedProfile = await db.user.update({
-		where: { id: session.user.id },
-		data: {
-		  name,
-		  email,
-		  image,
-		  areasOfInterest: {
-			set: areasOfInterest.map((id) => ({ id }))
-		  },
-		  skills: {
-			deleteMany: {}, 
-			create: skills.map((skl) => ({
-			  skillId: skl.skillId,
-			  skillLevel: skl.skillLevel
-			})),
-		  },
-		  education: {
-			deleteMany: {}, 
-			create: education.map((edu) => ({
-			  	school: edu.school,
-				level: edu.level,
-				startDate: edu.startDate,
-				endDate: edu.endDate,
-				description: edu.description
-			})),
-		  },
-		  experience: {
-			deleteMany: {}, 
-			create: experience.map((xp) => ({
-				employer: xp.employer,
-				position: xp.position,
-				startDate: xp.startDate,
-				endDate: xp.endDate,
-				description: xp.description
-			})),
-		  },
-		},
-		include: {
-			areasOfInterest: true,
-			skills: true,
-			education: true,
-			experience: true
-		},
-	  });
+// 	try {
+// 	  const updatedProfile = await db.user.update({
+// 		where: { id: session.user.id },
+// 		data: {
+// 		  name,
+// 		  email,
+// 		  image,
+// 		  areasOfInterest: {
+// 			set: areasOfInterest.map((id) => ({ id }))
+// 		  },
+// 		  skills: {
+// 			deleteMany: {}, 
+// 			create: skills.map((skl) => ({
+// 			  skillId: skl.skillId,
+// 			  skillLevel: skl.skillLevel
+// 			})),
+// 		  },
+// 		  education: {
+// 			deleteMany: {}, 
+// 			create: education.map((edu) => ({
+// 			  	school: edu.school,
+// 				level: edu.level,
+// 				startDate: edu.startDate,
+// 				endDate: edu.endDate,
+// 				description: edu.description
+// 			})),
+// 		  },
+// 		  experience: {
+// 			deleteMany: {}, 
+// 			create: experience.map((xp) => ({
+// 				employer: xp.employer,
+// 				position: xp.position,
+// 				startDate: xp.startDate,
+// 				endDate: xp.endDate,
+// 				description: xp.description
+// 			})),
+// 		  },
+// 		},
+// 		include: {
+// 			areasOfInterest: true,
+// 			skills: true,
+// 			education: true,
+// 			experience: true
+// 		},
+// 	  });
   
-	  return updatedProfile;
-	} catch (e) {
-	  throw new Error(`Failed to update profile: (${e})`);
-	}
-}
+// 	  return updatedProfile;
+// 	} catch (e) {
+// 	  throw new Error(`Failed to update profile: (${e})`);
+// 	}
+// }
 
 export async function deleteProfile() {
   const session = await auth();
