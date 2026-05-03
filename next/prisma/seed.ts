@@ -162,7 +162,7 @@ async function main() {
 		githubLink: "https://github.com/phill52/PairProj",
 		difficulty: "Intermediate",
 		description: "Test description",
-		skills: [],
+		skills: [skills[0].id, skills[1].id],
 		areasOfInterest: [],
 		roles: [
 			{
@@ -195,9 +195,9 @@ async function main() {
 	const project2 = await createProject(userId, {
 		name: "myproject",
 		githubLink: "https://github.com/phill52/PairProj",
-		difficulty: "Easy",
+		difficulty: "Beginner",
 		description: "test project",
-		skills: [],
+		skills: [skills[2].id, skills[5].id],
 		areasOfInterest: [],
 		roles: [
 			{
