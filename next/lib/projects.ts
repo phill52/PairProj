@@ -131,7 +131,9 @@ export async function createProject(
 		const existing = await db.project.findFirst({
 			where: {
 				name: name,
-				ProjectMembership: { some: { userId: userId, role: { name: OWNER_ROLE_NAME, }, } },
+				ProjectMembership: {
+					some: { userId: userId, role: { name: OWNER_ROLE_NAME } },
+				},
 			},
 		});
 
@@ -153,11 +155,12 @@ export async function createProject(
 						connect: areasOfInterest.map((id) => ({ id })),
 					},
 					roles: {
-						create: (roles ?? []).map((role) => ({
+						create: requestedRoles.map((role) => ({
 							...buildRoleCreateData(role),
 						})),
 					},
-				}});
+				},
+			});
 
 			const ownerRole = await tx.role.create({
 				data: {
@@ -182,18 +185,6 @@ export async function createProject(
 					dateJoined: new Date().toISOString(),
 				},
 			});
-
-			
-
-
-			for (const role of requestedRoles) {
-				await tx.role.create({
-					data: {
-						...buildRoleCreateData(role),
-						project: { connect: { id: project.id } },
-					},
-				});
-			}
 
 			return project;
 		});
@@ -230,16 +221,7 @@ export async function createProject(
 // 				skills: {
 // 					set: skills.map((id) => ({ id })),
 // 				},
-// 				areasOfInterest: {
-// 					set: areasOfInterest.map((id) => ({ id })),
-// 				},
-// 				roles: {
-// 					deleteMany: {},
-// 					create: roles.map((role) => ({
-// 						name: role.name,
-// 						outerColor: role.outerColor,
-// 						innerColor: role.innerColor,
-// 						requiredSkills: role.requiredSkillIds
+
 // 							? {
 // 									connect: role.requiredSkillIds.map(
 // 										(id) => ({ id }),
@@ -443,7 +425,9 @@ export async function getRelevantProjects(userId: string) {
 				name: role.name,
 				outerColor: role.outerColor,
 				innerColor: role.innerColor,
-				matchingSkills: role.requiredSkills.map((required) => required.skill),
+				matchingSkills: role.requiredSkills.map(
+					(required) => required.skill,
+				),
 			})),
 		}));
 	});

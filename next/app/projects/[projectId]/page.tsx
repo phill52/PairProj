@@ -1,16 +1,11 @@
 import { Suspense } from "react";
 
 import ProjectDetails from "./project-details";
-import DemoPage from "./demo";
 import Sidebar from "@/components/sidebar";
 import { auth } from "@/lib/auth";
 import { getProject, getProjectOwner, getProjectMembers, getRolesAppliedTo } from "@/lib/projects";
 
 async function ProjectDetailsPage({ params }: { params: { projectId: string } }) {
-	if (params.projectId === "demo") {
-		const props = await DemoPage();
-		return <ProjectDetails project={props} />;
-	}
 
 	const session = await auth();
 	const currentUserId = session?.user.id;
