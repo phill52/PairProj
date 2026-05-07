@@ -71,31 +71,35 @@ export default function CreateProject({
 
 		const allSkillIds = new Set<string>();
 
-		const roles = Object.entries(state.roles || {}).map(([roleName, info]) => {
 
-			const roleRef = pageData.roles.find((r) => r.name === roleName);
-			const outerColor = roleRef?.outerColor ?? (roleRef as any)?.outer_color ?? "#D9D9D9";
-			const innerColor = roleRef?.innerColor ?? (roleRef as any)?.inner_color ?? "#000000";
+		const roles = Object.entries(state.roles || {})
+			.filter(([roleName]) => roleName.toLowerCase() !== "owner")
+			.map(([roleName, info]) => {
+				const roleRef = pageData.roles.find((r) => r.name === roleName);
+				const outerColor = roleRef?.outerColor ?? (roleRef as any)?.outer_color ?? "#D9D9D9";
+				const innerColor = roleRef?.innerColor ?? (roleRef as any)?.inner_color ?? "#000000";
 
-			const optionalSkillIds = (info.skills || [])
-				.map((s: any) => s.id ?? findSkillIdByName(s.name))
-				.filter((id: string | undefined): id is string => Boolean(id));
-			const requiredSkillIds = (info.requiredSkills || [])
-				.map((s: any) => s.id ?? findSkillIdByName(s.name))
-				.filter((id: string | undefined): id is string => Boolean(id));
+				const requiredSkillIds = (info.requiredSkills || [])
+					.map((s: any) => s.id ?? findSkillIdByName(s.name))
+					.filter((id: string | undefined): id is string => Boolean(id));
 
-			optionalSkillIds.forEach((id) => allSkillIds.add(id));
-			requiredSkillIds.forEach((id) => allSkillIds.add(id));
+				const optionalSkillIds = (info.skills || [])
+					.map((s: any) => s.id ?? findSkillIdByName(s.name))
+					.filter((id: string | undefined): id is string => Boolean(id))
+					.filter((id) => !requiredSkillIds.includes(id));
 
-			return {
-				name: roleName,
-				outerColor,
-				innerColor,
-				description: info.description || undefined,
-				optionalSkillIds: optionalSkillIds.length ? optionalSkillIds : undefined,
-				requiredSkillIds: requiredSkillIds.length ? requiredSkillIds : undefined,
-			};
-		});
+				requiredSkillIds.forEach((id) => allSkillIds.add(id));
+				optionalSkillIds.forEach((id) => allSkillIds.add(id));
+
+				return {
+					name: roleName,
+					outerColor,
+					innerColor,
+					description: info.description || undefined,
+					optionalSkillIds: optionalSkillIds.length ? optionalSkillIds : undefined,
+					requiredSkillIds: requiredSkillIds.length ? requiredSkillIds : undefined,
+				};
+			});
 
 		return {
 			name: state.name,
@@ -142,8 +146,11 @@ export default function CreateProject({
 					),
 				};
 			}
-			case "TOGGLE_ROLE":
+			case "TOGGLE_ROLE": {
 				const role = action.payload;
+				if (typeof role === "string" && role.toLowerCase() === "owner") {
+					return state;
+				}
 				if (state.roles[role]) {
 					const { [role]: _, ...roles } = state.roles;
 					return { ...state, roles };
@@ -160,6 +167,7 @@ export default function CreateProject({
 						},
 					};
 				}
+			}
 			case "SET_ROLE_DESCRIPTION":
 				return {
 					...state,
@@ -171,44 +179,33 @@ export default function CreateProject({
 						},
 					},
 				};
-			case "TOGGLE_SKILL_FOR_ROLE":
+			case "TOGGLE_SKILL_FOR_ROLE": {
 				const { roleName, skill, isRequired } = action.payload;
 				const roleInfo = state.roles[roleName];
 				if (!roleInfo) return state;
 
-				let updatedSkills = [...roleInfo.skills];
-				const skillIndex = updatedSkills.findIndex(
-					(s) => s.name === skill.name,
-				);
+				let updatedSkills = [...(roleInfo.skills || [])];
+				let updatedRequiredSkills = [...(roleInfo.requiredSkills || [])];
 
-				let updatedRequiredSkills = [...roleInfo.requiredSkills];
-				const requiredSkillIndex = updatedRequiredSkills.findIndex(
-					(s) => s.name === skill.name,
-				);
+				const optIndex = updatedSkills.findIndex((s) => s.name === skill.name);
+				const reqIndex = updatedRequiredSkills.findIndex((s) => s.name === skill.name);
 
 				if (isRequired) {
-					if (requiredSkillIndex === -1) {
+					if (reqIndex === -1) {
 						updatedRequiredSkills.push(skill);
-						if (skillIndex === -1) {
-							updatedSkills.push(skill);
-						}
-					} else {
-						updatedRequiredSkills = updatedRequiredSkills.filter(
-							(s) => s.name !== skill.name,
-						);
+					}
+					if (optIndex !== -1) {
+						updatedSkills.splice(optIndex, 1);
 					}
 				} else {
-					if (skillIndex === -1) {
+					if (optIndex === -1) {
 						updatedSkills.push(skill);
-					} else {
-						updatedSkills = updatedSkills.filter(
-							(s) => s.name !== skill.name,
-						);
-						updatedRequiredSkills = updatedRequiredSkills.filter(
-							(s) => s.name !== skill.name,
-						);
+					}
+					if (reqIndex !== -1) {
+						updatedRequiredSkills.splice(reqIndex, 1);
 					}
 				}
+
 				return {
 					...state,
 					roles: {
@@ -220,6 +217,7 @@ export default function CreateProject({
 						},
 					},
 				};
+			}
 			case "SET_SKILL_LEVEL":
 				return { ...state, difficulty: action.payload };
 			case "SET_GITHUB":

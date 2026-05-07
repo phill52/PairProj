@@ -53,7 +53,12 @@ export default function View2({
 	return (
 		<div className="flex flex-col p-4 lg:px-40">
 			<h1 className="text-lg">Roles needed</h1>
-			<Autocomplete options={roles.map((role) => role.name)} onSelect={toggleRole} />
+			<Autocomplete
+				options={roles
+						.filter((r) => r.name.toLowerCase() !== "owner")
+						.map((role) => role.name)}
+				onSelect={toggleRole}
+			/>
 
 			<div className="mt-2 flex items-center space-x-2">
 				<Input
@@ -75,7 +80,9 @@ export default function View2({
 					Add
 				</Button>
 			</div>
-			{Object.entries(State.roles).map(([roleName, roleInfo]) => (
+			{Object.entries(State.roles)
+				.filter(([roleName]) => roleName.toLowerCase() !== "owner")
+				.map(([roleName, roleInfo]) => (
 				<div key={roleName} className="mt-4">
 					<h3 className="text-xl font-bold">{roleName}</h3>
 					<Textarea
@@ -91,7 +98,7 @@ export default function View2({
 							})
 						}
 					/>
-					<h4 className="mt-2 font-semibold">Skills:</h4>
+					<h4 className="mt-2 font-semibold">Optional Skills:</h4>
 					<Autocomplete
 						options={skills.map((skill) => skill.name)}
 						onSelect={(value) => {
