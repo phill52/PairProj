@@ -49,9 +49,8 @@ function MultiSelect({
 					variant="outline"
 					role="combobox"
 					aria-expanded={open}
-					className={`w-48 justify-between ${
-						selected.length > 1 ? "h-full" : "h-10"
-					}`}
+					className={`w-full justify-between ${selected.length > 1 ? "h-full" : "h-10"}`}
+					onClick={() => setOpen(!open)}
 				>
 					<p>{name}</p>
 					<Image
@@ -63,65 +62,49 @@ function MultiSelect({
 					/>
 				</Button>
 			</PopoverTrigger>
-
-			<PopoverContent className="w-48 p-0">
+			<PopoverContent className="w-full p-0">
 				<Command className={className}>
-					<CommandInput placeholder={`Search ${name}...`} />
+					<CommandInput placeholder="Search ..." />
 					<CommandEmpty>No item found.</CommandEmpty>
-
-					<CommandGroup className="max-h-64 overflow-auto">
-						{options.map((option) => {
-							const isSelected = selected.some(
-								(item) =>
-									item.label === label &&
-									item.value === option.value,
-							);
-
-							return (
-								<CommandItem
-									key={option.value}
-									onSelect={() => {
-										if (isSelected) {
-											onChange(
-												selected.filter(
-													(item) =>
-														!(
-															item.label ===
-																label &&
-															item.value ===
-																option.value
-														),
-												),
-											);
-										} else {
-											onChange([
-												...selected,
-												{
-													label: label,
-													value: option.value,
-												},
-											]);
-										}
-
-										setOpen(false);
-									}}
-								>
-									{option.label}
-
-									<Image
-										alt="check"
-										src="/icons/checkmark-outline.svg"
-										className={`ml-auto ${
-											isSelected
-												? "opacity-100"
-												: "opacity-0"
-										}`}
-										width={20}
-										height={20}
-									/>
-								</CommandItem>
-							);
-						})}
+					<CommandGroup className="-left-0 max-h-64 overflow-auto">
+						{options.map((option) => (
+							<CommandItem
+								key={option.value}
+								onSelect={() => {
+									const isSelected = selected.some(
+										(item) =>
+											item.label === label &&
+											item.value === option.value,
+									);
+									if (isSelected) {
+										onChange(
+											selected.filter(
+												(item) =>
+													item.value !== option.value,
+											),
+										);
+									} else {
+										onChange([
+											...selected,
+											{
+												label: label,
+												value: option.value,
+											},
+										]);
+									}
+									setOpen(true);
+								}}
+							>
+								{option.label}
+								<Image
+									alt="check"
+									src="/icons/checkmark-outline.svg"
+									className={`ml-auto ${selected.some((item) => item.value === option.value) ? "opacity-100" : "opacity-0"} `}
+									width={20}
+									height={20}
+								/>
+							</CommandItem>
+						))}
 					</CommandGroup>
 				</Command>
 			</PopoverContent>
