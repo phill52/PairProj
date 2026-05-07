@@ -35,7 +35,7 @@ export async function applyToProject(
 				message: "You have already applied to this role.",
 			};
 		}
-		await tx.projectApplication.create({
+		const application = await tx.projectApplication.create({
 			data: {
 				project: { connect: { id: projectId } },
 				user: { connect: { id: userId } },
@@ -206,70 +206,57 @@ export async function denyProjectApplicant(applicationId: string) {
 	});
 }
 
-export async function getProjects({
-	skills,
-	difficulty,
-	query,
-	status,
-	team,
-}: {
-	skills?: string[];
-	difficulty?: string;
-	query?: string;
-	status?: string;
-	team?: string;
-}) {
-	const where: any = {};
 
-	if (difficulty) {
-		where.difficulty = difficulty;
+export async function getCreateProjectProps() {
+    
+	async function safeFindMany<T>(finder: () => Promise<T[]>, name: string) {
+		try {
+			return await finder();
+		} catch (e) {
+			// eslint-disable-next-line no-console
+			console.warn(`getCreateProjectProps: failed to load ${name}`, e);
+			return [] as T[];
+		}
 	}
 
-	if (query) {
-		where.name = {
-			contains: query,
-		};
-	}
+	const [roles, skills, areasOfInterest] = await Promise.all([
+		safeFindMany(() => db.role.findMany({ select: { id: true, name: true, outerColor: true, innerColor: true } }), "roles"),
+		safeFindMany(() => db.skill.findMany({ select: { id: true, name: true, outerColor: true, innerColor: true } }), "skills"),
+		safeFindMany(() => db.areaOfInterest.findMany({ select: { id: true, name: true, outerColor: true, innerColor: true } }), "areasOfInterest"),
+	]);
 
-	if (skills && skills.length > 0) {
-		where.skills = {
-			some: {
-				name: {
-					in: skills,
-				},
-			},
-		};
-	}
-
-	if (status === "open") {
-	where.isLocked = false;
-	}
-
-	if (status === "closed") {
-	where.isLocked = true;
-	}
-
-	let projects = await db.project.findMany({
-		where,
-		include: {
-			skills: true,
-			areasOfInterest: true,
-			ProjectMembership: true,
-			applications: true,
-		},
-	});
-
-	if (team) {
-		projects = projects.filter((p) => {
-			const size = p.ProjectMembership.length;
-
-			if (team === "small") return size <= 3;
-			if (team === "medium") return size <= 10;
-			if (team === "large") return size > 10;
-
-			return true;
-		});
-	}
-
-	return projects;
+	return { roles, skills, areasOfInterest };
 }
+
+export async function createProject(submitProject: SubmitProject) {
+	let session;
+	try {
+		session = await auth();
+	} catch (e) {
+		
+	}
+
+	if (!session) {
+		throw new Error("Not authenticated");
+	}
+
+	const userId = session.user.id;
+	return await createProjectLib(userId, submitProject);
+}
+
+// export async function getProject(projectId: string): Promise<ProjectProps> {
+// 	const result = await db.query.project.findFirst({
+// 		where: eq(project.id, projectId),
+// 		with: {
+// 			roles: {
+// 				with: {
+// 					role: true,
+// 					skills: {
+// 						with: {
+// 							skill: true,
+// 						},
+// 					},
+// 				},
+// 			},
+// 		},
+// 	});
