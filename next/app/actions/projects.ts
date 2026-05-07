@@ -244,19 +244,82 @@ export async function createProject(submitProject: SubmitProject) {
 	return await createProjectLib(userId, submitProject);
 }
 
-// export async function getProject(projectId: string): Promise<ProjectProps> {
-// 	const result = await db.query.project.findFirst({
-// 		where: eq(project.id, projectId),
-// 		with: {
-// 			roles: {
-// 				with: {
-// 					role: true,
-// 					skills: {
-// 						with: {
-// 							skill: true,
-// 						},
-// 					},
-// 				},
-// 			},
-// 		},
-// 	});
+export async function getProjects(filters?: {
+	skills?: string;
+	difficulty?: string;
+	query?: string;
+	team?: string;
+}) {
+	const skillIds = filters?.skills
+		? filters.skills.split(",").filter(Boolean)
+		: [];
+
+	return await db.project.findMany({
+		where: {
+			...(filters?.query
+				? {
+						OR: [
+							{
+								name: {
+									contains: filters.query,
+								},
+							},
+							{
+								description: {
+									contains: filters.query,
+								},
+							},
+						],
+					}
+				: {}),
+
+			...(filters?.difficulty
+				? {
+						difficulty: filters.difficulty,
+					}
+				: {}),
+
+			...(skillIds.length > 0
+				? {
+						skills: {
+							some: {
+								id: {
+									in: skillIds,
+								},
+							},
+						},
+					}
+				: {}),
+		},
+		include: {
+			areasOfInterest: true,
+			skills: true,
+			roles: {
+				include: {
+					requiredSkills: {
+						include: {
+							skill: true,
+						},
+					},
+					optionalSkills: {
+						include: {
+							skill: true,
+						},
+					},
+				},
+			},
+			ProjectMembership: {
+				include: {
+					user: true,
+				},
+			},
+			githubIssues: {
+				include: {
+					labels: true,
+					assigned: true,
+				},
+			},
+			applications: true,
+		},
+	});
+}
