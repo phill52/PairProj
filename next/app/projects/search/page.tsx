@@ -1,3 +1,4 @@
+import Sidebar from "@/components/sidebar";
 import FilterBar from "./components/filter-bar";
 import ProjectCard from "./components/project-card";
 import { FiltersProvider } from "./FiltersContext";
@@ -33,17 +34,20 @@ export default async function Page({
 
 	return (
 		<FiltersProvider>
-			<div
-				className="md:flex md:flex-col md:items-center min-h-screen"
-				style={{ backgroundColor: "#F0F4F7" }}
-			>
-				<div className="w-full max-w-7xl px-4 pt-4 lg:px-8">
-					<FilterBar />
-				</div>
+			<div className="flex min-h-screen bg-[#f0f4f7]">
+				<Sidebar />
 
-				<div>
-					<ProjectCard projects={projects} />
-				</div>
+				<main className="flex-grow">
+					<div className="md:flex md:min-h-screen md:flex-col md:items-center">
+						<div className="w-full max-w-7xl px-4 pt-4 lg:px-8">
+							<FilterBar />
+						</div>
+
+						<div>
+							<ProjectCard projects={projects} />
+						</div>
+					</div>
+				</main>
 			</div>
 		</FiltersProvider>
 	);
