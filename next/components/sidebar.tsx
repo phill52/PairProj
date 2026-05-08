@@ -84,8 +84,11 @@ const Sidebar = async () => {
 						/>
 						<p className="text-md text-black">Create New Project</p>
 					</Link>
-					{/* TODO: Add link here when the search page is merged */}
-					<div className="flex w-full cursor-pointer items-center space-x-4 rounded-md px-4 py-2 transition-all ease-linear hover:bg-gray-200 dark:hover:bg-gray-700">
+					<Link
+						href={routes.projects.search()}
+						className="flex w-full cursor-pointer items-center space-x-4 rounded-md px-4 py-2 transition-all ease-linear hover:bg-gray-200 dark:hover:bg-gray-700"
+						aria-label="Search projects"
+					>
 						<Image
 							src="/icons/search-light.svg"
 							alt="Search Projects"
@@ -93,7 +96,7 @@ const Sidebar = async () => {
 							height={30}
 						/>
 						<p className="text-md text-black">Search Projects</p>
-					</div>
+					</Link>
 				</div>
 				<Divider />
 				<div className="flex w-[17.5rem] flex-col items-start">
