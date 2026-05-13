@@ -4,7 +4,7 @@ import db from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { SubmitProject } from "@/types/projects";
 import { createProject as createProjectLib } from "@/lib/projects";
-
+import { boolean } from "zod";
 
 export async function applyToProject(
 	projectId: string,
@@ -72,8 +72,6 @@ async function isProjectOwner(tx: any, projectId: string, userId: string) {
 // } from "@/db/schema";
 // import { SubmitProjectSchema } from "@/utils/validation/projects";
 // import { routes } from "@/routes/routes";
-
-
 
 export async function acceptProjectApplicant(applicationId: string) {
 	const session = await auth();
@@ -206,9 +204,7 @@ export async function denyProjectApplicant(applicationId: string) {
 	});
 }
 
-
 export async function getCreateProjectProps() {
-    
 	async function safeFindMany<T>(finder: () => Promise<T[]>, name: string) {
 		try {
 			return await finder();
@@ -220,9 +216,42 @@ export async function getCreateProjectProps() {
 	}
 
 	const [roles, skills, areasOfInterest] = await Promise.all([
-		safeFindMany(() => db.role.findMany({ select: { id: true, name: true, outerColor: true, innerColor: true } }), "roles"),
-		safeFindMany(() => db.skill.findMany({ select: { id: true, name: true, outerColor: true, innerColor: true } }), "skills"),
-		safeFindMany(() => db.areaOfInterest.findMany({ select: { id: true, name: true, outerColor: true, innerColor: true } }), "areasOfInterest"),
+		safeFindMany(
+			() =>
+				db.role.findMany({
+					select: {
+						id: true,
+						name: true,
+						outerColor: true,
+						innerColor: true,
+					},
+				}),
+			"roles",
+		),
+		safeFindMany(
+			() =>
+				db.skill.findMany({
+					select: {
+						id: true,
+						name: true,
+						outerColor: true,
+						innerColor: true,
+					},
+				}),
+			"skills",
+		),
+		safeFindMany(
+			() =>
+				db.areaOfInterest.findMany({
+					select: {
+						id: true,
+						name: true,
+						outerColor: true,
+						innerColor: true,
+					},
+				}),
+			"areasOfInterest",
+		),
 	]);
 
 	return { roles, skills, areasOfInterest };
@@ -232,9 +261,7 @@ export async function createProject(submitProject: SubmitProject) {
 	let session;
 	try {
 		session = await auth();
-	} catch (e) {
-		
-	}
+	} catch (e) {}
 
 	if (!session) {
 		throw new Error("Not authenticated");
@@ -245,14 +272,13 @@ export async function createProject(submitProject: SubmitProject) {
 }
 
 export async function getProjects(filters?: {
-	skills?: string;
+	skills?: string[];
 	difficulty?: string;
 	query?: string;
+	status?: string;
 	team?: string;
 }) {
-	const skillIds = filters?.skills
-		? filters.skills.split(",").filter(Boolean)
-		: [];
+	const skillIds = filters?.skills?.filter(Boolean) ?? [];
 
 	return await db.project.findMany({
 		where: {
@@ -283,7 +309,7 @@ export async function getProjects(filters?: {
 				? {
 						skills: {
 							some: {
-								id: {
+								name: {
 									in: skillIds,
 								},
 							},
